@@ -1,0 +1,66 @@
+# Forgentic (codename: Synterra) — lefthook config.
+#
+# Why lefthook (vs husky / simple-git-hooks):
+#   - Native parallelism (no JS process-per-hook overhead).
+#   - Workspace-aware turbo filters so typecheck/test only run on affected
+#     packages in pre-commit — essential at monorepo scale.
+#   - `stage_fixed: true` auto-stages lint/format auto-fixes so the commit
+#     contains the fixed version without a second `git add`.
+#
+# Install is wired via `package.json` -> `"prepare": "lefthook install"`.
+# Emergency skip: `LEFTHOOK=0 git commit …` (discouraged; NEVER `--no-verify`
+# on main branch — CI will reject).
+
+# Colorised, terse output.
+colors: true
+skip_output:
+  - meta       # silence "LEFTHOOK >" headers
+  - execution  # silence per-command timing
+
+pre-commit:
+  parallel: true
+  commands:
+    prettier:
+      priority: 1
+      glob: '*.{ts,tsx,js,jsx,mjs,cjs,mts,cts,json,jsonc,md,mdx,yml,yaml,css,scss,html}'
+      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+
+    eslint:
+      priority: 1
+      glob: '*.{ts,tsx,js,jsx,mjs,cjs,mts,cts}'
+      # `--no-warn-ignored` suppresses noise when staged files are outside
+      # ESLint's config scope (e.g. a repo-config file like .prettierrc.mjs).
+      run: pnpm exec eslint --fix --max-warnings=0 --no-warn-ignored {staged_files}
+      stage_fixed: true
+
+    typecheck-affected:
+      priority: 2
+      # Only runs typecheck on workspaces whose files (or whose transitive
+      # dependents) changed vs HEAD. Empty match = instant no-op.
+      run: pnpm turbo run typecheck --filter='...[HEAD]' --output-logs=errors-only
+      skip:
+        - merge
+        - rebase
+
+    test-affected:
+      priority: 2
+      run: pnpm turbo run test --filter='...[HEAD]' --output-logs=errors-only
+      skip:
+        - merge
+        - rebase
+
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}
+
+pre-push:
+  parallel: true
+  commands:
+    # Full-graph safety-net before a push reaches the remote. CI will also
+    # run these, but failing fast locally saves a round-trip.
+    typecheck:
+      run: pnpm turbo run typecheck --output-logs=errors-only
+    test:
+      run: pnpm turbo run test --output-logs=errors-only

@@ -104,16 +104,11 @@
 - [ ] H9 — Cada package con `package.json` (`name: "@synterra/<pkg>"`, `private: true`, `main/types` a `dist/` o `src/` según corresponda)
 
 ## I. Pre-commit — lefthook (workspace-aware, parallel)
-- [ ] I1 — `lefthook.yml` raíz con `pre-commit` parallel:
-  - `prettier`: `prettier --write` sobre staged (`{staged_files}`)
-  - `eslint`: `eslint --fix` sobre staged (`{staged_files}`)
-  - `typecheck-affected`: `pnpm turbo run typecheck --filter=...[HEAD]` — solo workspaces tocados
-  - `test-affected`: `pnpm turbo run test --filter=...[HEAD]` — solo workspaces tocados
-  - `stage_fixed: true` para prettier+eslint
-- [ ] I2 — `commit-msg` hook: `pnpm commitlint --edit {1}` (valida conventional commits)
-- [ ] I3 — `commitlint.config.cjs` raíz extendiendo `@commitlint/config-conventional` + scopes enumerados (`web`, `api`, `workers`, `db`, `auth`, `billing`, `aquila-client`, `ui`, `emails`, `telemetry`, `shared`, `infra`, `ci`, `docs`, `deps`)
-- [ ] I4 — `lefthook install` en `prepare` script del `package.json` raíz (no `postinstall`, para evitar fallos en CI sin git)
-- [ ] I5 — Doc `Synterra/CONTRIBUTING.md` con ejemplo de commit conventional válido + troubleshooting lefthook
+- [x] I1 — `lefthook.yml` ✅ (2026-04-19) — `pre-commit` parallel: prettier (`--write --ignore-unknown` + `stage_fixed`), eslint (`--fix --max-warnings=0 --no-warn-ignored` + `stage_fixed`), typecheck-affected (`turbo --filter='...[HEAD]'` + skip en merge/rebase), test-affected (igual). Más `pre-push` full-graph (belt-and-braces).
+- [x] I2 — `commit-msg` hook ✅ (2026-04-19) — `pnpm exec commitlint --edit {1}`.
+- [x] I3 — `commitlint.config.cjs` ✅ (2026-04-19) — extends `@commitlint/config-conventional`; scope-enum con 18 scopes (apps: web/api/workers; packages: db/auth/billing/aquila-client/ui/emails/telemetry/shared; cross-cutting: infra/ci/docs/deps/tooling/tests/release); scope-empty=never, scope-case=kebab-case, subject-case=sentence+lower, subject-max-length=100, header-max-length=100, body-max-line-length=120, body+footer-leading-blank.
+- [x] I4 — `lefthook install` en `prepare` ✅ (ya existía en el package.json desde B3).
+- [x] I5 — `CONTRIBUTING.md` ✅ (2026-04-19) — prerequisites (fnm + corepack + pnpm 10.33.0), tabla de types + scopes, ejemplos good/bad, sección breaking changes, docs de hooks (pre-commit scope per comando + blocks commit?), emergency skip (`LEFTHOOK=0`, nunca `--no-verify`), troubleshooting (shallow clone + `[HEAD]`, commitlint on merges, prettier/eslint loop, CI commitlint fail), pre-PR checklist, code of conduct.
 
 ## J. CI — GitHub Actions
 - [x] J1 — `.github/workflows/ci.yml` ✅ (2026-04-19) — PR/push main + workflow_dispatch; concurrency cancela runs viejos; jobs paralelos: `lint` (ESLint + prettier format:check), `typecheck`, `test` (uploads coverage + junit artefacts), `build`, `commitlint` (PR-only con env-indirection de SHAs); Node 22, pnpm 10.33.0 vía `pnpm/action-setup@v4`, cache pnpm store vía `actions/setup-node@v4`. `TURBO_TOKEN/TURBO_TEAM` pasan a env listos para activar remote cache.
