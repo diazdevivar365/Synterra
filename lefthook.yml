@@ -14,25 +14,29 @@
 # Colorised, terse output.
 colors: true
 skip_output:
-  - meta       # silence "LEFTHOOK >" headers
-  - execution  # silence per-command timing
+  - meta # silence "LEFTHOOK >" headers
+  - execution # silence per-command timing
 
 pre-commit:
   parallel: true
   commands:
     prettier:
       priority: 1
-      glob: '*.{ts,tsx,js,jsx,mjs,cjs,mts,cts,json,jsonc,md,mdx,yml,yaml,css,scss,html}'
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs,mts,cts,json,jsonc,md,mdx,yml,yaml,css,scss,html}"
       run: pnpm exec prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
 
     eslint:
       priority: 1
-      glob: '*.{ts,tsx,js,jsx,mjs,cjs,mts,cts}'
-      # `--no-warn-ignored` suppresses noise when staged files are outside
-      # ESLint's config scope (e.g. a repo-config file like .prettierrc.mjs).
-      run: pnpm exec eslint --fix --max-warnings=0 --no-warn-ignored {staged_files}
-      stage_fixed: true
+      # Run eslint per-workspace via turbo's affected filter instead of passing
+      # staged files from the repo root. Rationale: pnpm's isolated node_linker
+      # + eslint-import-resolver-typescript can't resolve `@synterra/tsconfig`
+      # when eslint runs with cwd at the repo root and files under apps/* or
+      # packages/*. Running per-workspace (each with its own cwd + node_modules
+      # symlink) resolves cleanly. We lose auto-stage-after-fix for staged-only
+      # files, but prettier still runs first with stage_fixed so most churn is
+      # already covered.
+      run: pnpm turbo run lint --filter='...[HEAD]' --output-logs=errors-only
 
     typecheck-affected:
       priority: 2

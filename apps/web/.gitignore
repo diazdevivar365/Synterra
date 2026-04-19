@@ -1,0 +1,7 @@
+# Next.js build output + generated type shim
+.next/
+next-env.d.ts
+
+# Test + build artifacts
+coverage/
+dist/

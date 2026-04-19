@@ -64,12 +64,11 @@ module.exports = {
     'scope-empty': [2, 'never'],
     'scope-case': [2, 'always', 'kebab-case'],
 
-    // Subject: lower-case imperative, no trailing period, keep it tight.
-    'subject-case': [
-      2,
-      'always',
-      ['sentence-case', 'lower-case'],
-    ],
+    // Subject: no trailing period, keep it tight. `subject-case` intentionally
+    // disabled so proper nouns (Next, RSC, BullMQ, Drizzle, Stripe, …) can keep
+    // their canonical capitalisation — forcing lower-case or sentence-case
+    // would butcher framework/product names and train authors to ignore them.
+    'subject-case': [0],
     'subject-empty': [2, 'never'],
     'subject-full-stop': [2, 'never', '.'],
     'subject-max-length': [2, 'always', 100],
@@ -85,6 +84,5 @@ module.exports = {
     'footer-leading-blank': [2, 'always'],
     'body-max-line-length': [2, 'always', 120],
   },
-  helpUrl:
-    'https://www.conventionalcommits.org/ — see also CONTRIBUTING.md in this repo.',
+  helpUrl: 'https://www.conventionalcommits.org/ — see also CONTRIBUTING.md in this repo.',
 };
