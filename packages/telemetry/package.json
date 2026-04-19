@@ -1,0 +1,31 @@
+{
+  "name": "@synterra/telemetry",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist .turbo coverage"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "catalog:",
+    "@opentelemetry/sdk-node": "catalog:"
+  },
+  "devDependencies": {
+    "@synterra/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "^9.17.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
