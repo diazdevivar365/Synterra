@@ -39,6 +39,9 @@ catalogs:
     '@vitest/coverage-v8':
       specifier: ^3.0.0
       version: 3.2.4
+    better-auth:
+      specifier: ^1.6.5
+      version: 1.6.5
     bullmq:
       specifier: ^5.34.0
       version: 5.74.1
@@ -216,6 +219,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@synterra/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@synterra/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -225,18 +231,30 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.0.0
         version: 4.2.2
+      better-auth:
+        specifier: 'catalog:'
+        version: 1.6.5(@opentelemetry/api@1.9.1)(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@opentelemetry/api@1.9.1)(kysely@0.28.16)(postgres@3.4.9))(next@16.2.4(@opentelemetry/api@1.9.1)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vitest@3.2.4(@types/node@22.19.17)(jiti@2.6.1)(jsdom@25.0.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.3))
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@opentelemetry/api@1.9.1)(kysely@0.28.16)(postgres@3.4.9)
       jose:
         specifier: 'catalog:'
         version: 5.10.0
       next:
         specifier: 'catalog:'
         version: 16.2.4(@opentelemetry/api@1.9.1)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      postgres:
+        specifier: 'catalog:'
+        version: 3.4.9
       react:
         specifier: 'catalog:'
         version: 19.2.5
       react-dom:
         specifier: 'catalog:'
         version: 19.2.5(react@19.2.5)
+      server-only:
+        specifier: ^0.0.1
+        version: 0.0.1
       tailwindcss:
         specifier: ^4.0.0
         version: 4.2.2

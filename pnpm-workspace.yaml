@@ -23,6 +23,9 @@ catalog:
   # Validation + utilities
   zod: ^3.24.0
 
+  # Auth
+  better-auth: ^1.6.5
+
   # JWT (edge-compatible)
   jose: ^5.9.0
 
@@ -31,8 +34,8 @@ catalog:
   "@hono/node-server": ^1.13.0
 
   # DB
-  drizzle-orm: ^0.38.0
-  drizzle-kit: ^0.30.0
+  drizzle-orm: ^0.45.2
+  drizzle-kit: ^0.31.4
   postgres: ^3.4.0
 
   # Queue
