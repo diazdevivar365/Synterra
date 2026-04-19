@@ -109,8 +109,8 @@ services:
       HEALTH_PORT: "3002"
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://192.168.10.54:4318}
       OTEL_SERVICE_NAME: forgentic-workers
-    expose:
-      - "3002"
+    ports:
+      - "3002:3002"
     networks:
       - forgentic-internal
     healthcheck:
@@ -124,6 +124,8 @@ services:
   workers-2:
     <<: *workers
     container_name: forgentic-workers-2
+    ports:
+      - "3003:3002"
 
   # ── Cloudflare Tunnel ───────────────────────────────────────────────────────
   cloudflared:
