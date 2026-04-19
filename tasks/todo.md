@@ -64,10 +64,10 @@
 - [x] E3 — `.editorconfig` ✅ (2026-04-19) — UTF-8/LF/2-space/insert_final_newline global + markdown trailing-whitespace exception + Makefile tab + CRLF para `.bat/.cmd/.ps1`.
 
 ## F. Testing
-- [ ] F1 — Vitest config raíz (`vitest.workspace.ts`) agregando `apps/*` y `packages/*`
-- [ ] F2 — Un test sanity por workspace (asegura discovery): `apps/web`, `apps/api`, `apps/workers`, y un par de packages
-- [ ] F3 — Playwright config en `tests/e2e/playwright.config.ts` (baseURL placeholder, projects: chromium + webkit + mobile-chromium)
-- [ ] F4 — `tests/e2e/smoke.spec.ts` — test trivial que sólo chequea título de la home de `apps/web`
+- [x] F1 — Vitest config raíz ✅ (2026-04-19) — `vitest.config.ts` con `test.projects: ['apps/*', 'packages/*']` (pattern Vitest 3), coverage v8 con reporters text+html+lcov+json-summary, mock hygiene (clearMocks/restoreMocks/mockReset), reporter CI-aware (junit+github-actions en CI).
+- [ ] F2 — Sanity test por workspace — DEFERRED: se escribe junto a cada workspace en §G/§H (apps/web, apps/api, apps/workers, packages/*).
+- [x] F3 — Playwright config ✅ (2026-04-19) — `tests/e2e/playwright.config.ts` production-grade: chromium + webkit + mobile-chromium, retries 2-en-CI, workers capped a 2 en CI, trace on-first-retry, screenshot+video on-failure, locale+timezone pinned, reporter github+html+junit en CI. `webServer` comentado hasta que lande apps/web.
+- [x] F4 — Smoke spec ✅ (2026-04-19) — `tests/e2e/smoke.spec.ts` — dos invariantes: `/` tiene título con "Forgentic" y `GET /api/health` responde 200 JSON con `{status, version, uptime}`. Falla a propósito hasta que lande apps/web.
 
 ## G. Apps (bootables, no stubs — production-grade día 1)
 - [ ] G1 — `apps/web` — Next 16, App Router, React 19, TS, Tailwind v4
