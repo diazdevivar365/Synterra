@@ -23,6 +23,9 @@ catalog:
   # Validation + utilities
   zod: ^3.24.0
 
+  # JWT (edge-compatible)
+  jose: ^5.9.0
+
   # HTTP / API
   hono: ^4.6.0
   "@hono/node-server": ^1.13.0

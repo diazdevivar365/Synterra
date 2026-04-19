@@ -20,7 +20,9 @@
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "@synterra/db": "workspace:*",
     "@synterra/telemetry": "workspace:*",
+    "jose": "catalog:",
     "tailwindcss": "^4.0.0",
     "@tailwindcss/postcss": "^4.0.0"
   },

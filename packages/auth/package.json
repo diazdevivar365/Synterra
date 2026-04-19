@@ -15,16 +15,26 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "clean": "rm -rf dist .turbo coverage"
   },
   "dependencies": {
     "better-auth": "^1.1.0",
+    "jose": "catalog:",
     "zod": "catalog:"
   },
+  "peerDependencies": {
+    "@synterra/db": "workspace:*",
+    "drizzle-orm": "catalog:"
+  },
   "devDependencies": {
+    "@synterra/db": "workspace:*",
     "@synterra/tsconfig": "workspace:*",
+    "@testcontainers/postgresql": "catalog:",
     "@types/node": "catalog:",
+    "drizzle-orm": "catalog:",
     "eslint": "^9.17.0",
+    "testcontainers": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
