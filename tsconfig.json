@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig.json",
+  "_note": "Root tsconfig — used by ESLint projectService and IDE tooling for root-level TypeScript files (config, scripts, workspace-level tests). App/package code has its own tsconfig.json extending @synterra/tsconfig/*.",
+  "extends": "@synterra/tsconfig/node",
+  "compilerOptions": {
+    "noEmit": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "*.ts",
+    "*.mts",
+    "*.cts",
+    "scripts/**/*.ts",
+    "tests/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    ".next",
+    ".turbo",
+    "coverage",
+    "playwright-report",
+    "test-results",
+    "apps/**",
+    "packages/**"
+  ]
+}

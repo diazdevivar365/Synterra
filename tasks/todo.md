@@ -52,11 +52,14 @@
 - [x] D3 — `turbo.json` globalDependencies actualizado para trackear `packages/tsconfig/*.json`
 
 ## E. Linting + formatting
-- [ ] E1 — ESLint 9 flat config (`eslint.config.mjs` raíz) con:
-  - `@typescript-eslint` v8
-  - `eslint-plugin-import` (resolver typescript)
-  - `eslint-plugin-unused-imports`
-  - `eslint-config-next` (solo para `apps/web`)
+- [x] E1 — ESLint 9 flat config ✅ (2026-04-19) — `eslint.config.mjs` root con:
+  - `typescript-eslint` v8 strict+stylistic type-checked vía `projectService` (auto-discover workspace tsconfigs)
+  - `eslint-plugin-import` (resolver typescript, import/order + no-cycle + no-duplicates inline)
+  - `eslint-plugin-unused-imports` (auto-fix unused imports + `^_` ignore pattern)
+  - `@next/eslint-plugin-next` recommended + core-web-vitals scoped a `apps/web/**`
+  - `eslint-config-prettier` al final (desactiva reglas que chocan con Prettier)
+  - Overrides por ambiente: Node globals (api/workers/packages/tooling), Browser (web), test-files relax, `.d.ts` relax.
+  - Root `tsconfig.json` agregado (extends `@synterra/tsconfig/node`) para que projectService tenga ancla en root.
 - [x] E2 — `.prettierrc.mjs` + `.prettierignore` ✅ (2026-04-19) — 100-col/singleQuote/trailingComma=all/LF + overrides por filetype; `prettier-plugin-tailwindcss` en overrides scoped a `apps/web/**` y pinned en devDeps; ignore cubre drizzle SQL, env files, build artefacts, binaries.
 - [x] E3 — `.editorconfig` ✅ (2026-04-19) — UTF-8/LF/2-space/insert_final_newline global + markdown trailing-whitespace exception + Makefile tab + CRLF para `.bat/.cmd/.ps1`.
 
