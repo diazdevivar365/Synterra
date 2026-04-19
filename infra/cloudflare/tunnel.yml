@@ -16,28 +16,28 @@ credentials-file: /etc/cloudflared/credentials.json # injected by TUNNEL_TOKEN a
 
 ingress:
   # Production app
-  - hostname: app.forgentic.app
+  - hostname: app.forgentic.io
     service: http://traefik:80
     originRequest:
       noTLSVerify: false
       connectTimeout: 10s
       tcpKeepAlive: 30s
-      httpHostHeader: app.forgentic.app
+      httpHostHeader: app.forgentic.io
 
   # Development / staging app
-  - hostname: dev.forgentic.app
+  - hostname: dev.forgentic.io
     service: http://traefik:80
     originRequest:
       noTLSVerify: false
       connectTimeout: 10s
-      httpHostHeader: dev.forgentic.app
+      httpHostHeader: dev.forgentic.io
 
   # Synterra API (Hono service on port 3001 behind Traefik)
-  - hostname: api.forgentic.app
+  - hostname: api.forgentic.io
     service: http://traefik:80
     originRequest:
       noTLSVerify: false
-      httpHostHeader: api.forgentic.app
+      httpHostHeader: api.forgentic.io
 
   # Catch-all — must be last
   - service: http_status:404

@@ -117,7 +117,7 @@ services:
       GF_SMTP_HOST: ${SMTP_HOST}
       GF_SMTP_USER: ${SMTP_USER}
       GF_SMTP_PASSWORD: ${SMTP_PASSWORD}
-      GF_SMTP_FROM_ADDRESS: ${SMTP_FROM:-alerts@forgentic.app}
+      GF_SMTP_FROM_ADDRESS: ${SMTP_FROM:-alerts@forgentic.io}
       GF_UNIFIED_ALERTING_ENABLED: "false" # use Alertmanager instead
     volumes:
       - grafana-data:/var/lib/grafana
@@ -141,12 +141,12 @@ services:
       DB_PASSWORD: ${CACHET_DB_PASSWORD}
       APP_KEY: ${CACHET_APP_KEY}
       APP_ENV: production
-      APP_URL: ${CACHET_APP_URL:-http://status.forgentic.app}
+      APP_URL: ${CACHET_APP_URL:-http://status.forgentic.io}
       MAIL_DRIVER: smtp
       MAIL_HOST: ${SMTP_HOST}
       MAIL_USERNAME: ${SMTP_USER}
       MAIL_PASSWORD: ${SMTP_PASSWORD}
-      MAIL_FROM_ADDRESS: ${SMTP_FROM:-status@forgentic.app}
+      MAIL_FROM_ADDRESS: ${SMTP_FROM:-status@forgentic.io}
     ports:
       - "8000:8000"
     networks:

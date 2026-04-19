@@ -1,6 +1,6 @@
 global:
   resolve_timeout: 5m
-  smtp_from: alerts@forgentic.app
+  smtp_from: alerts@forgentic.io
   smtp_smarthost: "${SMTP_HOST}:587"
   smtp_auth_username: "${SMTP_USER}"
   smtp_auth_password: "${SMTP_PASSWORD}"
@@ -20,12 +20,12 @@ route:
 receivers:
   - name: default
     email_configs:
-      - to: alerts@forgentic.app
+      - to: alerts@forgentic.io
         send_resolved: true
 
   - name: critical
     email_configs:
-      - to: alerts@forgentic.app
+      - to: alerts@forgentic.io
         send_resolved: true
 
 inhibit_rules:
