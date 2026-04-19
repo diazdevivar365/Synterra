@@ -21,6 +21,8 @@
   "dependencies": {
     "better-auth": "^1.1.0",
     "jose": "catalog:",
+    "resend": "^6.12.0",
+    "server-only": "^0.0.1",
     "zod": "catalog:"
   },
   "peerDependencies": {
