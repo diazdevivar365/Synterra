@@ -135,4 +135,64 @@ Entries sorted newest-first.
 
 ---
 
+## 2026-04-19 — tsup externalizes node_modules by default; workspace packages need `noExternal`
+
+**What we tried:** `bundle: true` in tsup config for workers/api, expecting all imports (including `@synterra/telemetry`) to be inlined.
+
+**What went wrong:** tsup externalizes all `node_modules` packages by default — even workspace packages. The built `dist/index.mjs` had `import { initTelemetry } from "@synterra/telemetry"` as a live runtime import, which fails in the Docker runner stage where `packages/telemetry/` doesn't exist.
+
+**Lesson / rule:** Add `noExternal: [/@synterra\/.*/]` to tsup config for any app that imports workspace packages. Also add `external: [/^@opentelemetry\//]` — OTel packages are CJS and use dynamic `require()` internally; bundling them into ESM breaks at runtime.
+
+**Where it applies:** `apps/*/tsup.config.ts` whenever adding workspace package imports.
+
+---
+
+## 2026-04-19 — OTel CJS packages must be direct deps in workers package.json for Docker runner
+
+**What we tried:** Externalized `@opentelemetry/*` from tsup bundle (correct), relying on them being transitive deps of `@synterra/telemetry`.
+
+**What went wrong:** The Docker runner stage copies `apps/workers/node_modules` from the deps stage. Transitive deps of workspace packages may be isolated in `packages/telemetry/node_modules/`, not hoisted to `apps/workers/node_modules`. At runtime: `ERR_MODULE_NOT_FOUND: @opentelemetry/exporter-trace-otlp-http`.
+
+**Lesson / rule:** Any package that is externalized in the bundle AND needed at runtime MUST be a direct dependency of the app (in `apps/workers/package.json`). Don't rely on transitive hoisting inside Docker multi-stage builds.
+
+**Where it applies:** `apps/workers/package.json` and `apps/api/package.json` — OTel, prom-client, and any other externalized runtime deps.
+
+---
+
+## 2026-04-19 — Docker layer cache survives `--build` when only package.json changes; use `--no-cache` when deps change
+
+**What we tried:** `docker compose up -d --build --force-recreate` after modifying `apps/workers/package.json`.
+
+**What went wrong:** Docker used the cached layer for `RUN pnpm install` from a previous build where the lockfile was the same. The pnpm lockfile didn't change (packages were already in the global lockfile). Result: old deps in the image.
+
+**Lesson / rule:** After adding new direct deps to an app's `package.json`, add `--no-cache` flag to the Docker build for that service. `--build` only busts cache when Docker detects file content changes in COPY layers; if the file change doesn't propagate to a different `pnpm install` outcome, the cache may still be used.
+
+**Where it applies:** Any deploy that adds new direct deps to `apps/*/package.json`.
+
+---
+
+## 2026-04-19 — Infisical CLI dotenv export wraps values in single-quotes; strip them in deploy script
+
+**What we tried:** `infisical export --format=dotenv > .env`, then using `.env` with docker compose `--env-file` and shell `export`.
+
+**What went wrong:** Infisical CLI outputs `KEY='value'` with literal single-quote delimiters. Shell `export "$line"` treats quotes as part of the value. Docker compose `--env-file` also passes them literally on some versions. Result: `CLOUDFLARE_TUNNEL_TOKEN` had quotes → "Tunnel token is not valid"; `DATABASE_URL` had quotes → `Invalid URL`.
+
+**Lesson / rule:** After `infisical export`, run: `sed -i "s/='\(.*\)'\s*$/=\1/" .env && sed -i 's/="\(.*\)"\s*$/=\1/' .env` to strip both quote styles. This was added to `deploy-synterra.sh`.
+
+**Where it applies:** Any deploy script that uses `infisical export --format=dotenv`.
+
+---
+
+## 2026-04-19 — Observability LXC must be bootstrapped before W0-4 verification
+
+**What we tried:** Verifying OTel traces in Tempo at `http://192.168.10.54:3200` right after deploying app containers.
+
+**What went wrong:** The observability LXC (192.168.10.54) never had Docker installed or the observability stack deployed. Tempo was not running. App containers were sending spans to an unreachable endpoint.
+
+**Lesson / rule:** Before deploying app instrumentation, verify the observability stack is running: `curl http://192.168.10.54:3200/ready`. Bootstrap with `bootstrap-lxc.sh observability` + rsync `infra/lxc-observability/` + `docker compose up -d`.
+
+**Where it applies:** Any new LXC role — always verify the target service exists before wiring up clients.
+
+---
+
 _(New lessons land here — newest first.)_
