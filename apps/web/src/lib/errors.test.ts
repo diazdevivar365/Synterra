@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { AppError, ForbiddenError, NotFoundError, toActionError } from './errors.js';
+import { AppError, ForbiddenError, NotFoundError, toActionError } from './errors';
 
 describe('AppError hierarchy', () => {
   it('ForbiddenError has code=FORBIDDEN', () => {
