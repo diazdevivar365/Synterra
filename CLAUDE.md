@@ -11,6 +11,10 @@ This file layers Synterra-specific conventions on top of the root `../CLAUDE.md`
 3. **`tasks/todo.md`** — the live workstream tracker. Every `[ ]` must close before W0-1 is declared done. Update this file in the same PR that lands the change.
 4. **`tasks/lessons.md`** — patterns we've learned the hard way. Read at session start. Append after every correction.
 5. **`CONTRIBUTING.md`** — commit convention + hook behaviour + troubleshooting.
+6. **`PlanTracking.md`** — one-line-per-task status board. **Mandatory protocol for every agent working on this implementation:**
+   - **Before starting** any workstream task: edit `PlanTracking.md` and set its status to `en curso 🔄`.
+   - **After completing** a task (acceptance criteria verified): set status to `hecha ✅`.
+   - Never begin work without updating this file first. Never mark a task done without verifying acceptance criteria.
 
 When in doubt, read the doc instead of improvising. PRs that contradict PLAN.md without an ADR in `docs/ADR/` get rejected.
 

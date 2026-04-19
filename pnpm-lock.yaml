@@ -319,18 +319,30 @@ importers:
       '@opentelemetry/sdk-node':
         specifier: 'catalog:'
         version: 0.56.0(@opentelemetry/api@1.9.1)
+      '@synterra/aquila-client':
+        specifier: workspace:*
+        version: link:../../packages/aquila-client
+      '@synterra/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@synterra/telemetry':
         specifier: workspace:*
         version: link:../../packages/telemetry
       bullmq:
         specifier: 'catalog:'
         version: 5.74.1
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@opentelemetry/api@1.9.1)(kysely@0.28.16)(postgres@3.4.9)
       ioredis:
         specifier: 'catalog:'
         version: 5.10.1
       pino:
         specifier: 'catalog:'
         version: 9.14.0
+      postgres:
+        specifier: 'catalog:'
+        version: 3.4.9
       prom-client:
         specifier: 'catalog:'
         version: 15.1.3

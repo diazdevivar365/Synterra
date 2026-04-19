@@ -51,10 +51,18 @@ describe('@synterra/aquila-client — factory guards', () => {
     ).toThrow(/unsupported contractVersion/);
   });
 
-  it('rejects missing required config fields', () => {
+  it('rejects missing baseUrl', () => {
     expect(() => createAquilaClient({ ...baseConfig, baseUrl: '' })).toThrow(/baseUrl/);
-    expect(() => createAquilaClient({ ...baseConfig, apiKey: '' })).toThrow(/apiKey/);
-    expect(() => createAquilaClient({ ...baseConfig, orgSlug: '' })).toThrow(/orgSlug/);
+  });
+
+  it('rejects missing apiKey/orgSlug when provisionerSecret is absent', () => {
+    const { provisionerSecret: _p, ...noSecret } = baseConfig;
+    expect(() => createAquilaClient({ ...noSecret, apiKey: '' })).toThrow(/apiKey/);
+    expect(() => createAquilaClient({ ...noSecret, orgSlug: '' })).toThrow(/orgSlug/);
+  });
+
+  it('allows empty apiKey/orgSlug when provisionerSecret is set', () => {
+    expect(() => createAquilaClient({ ...baseConfig, apiKey: '', orgSlug: '' })).not.toThrow();
   });
 
   it('rejects createOrg when provisionerSecret is absent', async () => {

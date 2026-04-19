@@ -3,9 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 
-import type { WorkspaceRole } from '@synterra/auth';
-
 import { changeMemberRole, inviteMember, removeMember } from '@/actions/members';
+
+import type { WorkspaceRole } from '@synterra/auth';
 
 const ASSIGNABLE_ROLES: WorkspaceRole[] = ['admin', 'editor', 'viewer', 'guest'];
 
@@ -119,7 +119,7 @@ export function MembersList({ workspaceId, callerUserId, callerRole, members }: 
                             void handleRemove(m.userId, m.role);
                           });
                         }}
-                        className="text-muted-fg hover:text-red-400 text-xs transition-colors disabled:opacity-50"
+                        className="text-muted-fg text-xs transition-colors hover:text-red-400 disabled:opacity-50"
                       >
                         Remove
                       </button>

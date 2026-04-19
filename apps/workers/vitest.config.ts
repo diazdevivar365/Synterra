@@ -6,6 +6,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: false,
+    setupFiles: ['./src/test-env-setup.ts'],
     include: ['src/**/*.{test,spec}.ts'],
     exclude: ['src/**/*.integration.test.ts'],
     coverage: {

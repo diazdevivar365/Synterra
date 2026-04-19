@@ -12,6 +12,7 @@ import { env } from './config.js';
 import { createRedisConnection } from './connection.js';
 import { createHealthServer } from './health-server.js';
 import logger from './logger.js';
+import { createProvisionerWorker } from './provisioner.js';
 import { createDefaultWorker } from './worker.js';
 
 async function main(): Promise<void> {
@@ -28,6 +29,9 @@ async function main(): Promise<void> {
 
   const worker = createDefaultWorker(connection);
   await worker.waitUntilReady();
+
+  const provisioner = createProvisionerWorker(connection);
+  await provisioner.waitUntilReady();
 
   const healthServer = createHealthServer({
     port: env.HEALTH_PORT,
@@ -59,6 +63,7 @@ async function main(): Promise<void> {
 
     try {
       await worker.close();
+      await provisioner.close();
       await new Promise<void>((resolve, reject) => {
         healthServer.close((err) => (err ? reject(err) : resolve()));
       });

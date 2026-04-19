@@ -14,6 +14,15 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().nonnegative().default(15_000),
   WORKER_CONCURRENCY: z.coerce.number().int().positive().default(5),
+  // Database — provisioner writes aquila_credentials
+  DATABASE_URL: z.string().url(),
+  // Aquila provisioner
+  AQUILA_BASE_URL: z.string().url(),
+  AQUILA_PROVISIONER_SECRET: z.string().min(16),
+  // 64 hex chars = 32 bytes = AES-256 key for envelope-encrypting API key secrets
+  AQUILA_ENCRYPT_KEY: z
+    .string()
+    .regex(/^[0-9a-fA-F]{64}$/, 'must be 64 hex chars (32-byte AES-256 key)'),
 });
 
 export type Env = z.infer<typeof envSchema>;

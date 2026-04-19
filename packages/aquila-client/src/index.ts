@@ -86,8 +86,12 @@ export function createAquilaClient(config: AquilaClientConfig): AquilaClient {
     );
   }
   if (!config.baseUrl) throw new Error('aquila-client: baseUrl is required');
-  if (!config.apiKey) throw new Error('aquila-client: apiKey is required');
-  if (!config.orgSlug) throw new Error('aquila-client: orgSlug is required');
+  // apiKey + orgSlug are only required for org-level calls; provisioner-only
+  // clients set provisionerSecret and leave these empty.
+  if (!config.provisionerSecret) {
+    if (!config.apiKey) throw new Error('aquila-client: apiKey is required');
+    if (!config.orgSlug) throw new Error('aquila-client: orgSlug is required');
+  }
 
   const { baseUrl, apiKey, orgSlug, provisionerSecret } = config;
 
