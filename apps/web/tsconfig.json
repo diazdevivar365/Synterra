@@ -16,7 +16,8 @@
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "vitest.config.ts",
-    "vitest.setup.ts"
+    "vitest.setup.ts",
+    "vitest.integration.config.ts"
   ],
   "exclude": ["node_modules", ".next", "dist", "coverage"]
 }

@@ -1,9 +1,8 @@
 // @synterra/aquila-client — typed HTTP client for the Aquila data plane.
 //
-// Contract: PLAN.md §E.1 (the versioned HTTP surface). The wire-up for the
-// real calls lands across AQ-1..AQ-3 (org provisioning, api-key issuance,
-// research-run creation). Until then the factory validates config and all
-// methods reject with a clear pointer.
+// Contract: PLAN.md §E.1. The provisioner flow (createOrg, issueApiKey) uses a
+// short-lived JWT obtained from /auth/issue-provisioner-token. Org-level calls
+// (createResearchRun, listResearchRuns) use the per-org apiKey directly.
 
 import type { ApiKey, Organization, Paginated, ResearchRun } from './types.js';
 
@@ -13,12 +12,14 @@ export const SUPPORTED_CONTRACT_VERSION: AquilaContractVersion = '2026-04';
 export interface AquilaClientConfig {
   /** Aquila API base URL (e.g. `https://aquila.internal.forgentic.io`). */
   baseUrl: string;
-  /** Service-to-service bearer token issued by Aquila admin plane. */
+  /** Per-org bearer token used for research-run calls. */
   apiKey: string;
-  /** Synterra workspace slug acting on behalf of. Propagated as a header. */
+  /** Synterra workspace slug — propagated as `X-Org-Slug` header. */
   orgSlug: string;
   /** Contract pin — mismatch fails fast at factory time. */
   contractVersion: AquilaContractVersion;
+  /** Provisioner secret (AQUILA_PROVISIONER_SECRET). Required for createOrg / issueApiKey. */
+  provisionerSecret?: string;
 }
 
 export interface CreateOrgInput {
@@ -38,8 +39,8 @@ export interface AquilaClient {
   health(): Promise<{ ok: boolean }>;
   /** Provision an Aquila organisation mirroring a Synterra workspace (AQ-1). */
   createOrg(input: CreateOrgInput): Promise<Organization>;
-  /** Mint a scoped API key for a given organisation (AQ-2). */
-  issueApiKey(organizationId: string): Promise<ApiKey & { rawKey: string }>;
+  /** Mint a scoped API key for a given organisation slug (AQ-2). */
+  issueApiKey(orgSlug: string): Promise<ApiKey & { rawKey: string }>;
   /** Kick off a research run on the data plane (AQ-3). */
   createResearchRun(organizationId: string, input: CreateResearchRunInput): Promise<ResearchRun>;
   /** Paginated listing of research runs for a given organisation. */
@@ -49,18 +50,35 @@ export interface AquilaClient {
   ): Promise<Paginated<ResearchRun>>;
 }
 
-const NOT_WIRED = 'aquila-client not yet wired — see W2-2 + AQ-1..AQ-3';
+async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...(init.headers as Record<string, string> | undefined),
+    },
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`aquila-client: ${init.method ?? 'GET'} ${url} → HTTP ${res.status}: ${body}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+async function getProvisionerToken(baseUrl: string, provisionerSecret: string): Promise<string> {
+  const data = await fetchJson<{ token: string }>(`${baseUrl}/auth/issue-provisioner-token`, {
+    method: 'POST',
+    headers: { 'X-Provisioner-Secret': provisionerSecret },
+  });
+  return data.token;
+}
 
 /**
  * Build a typed Aquila client. The factory validates config eagerly —
- * mismatched contract versions throw here, not on first call, so a bad
- * deploy surfaces in startup logs instead of half-way through a request.
+ * mismatched contract versions throw here, not on first call.
  */
 export function createAquilaClient(config: AquilaClientConfig): AquilaClient {
-  // Runtime guard against callers casting their way past the type system
-  // (JS consumers, config loaded from JSON, etc.). The cast to `string`
-  // silences `no-unnecessary-condition` — the type narrows to the literal,
-  // but at runtime any value is possible.
   const received = config.contractVersion as string;
   if (received !== SUPPORTED_CONTRACT_VERSION) {
     throw new Error(
@@ -71,17 +89,62 @@ export function createAquilaClient(config: AquilaClientConfig): AquilaClient {
   if (!config.apiKey) throw new Error('aquila-client: apiKey is required');
   if (!config.orgSlug) throw new Error('aquila-client: orgSlug is required');
 
-  // Rejected-promise factory (sync body — no `async` marker) so ESLint's
-  // require-await rule is satisfied while still matching the `Promise<never>`
-  // return contract the AquilaClient interface expects.
-  const notWired = (): Promise<never> => Promise.reject(new Error(NOT_WIRED));
+  const { baseUrl, apiKey, orgSlug, provisionerSecret } = config;
+
+  function requireProvisionerSecret(): string {
+    if (!provisionerSecret) {
+      throw new Error('aquila-client: provisionerSecret is required for this operation');
+    }
+    return provisionerSecret;
+  }
 
   return {
-    health: notWired,
-    createOrg: notWired,
-    issueApiKey: notWired,
-    createResearchRun: notWired,
-    listResearchRuns: notWired,
+    async health() {
+      const data = await fetchJson<{ status: string }>(`${baseUrl}/health`, { method: 'GET' });
+      return { ok: data.status === 'ok' };
+    },
+
+    async createOrg(input) {
+      const secret = requireProvisionerSecret();
+      const token = await getProvisionerToken(baseUrl, secret);
+      return fetchJson<Organization>(`${baseUrl}/orgs`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify(input),
+      });
+    },
+
+    async issueApiKey(slug) {
+      const secret = requireProvisionerSecret();
+      const token = await getProvisionerToken(baseUrl, secret);
+      return fetchJson<ApiKey & { rawKey: string }>(`${baseUrl}/orgs/${slug}/api-keys`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({}),
+      });
+    },
+
+    async createResearchRun(organizationId, input) {
+      return fetchJson<ResearchRun>(`${baseUrl}/orgs/${organizationId}/research-runs`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'X-Org-Slug': orgSlug },
+        body: JSON.stringify(input),
+      });
+    },
+
+    async listResearchRuns(organizationId, options) {
+      const params = new URLSearchParams();
+      if (options?.cursor) params.set('cursor', options.cursor);
+      if (options?.limit !== undefined) params.set('limit', String(options.limit));
+      const qs = params.size > 0 ? `?${params.toString()}` : '';
+      return fetchJson<Paginated<ResearchRun>>(
+        `${baseUrl}/orgs/${organizationId}/research-runs${qs}`,
+        {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${apiKey}`, 'X-Org-Slug': orgSlug },
+        },
+      );
+    },
   };
 }
 

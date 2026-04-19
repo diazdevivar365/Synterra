@@ -12,6 +12,13 @@
  */
 export const QUEUE_NAMES = {
   DEFAULT: 'synterra-default',
+  PROVISION: 'synterra-workspace-provision',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
+
+export interface ProvisionWorkspaceJobData {
+  workspaceId: string;
+  workspaceSlug: string;
+  workspaceName: string;
+}

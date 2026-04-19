@@ -64,7 +64,7 @@ describe('workspace lifecycle', { timeout: 120_000 }, () => {
   }, 120_000);
 
   afterAll(async () => {
-    await container?.stop();
+    await container.stop();
   });
 
   it('creates a workspace and owner membership', async () => {
@@ -81,7 +81,9 @@ describe('workspace lifecycle', { timeout: 120_000 }, () => {
     const [member] = await db
       .select({ role: workspaceMembers.role })
       .from(workspaceMembers)
-      .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)));
+      .where(
+        and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)),
+      );
 
     expect(member?.role).toBe('owner');
   });
@@ -122,7 +124,9 @@ describe('workspace lifecycle', { timeout: 120_000 }, () => {
     const [member] = await db
       .select({ role: workspaceMembers.role })
       .from(workspaceMembers)
-      .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, user2Id)));
+      .where(
+        and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, user2Id)),
+      );
 
     expect(member?.role).toBe('editor');
   });
@@ -131,12 +135,16 @@ describe('workspace lifecycle', { timeout: 120_000 }, () => {
     await db
       .update(workspaceMembers)
       .set({ role: 'viewer' })
-      .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, user2Id)));
+      .where(
+        and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, user2Id)),
+      );
 
     const [member] = await db
       .select({ role: workspaceMembers.role })
       .from(workspaceMembers)
-      .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, user2Id)));
+      .where(
+        and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, user2Id)),
+      );
 
     expect(member?.role).toBe('viewer');
   });
@@ -144,12 +152,16 @@ describe('workspace lifecycle', { timeout: 120_000 }, () => {
   it('removes a member', async () => {
     await db
       .delete(workspaceMembers)
-      .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, user2Id)));
+      .where(
+        and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, user2Id)),
+      );
 
     const rows = await db
       .select()
       .from(workspaceMembers)
-      .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, user2Id)));
+      .where(
+        and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, user2Id)),
+      );
 
     expect(rows).toHaveLength(0);
   });

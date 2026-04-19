@@ -3,8 +3,8 @@ import postgres from 'postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { createDb } from '@synterra/db';
-import type { BetterAuthInstance } from './server.js';
-import { createBetterAuth } from './server.js';
+
+import { createBetterAuth, type BetterAuthInstance } from './server.js';
 
 let container: Awaited<ReturnType<PostgreSqlContainer['start']>>;
 let authInstance: BetterAuthInstance;
@@ -66,7 +66,7 @@ beforeAll(async () => {
 }, 60_000);
 
 afterAll(async () => {
-  await container?.stop();
+  await container.stop();
 });
 
 describe('createBetterAuth — magic link flow', () => {
@@ -76,17 +76,14 @@ describe('createBetterAuth — magic link flow', () => {
 
   it('magic-link sign-in request returns 200 with status:true', async () => {
     // better-auth 1.6.x magic-link endpoint
-    const req = new Request(
-      'http://localhost:3000/api/auth/sign-in/magic-link',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: 'integration@forgentic.io',
-          callbackURL: '/dashboard',
-        }),
-      },
-    );
+    const req = new Request('http://localhost:3000/api/auth/sign-in/magic-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'integration@forgentic.io',
+        callbackURL: '/dashboard',
+      }),
+    });
 
     const res = await authInstance.handler(req);
     expect(res.status).toBe(200);
