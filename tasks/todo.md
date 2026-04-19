@@ -186,27 +186,27 @@
 
 **Commit map** (oldest → newest):
 
-| Sección (user scheme) | Scope                                                                                                                       | Commit (pre-hash)       |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| A                     | Initial repo skeleton                                                                                                       | `ece316e`               |
-| B                     | Node 22 LTS + pnpm 10 toolchain                                                                                             | `9d0730c`               |
-| C                     | turbo.json task graph                                                                                                       | `f7fb3f4`               |
-| D                     | `@synterra/tsconfig` shared                                                                                                 | `8d26f31`               |
-| E                     | Prettier 3 + EditorConfig                                                                                                   | `7a37ff5`               |
-| F                     | ESLint 9 flat config                                                                                                        | `ada5721`               |
-| G                     | Vitest 3 + Playwright baseline                                                                                              | `dc864bf`               |
-| H                     | GitHub Actions CI + Renovate                                                                                                | `e005dc9`               |
-| I                     | lefthook + commitlint + CONTRIBUTING                                                                                        | `33b5f6e`               |
-| (tooling)             | `pnpm.onlyBuiltDependencies`                                                                                                | `05800b0`               |
-| J                     | apps/web RSC landing                                                                                                        | _this session_          |
-| K                     | apps/api Hono service                                                                                                       | _this session_          |
-| L                     | apps/workers BullMQ                                                                                                         | _this session_          |
-| M                     | 8 `@synterra/*` packages                                                                                                    | _this session_          |
-| N                     | docs + infra stubs                                                                                                          | _this session_          |
-| O                     | 10-agent Synterra team                                                                                                      | _this session_          |
-| (post-scaffold)       | Prettier pass + peer deps + pino typing + lefthook eslint via turbo + commitlint subject-case disabled + brand-check script | _this session_          |
-| (docs)                | Synterra CLAUDE.md + lessons.md + todo.md closeout                                                                          | _this session_          |
-| P7 (pending)          | `chore(release): green baseline` + push hold                                                                                | _awaiting confirmation_ |
+| Sección (user scheme) | Scope                                                                                                                                 | Commit (pre-hash)            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| A                     | Initial repo skeleton                                                                                                                 | `ece316e`                    |
+| B                     | Node 22 LTS + pnpm 10 toolchain                                                                                                       | `9d0730c`                    |
+| C                     | turbo.json task graph                                                                                                                 | `f7fb3f4`                    |
+| D                     | `@synterra/tsconfig` shared                                                                                                           | `8d26f31`                    |
+| E                     | Prettier 3 + EditorConfig                                                                                                             | `7a37ff5`                    |
+| F                     | ESLint 9 flat config                                                                                                                  | `ada5721`                    |
+| G                     | Vitest 3 + Playwright baseline                                                                                                        | `dc864bf`                    |
+| H                     | GitHub Actions CI + Renovate                                                                                                          | `e005dc9`                    |
+| I                     | lefthook + commitlint + CONTRIBUTING                                                                                                  | `33b5f6e`                    |
+| (tooling)             | `pnpm.onlyBuiltDependencies`                                                                                                          | `05800b0`                    |
+| J                     | apps/web RSC landing                                                                                                                  | `fd9fdd5`                    |
+| K                     | apps/api Hono service                                                                                                                 | `2589e15`                    |
+| L                     | apps/workers BullMQ                                                                                                                   | `f76af2f`                    |
+| M                     | 8 `@synterra/*` packages                                                                                                              | `9f90d30`                    |
+| N                     | docs + infra stubs                                                                                                                    | `8f72e6e`                    |
+| O                     | 10-agent Synterra team                                                                                                                | `acfbfe8`                    |
+| (post-scaffold)       | Prettier pass + peer deps + pino typing + lefthook eslint via turbo + commitlint subject-case disabled + brand-check + CLAUDE/lessons | `4d7624c`                    |
+| P (release)           | `chore(release): W0-1 green baseline` — acceptance run 36/36                                                                          | _this commit_                |
+| P7 (pending)          | `git push -u origin main`                                                                                                             | _awaiting live confirmation_ |
 
 **What surprised us (captured in `tasks/lessons.md`):**
 
