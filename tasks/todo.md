@@ -233,3 +233,65 @@
 **What's blocking W0-2:**
 
 Nothing. The moment the user confirms the origin push (P7), W0-2 (Drizzle scaffold + migrations 0001–0012) can start against this baseline.
+
+---
+
+# W0-2 — Postgres setup + Drizzle scaffold ✅ (2026-04-19, commit `f698042`)
+
+**Workstream:** Synterra/docs/plan-parts/PLAN_05_Execution_and_Appendix.md → W0-2
+**Definition of done:** `pnpm db:migrate` applies cleanly; integration test verifies RLS.
+
+- [x] Define `packages/db/` with Drizzle config (`drizzle.config.ts`, `out: ./migrations`)
+- [x] Migrations 0000–0012 (extensions, users, workspaces, memberships, invites, aquila-credentials, billing, usage, quota, audit, notifications, public-api-keys, webhooks)
+- [x] Domain schemas in `src/schemas/<domain>.ts` (11 files) + `timestamps.ts` helper
+- [x] `withWorkspaceContext` helper + `serviceRoleQuery` escape hatch in `src/context.ts`
+- [x] `scripts/migrate.ts` — idempotent runner (tracks applied in `_synterra_migrations`)
+- [x] `package.json`: `db:migrate` script + `tsx` devDep
+- [x] PLAN.md split into `docs/plan-parts/` (5 files) to avoid context bloat
+- [ ] Integration test: RLS cross-workspace denial — **deferred to W0-4** (requires real Postgres via Testcontainers; same pattern as BullMQ deferral in W0-1)
+
+**typecheck ✅ 11/11 | test ✅ 11/11 (39 tests) | pre-commit hooks ✅**
+
+---
+
+# W0-3 — Infrastructure (LXC + Docker Compose + Cloudflare Tunnel) ✅ (2026-04-19, commit pending)
+
+**Workstream:** Synterra/docs/plan-parts/PLAN_05_Execution_and_Appendix.md → W0-3
+**Definition of done:** placeholder Next.js deploys via script, reachable at dev.forgentic.app through Cloudflare.
+
+## Deliverables
+
+- [x] `infra/bootstrap-lxc.sh` — first-boot provisioner for all 5 LXC roles (app/db/cache/metering/observability). Installs Docker CE, Infisical CLI, Node 22 + pnpm (app), rclone (db), creates `forgentic` user, clones repo, stubs /etc/forgentic/deploy.secret.
+- [x] `infra/deploy-synterra.sh` — full deploy script modeled on Aquila's: sources deploy.secret → Infisical auth → export secrets → validate required vars → `pnpm install` → `pnpm build` → `docker compose up` → `pnpm db:migrate`.
+- [x] `infra/.env.example` — complete secret reference map (all 30+ vars documented with generators).
+- [x] `infra/cloudflare/tunnel.yml` — Cloudflare Tunnel ingress rules (app.forgentic.app, dev.forgentic.app, api.forgentic.app → Traefik).
+- [x] `infra/lxc-app/docker-compose.yml` — Traefik v3 + 3 Next.js replicas + 2 BullMQ workers + cloudflared + promtail + grafana-agent. Traefik health drain 30s, rolling update pattern.
+- [x] `infra/lxc-app/traefik/traefik.yml` — static config (entrypoints, Docker provider, Prometheus metrics on :8082).
+- [x] `infra/lxc-app/traefik/dynamic.yml` — TLS options, secure-headers middleware, rate-limit-api middleware.
+- [x] `infra/lxc-app/promtail.yml` — Docker log scraper → Loki (observability.lan:3100).
+- [x] `infra/lxc-app/grafana-agent.river` — OTLP receiver (4317/4318) → Tempo (observability.lan:4317).
+- [x] `infra/lxc-db/docker-compose.yml` — Postgres 16 + WAL archive to /san + nightly pg_basebackup + rclone to B2 + postgres-exporter + node-exporter.
+- [x] `infra/lxc-cache/docker-compose.yml` — Redis 7 + AOF every 1s + nightly RDB to /san + redis-exporter + node-exporter.
+- [x] `infra/lxc-metering/docker-compose.yml` — Full Lago v1.32 stack (lago-api, lago-api-worker, lago-api-clock, lago-front, lago-postgres, lago-redis, lago-db-backup).
+- [x] `infra/lxc-observability/docker-compose.yml` — Prometheus (14d) + Loki (14d) + Tempo (14d) + Grafana + Alertmanager + Cachet (status page) + node-exporter.
+- [x] `infra/lxc-observability/config/prometheus.yml` — scrape targets (Traefik, postgres-exporter, redis-exporter, node-exporters, Aquila).
+- [x] `infra/lxc-observability/config/alertmanager.yml` — email alerts, severity routing.
+- [x] `infra/lxc-observability/config/loki.yml` — TSDB schema, 14d retention.
+- [x] `infra/lxc-observability/config/tempo.yml` — OTLP ingestion, 14d retention, service-graphs + span-metrics generators.
+- [x] `infra/lxc-observability/config/grafana-datasources.yml` — Prometheus + Loki + Tempo + Alertmanager wired with exemplar trace links.
+
+## Operational steps (run by user on Proxmox)
+
+- [ ] P0-pre1: Clean node 1 disk to <70% (currently at 96%) — URGENT
+- [ ] P0-pre2: Mount SAN as Proxmox shared storage (`san2tb`)
+- [ ] P0-pre3: Verify cluster quorum
+- [ ] Create 5 LXCs on Proxmox (see PLAN_01 §REVISION table for sizing)
+- [ ] Run `bootstrap-lxc.sh --role <role>` on each LXC
+- [ ] Register Infisical Machine Identity for `forgentic-prod` project → fill /etc/forgentic/deploy.secret
+- [ ] Create Cloudflare Tunnel in CF dashboard → get TUNNEL_TOKEN → add to Infisical
+- [ ] Run `deploy-synterra.sh` on forgentic-app.lan → verify at dev.forgentic.app
+
+## Notes
+
+- The existing `infra/docker-compose.yml` (local dev stack: Postgres + Redis + mailpit) is kept as-is for local dev. LXC composes live in `infra/lxc-<role>/`.
+- Acceptance criterion requires running infrastructure. Files are complete; operational steps above block the live test.

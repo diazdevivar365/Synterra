@@ -1,0 +1,43 @@
+# Cloudflare Tunnel ingress rules for forgentic-app.lan
+#
+# cloudflared reads this config via TUNNEL_TOKEN (env var) in the lxc-app compose.
+# The tunnel_token already encodes the tunnel ID and credentials — this file
+# provides the ingress rules that cloudflared applies at startup.
+#
+# To update ingress rules without restarting the tunnel:
+#   cloudflared tunnel ingress validate
+#   docker restart forgentic-cloudflared
+#
+# Hostname → service mapping.
+# Traefik is the internal target; cloudflared terminates public TLS at the edge.
+
+tunnel: forgentic-prod
+credentials-file: /etc/cloudflared/credentials.json # injected by TUNNEL_TOKEN at runtime
+
+ingress:
+  # Production app
+  - hostname: app.forgentic.app
+    service: http://traefik:80
+    originRequest:
+      noTLSVerify: false
+      connectTimeout: 10s
+      tcpKeepAlive: 30s
+      httpHostHeader: app.forgentic.app
+
+  # Development / staging app
+  - hostname: dev.forgentic.app
+    service: http://traefik:80
+    originRequest:
+      noTLSVerify: false
+      connectTimeout: 10s
+      httpHostHeader: dev.forgentic.app
+
+  # Synterra API (Hono service on port 3001 behind Traefik)
+  - hostname: api.forgentic.app
+    service: http://traefik:80
+    originRequest:
+      noTLSVerify: false
+      httpHostHeader: api.forgentic.app
+
+  # Catch-all — must be last
+  - service: http_status:404

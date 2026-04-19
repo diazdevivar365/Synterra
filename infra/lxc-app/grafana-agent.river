@@ -1,0 +1,24 @@
+// Grafana Agent — forwards OTLP traces from Forgentic apps to Tempo
+// River config format (Grafana Agent v0.43+)
+
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    traces = [otelcol.exporter.otlp.tempo.input]
+  }
+}
+
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "observability.lan:4317"
+    tls {
+      insecure = true
+    }
+  }
+}

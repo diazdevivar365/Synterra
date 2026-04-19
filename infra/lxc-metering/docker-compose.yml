@@ -1,0 +1,179 @@
+# metering.lan — Lago billing engine LXC
+# Phase 0 stack: Lago SaaS billing (open-source) — full compose
+#
+# Lago docs: https://docs.getlago.com/self-hosting/docker
+# Nightly Lago DB dump lands at /san/metering/lago-db-backups
+#
+# Expose Lago API internally at http://metering.lan:3000 (no public CF route).
+# Lago dashboard at http://metering.lan:80 — Tailscale-only access.
+
+networks:
+  lago:
+    name: lago
+    driver: bridge
+
+volumes:
+  lago-postgres-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/metering/postgres/data
+  lago-redis-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/metering/redis/data
+  lago-storage:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/metering/storage
+
+services:
+  lago-postgres:
+    image: postgres:16.6-alpine
+    container_name: lago-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${LAGO_POSTGRES_USER:-lago}
+      POSTGRES_PASSWORD: ${LAGO_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${LAGO_POSTGRES_DB:-lago}
+    volumes:
+      - lago-postgres-data:/var/lib/postgresql/data
+    networks:
+      - lago
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LAGO_POSTGRES_USER:-lago}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  lago-redis:
+    image: redis:7.4-alpine
+    container_name: lago-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - lago-redis-data:/data
+    networks:
+      - lago
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  lago-api:
+    image: getlago/api:v1.32.0
+    container_name: lago-api
+    restart: unless-stopped
+    depends_on:
+      lago-postgres:
+        condition: service_healthy
+      lago-redis:
+        condition: service_healthy
+    environment:
+      LAGO_API_URL: ${LAGO_API_URL:-http://metering.lan:3000}
+      DATABASE_URL: postgresql://${LAGO_POSTGRES_USER:-lago}:${LAGO_POSTGRES_PASSWORD}@lago-postgres:5432/${LAGO_POSTGRES_DB:-lago}
+      REDIS_URL: redis://lago-redis:6379
+      SECRET_KEY_BASE: ${LAGO_SECRET_KEY_BASE}
+      RAILS_ENV: production
+      RAILS_LOG_TO_STDOUT: "true"
+      LAGO_RSA_PRIVATE_KEY: ${LAGO_RSA_PRIVATE_KEY}
+      ENCRYPTION_PRIMARY_KEY: ${LAGO_ENCRYPTION_PRIMARY_KEY}
+      ENCRYPTION_DETERMINISTIC_KEY: ${LAGO_ENCRYPTION_DETERMINISTIC_KEY}
+      ENCRYPTION_KEY_DERIVATION_SALT: ${LAGO_ENCRYPTION_KEY_DERIVATION_SALT}
+      LAGO_FRONT_URL: ${LAGO_FRONT_URL:-http://metering.lan}
+      LAGO_SIDEKIQ_WEB: "true"
+      STORAGE_PROVIDER: local
+    volumes:
+      - lago-storage:/app/storage
+    ports:
+      - "3000:3000"
+    networks:
+      - lago
+
+  lago-api-worker:
+    image: getlago/api:v1.32.0
+    container_name: lago-api-worker
+    restart: unless-stopped
+    command: ["bundle", "exec", "sidekiq"]
+    depends_on:
+      lago-api:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://${LAGO_POSTGRES_USER:-lago}:${LAGO_POSTGRES_PASSWORD}@lago-postgres:5432/${LAGO_POSTGRES_DB:-lago}
+      REDIS_URL: redis://lago-redis:6379
+      SECRET_KEY_BASE: ${LAGO_SECRET_KEY_BASE}
+      RAILS_ENV: production
+      RAILS_LOG_TO_STDOUT: "true"
+      LAGO_RSA_PRIVATE_KEY: ${LAGO_RSA_PRIVATE_KEY}
+      ENCRYPTION_PRIMARY_KEY: ${LAGO_ENCRYPTION_PRIMARY_KEY}
+      ENCRYPTION_DETERMINISTIC_KEY: ${LAGO_ENCRYPTION_DETERMINISTIC_KEY}
+      ENCRYPTION_KEY_DERIVATION_SALT: ${LAGO_ENCRYPTION_KEY_DERIVATION_SALT}
+    volumes:
+      - lago-storage:/app/storage
+    networks:
+      - lago
+
+  lago-api-clock:
+    image: getlago/api:v1.32.0
+    container_name: lago-api-clock
+    restart: unless-stopped
+    command: ["bundle", "exec", "clockwork", "clock.rb"]
+    depends_on:
+      lago-api:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://${LAGO_POSTGRES_USER:-lago}:${LAGO_POSTGRES_PASSWORD}@lago-postgres:5432/${LAGO_POSTGRES_DB:-lago}
+      REDIS_URL: redis://lago-redis:6379
+      SECRET_KEY_BASE: ${LAGO_SECRET_KEY_BASE}
+      RAILS_ENV: production
+      RAILS_LOG_TO_STDOUT: "true"
+    networks:
+      - lago
+
+  lago-front:
+    image: getlago/front:v1.32.0
+    container_name: lago-front
+    restart: unless-stopped
+    environment:
+      API_URL: ${LAGO_API_URL:-http://metering.lan:3000}
+      APP_DOMAIN: ${LAGO_FRONT_URL:-http://metering.lan}
+    ports:
+      - "80:80"
+    networks:
+      - lago
+
+  # Nightly Lago DB dump
+  lago-db-backup:
+    image: postgres:16.6-alpine
+    container_name: lago-db-backup
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          sleep_until=$(date -d "tomorrow 03:00" +%s 2>/dev/null || date -j -f "%Y-%m-%d %H:%M:%S" "$(date -v+1d '+%Y-%m-%d') 03:00:00" +%s)
+          sleep $((sleep_until - $(date +%s)))
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          PGPASSWORD="${LAGO_POSTGRES_PASSWORD}" pg_dump \
+            -h lago-postgres -U "${LAGO_POSTGRES_USER:-lago}" \
+            "${LAGO_POSTGRES_DB:-lago}" | gzip > "/backups/lago_${TIMESTAMP}.sql.gz"
+          find /backups -name "lago_*.sql.gz" -mtime +14 -delete
+          echo "✓ Lago DB dump ${TIMESTAMP} complete"
+        done
+    environment:
+      LAGO_POSTGRES_USER: ${LAGO_POSTGRES_USER:-lago}
+      LAGO_POSTGRES_PASSWORD: ${LAGO_POSTGRES_PASSWORD}
+      LAGO_POSTGRES_DB: ${LAGO_POSTGRES_DB:-lago}
+    volumes:
+      - /san/metering/lago-db-backups:/backups
+    networks:
+      - lago
+    depends_on:
+      lago-postgres:
+        condition: service_healthy

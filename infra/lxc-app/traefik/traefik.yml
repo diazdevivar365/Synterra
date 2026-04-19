@@ -1,0 +1,53 @@
+# Traefik v3 static configuration — forgentic-app.lan
+api:
+  dashboard: true
+  insecure: false
+
+ping: {}
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entrypoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    address: ":443"
+    http:
+      tls: {}
+  metrics:
+    address: ":8082"
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: forgentic-internal
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+# Cloudflare Origin CA handles public TLS — cloudflared terminates at edge.
+# Traefik handles internal routing + LAN TLS only.
+certificatesResolvers: {}
+
+log:
+  level: INFO
+  format: json
+
+accessLog:
+  format: json
+  fields:
+    headers:
+      defaultMode: drop
+      names:
+        X-Request-Id: keep
+        X-Forwarded-For: keep
+
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addServicesLabels: true
+    entryPoint: metrics

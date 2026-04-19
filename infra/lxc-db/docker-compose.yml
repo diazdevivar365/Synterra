@@ -1,0 +1,133 @@
+# forgentic-db.lan — database LXC
+# Phase 0 stack: Postgres 16 single + WAL archive to SAN + nightly B2 backup
+#                + node-exporter for Prometheus scrape
+#
+# WAL archive path: /san/forgentic-db/wal-archive (mount SAN volume there)
+# Base backup path: /san/forgentic-db/base-backups
+#
+# Restore runbook: docs/RUNBOOKS/db-restore.md
+
+networks:
+  forgentic-db:
+    name: forgentic-db
+    driver: bridge
+
+volumes:
+  pg-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/forgentic/postgres/data
+
+services:
+  postgres:
+    image: postgres:16.6-alpine
+    container_name: forgentic-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-forgentic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-synterra}
+      # WAL archiving — writes completed WAL segments to SAN mount
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    command:
+      - postgres
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_command=cp %p /var/lib/postgresql/wal-archive/%f
+      - -c
+      - archive_timeout=60
+      - -c
+      - wal_level=replica
+      - -c
+      - max_wal_senders=3
+      - -c
+      - log_destination=stderr
+      - -c
+      - logging_collector=off
+      - -c
+      - log_min_duration_statement=500
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - /san/forgentic-db/wal-archive:/var/lib/postgresql/wal-archive
+    ports:
+      - "5432:5432"
+    networks:
+      - forgentic-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-forgentic} -d ${POSTGRES_DB:-synterra}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nightly base backup + rclone to Backblaze B2
+  pg-backup:
+    image: postgres:16.6-alpine
+    container_name: forgentic-pg-backup
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c"]
+    # Runs at 02:00 UTC daily via crond
+    command:
+      - |
+        apk add --no-cache rclone curl
+        mkdir -p /backup
+        # rclone config expected at /etc/rclone/rclone.conf (bind-mounted)
+        while true; do
+          sleep_until=$(date -d "tomorrow 02:00" +%s 2>/dev/null || date -j -f "%Y-%m-%d %H:%M:%S" "$(date -v+1d '+%Y-%m-%d') 02:00:00" +%s)
+          now=$(date +%s)
+          sleep $((sleep_until - now))
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          PGPASSWORD="${POSTGRES_PASSWORD}" pg_basebackup \
+            -h postgres -U "${POSTGRES_USER:-forgentic}" \
+            -D "/backup/${TIMESTAMP}" -Ft -z -P
+          rclone --config /etc/rclone/rclone.conf copy \
+            "/backup/${TIMESTAMP}" \
+            "b2:${B2_BUCKET_NAME:-forgentic-db-backups}/${TIMESTAMP}"
+          # Keep 7 days of local backups
+          find /backup -maxdepth 1 -type d -mtime +7 -exec rm -rf {} +
+          echo "✓ backup ${TIMESTAMP} complete and uploaded to B2"
+        done
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-forgentic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      B2_BUCKET_NAME: ${B2_BUCKET_NAME:-forgentic-db-backups}
+    volumes:
+      - /san/forgentic-db/base-backups:/backup
+      - /etc/rclone:/etc/rclone:ro
+    networks:
+      - forgentic-db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Prometheus metrics exporter
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: forgentic-db-node-exporter
+    restart: unless-stopped
+    command:
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    network_mode: host
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+
+  # Postgres-specific Prometheus exporter
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+    container_name: forgentic-postgres-exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-forgentic}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-synterra}?sslmode=disable"
+    ports:
+      - "9187:9187"
+    networks:
+      - forgentic-db
+    depends_on:
+      postgres:
+        condition: service_healthy

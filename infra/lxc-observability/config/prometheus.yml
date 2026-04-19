@@ -1,0 +1,58 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: forgentic-phase0
+    environment: production
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+rule_files:
+  - /etc/prometheus/alerts/*.yml
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Forgentic app LXC
+  - job_name: traefik
+    static_configs:
+      - targets: ["forgentic-app.lan:8082"]
+    labels:
+      service: traefik
+
+  - job_name: forgentic-app-node
+    static_configs:
+      - targets: ["forgentic-app.lan:9100"]
+
+  # DB LXC
+  - job_name: postgres
+    static_configs:
+      - targets: ["forgentic-db.lan:9187"]
+    labels:
+      service: postgres
+
+  - job_name: forgentic-db-node
+    static_configs:
+      - targets: ["forgentic-db.lan:9100"]
+
+  # Cache LXC
+  - job_name: redis
+    static_configs:
+      - targets: ["forgentic-cache.lan:9121"]
+    labels:
+      service: redis
+
+  - job_name: forgentic-cache-node
+    static_configs:
+      - targets: ["forgentic-cache.lan:9100"]
+
+  # Aquila (existing data plane)
+  - job_name: aquila
+    static_configs:
+      - targets: ["aquila.lan:9090"]
+    honor_labels: true

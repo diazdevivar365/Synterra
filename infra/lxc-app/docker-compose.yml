@@ -1,0 +1,162 @@
+# forgentic-app.lan — application LXC
+# Phase 0 stack: Traefik L7 LB + 3 Next.js replicas + 2 BullMQ workers
+#                + cloudflared + promtail (logs) + grafana-agent (traces)
+#
+# Bring up:  docker compose -f infra/lxc-app/docker-compose.yml up -d
+# Rolling restart: docker compose restart --no-deps web-1 (then web-2, web-3)
+#
+# All secrets come from .env (written by deploy-synterra.sh via Infisical).
+
+networks:
+  forgentic-internal:
+    name: forgentic-internal
+    driver: bridge
+
+volumes:
+  traefik-certs:
+
+services:
+  # ── Load balancer ───────────────────────────────────────────────────────────
+  traefik:
+    image: traefik:v3.3
+    container_name: forgentic-traefik
+    restart: unless-stopped
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # dashboard (Cloudflare Access protected in production)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - traefik-certs:/certs
+    networks:
+      - forgentic-internal
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Next.js web replicas (3) ────────────────────────────────────────────────
+  web-1: &web
+    image: forgentic-web:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    container_name: forgentic-web-1
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      AQUILA_BASE_URL: ${AQUILA_BASE_URL}
+      AQUILA_API_KEY: ${AQUILA_API_KEY}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://observability.lan:4318}
+      OTEL_SERVICE_NAME: forgentic-web
+    expose:
+      - "3000"
+    networks:
+      - forgentic-internal
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.web.loadbalancer.server.port=3000
+      - traefik.http.services.web.loadbalancer.healthcheck.path=/api/health
+      - traefik.http.services.web.loadbalancer.healthcheck.interval=10s
+      - traefik.http.routers.web.rule=Host(`${NEXT_PUBLIC_APP_URL:-dev.forgentic.app}`)
+      - traefik.http.routers.web.entrypoints=websecure
+      - traefik.http.routers.web.tls=true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health | grep -q ok"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    stop_grace_period: 30s
+
+  web-2:
+    <<: *web
+    container_name: forgentic-web-2
+
+  web-3:
+    <<: *web
+    container_name: forgentic-web-3
+
+  # ── BullMQ worker replicas (2) ──────────────────────────────────────────────
+  workers-1: &workers
+    image: forgentic-workers:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: apps/workers/Dockerfile
+    container_name: forgentic-workers-1
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      AQUILA_BASE_URL: ${AQUILA_BASE_URL}
+      AQUILA_API_KEY: ${AQUILA_API_KEY}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      HEALTH_PORT: "3002"
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://observability.lan:4318}
+      OTEL_SERVICE_NAME: forgentic-workers
+    expose:
+      - "3002"
+    networks:
+      - forgentic-internal
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3002/health | grep -q ok"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    stop_grace_period: 60s # finish in-flight jobs
+
+  workers-2:
+    <<: *workers
+    container_name: forgentic-workers-2
+
+  # ── Cloudflare Tunnel ───────────────────────────────────────────────────────
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: forgentic-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - forgentic-internal
+
+  # ── Promtail — ship container logs → Loki ───────────────────────────────────
+  promtail:
+    image: grafana/promtail:3.4.3
+    container_name: forgentic-promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./promtail.yml:/etc/promtail/config.yml:ro
+    networks:
+      - forgentic-internal
+
+  # ── Grafana Agent — ship OTLP traces → Tempo ────────────────────────────────
+  grafana-agent:
+    image: grafana/agent:v0.43.3
+    container_name: forgentic-grafana-agent
+    restart: unless-stopped
+    command:
+      - run
+      - /etc/agent/config.river
+      - --storage.path=/tmp/agent/data
+    volumes:
+      - ./grafana-agent.river:/etc/agent/config.river:ro
+    networks:
+      - forgentic-internal

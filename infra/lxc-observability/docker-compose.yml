@@ -1,0 +1,186 @@
+# observability.lan — unified observability LXC (serves Aquila + Forgentic)
+# Phase 0 stack: Prometheus + Loki + Tempo + Grafana + Alertmanager + Cachet
+# 14-day retention. Alertmanager → email + SMS (Twilio).
+#
+# Prometheus scrapes:
+#   - forgentic-app.lan:8082 (Traefik metrics)
+#   - forgentic-db.lan:9187  (postgres-exporter)
+#   - forgentic-db.lan:9100  (node-exporter)
+#   - forgentic-cache.lan:9121 (redis-exporter)
+#   - forgentic-cache.lan:9100 (node-exporter)
+#   - aquila.lan:*           (existing Aquila exporters)
+
+networks:
+  observability:
+    name: observability
+    driver: bridge
+
+volumes:
+  prometheus-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/observability/prometheus/data
+  loki-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/observability/loki/data
+  tempo-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/observability/tempo/data
+  grafana-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/observability/grafana/data
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.3.1
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=14d
+      - --storage.tsdb.retention.size=20GB
+      - --web.enable-lifecycle
+      - --web.enable-admin-api
+    volumes:
+      - prometheus-data:/prometheus
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/alerts:/etc/prometheus/alerts:ro
+    ports:
+      - "9090:9090"
+    networks:
+      - observability
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    container_name: alertmanager
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./config/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "9093:9093"
+    networks:
+      - observability
+
+  loki:
+    image: grafana/loki:3.4.3
+    container_name: loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/config.yml
+    volumes:
+      - loki-data:/loki
+      - ./config/loki.yml:/etc/loki/config.yml:ro
+    ports:
+      - "3100:3100"
+    networks:
+      - observability
+
+  tempo:
+    image: grafana/tempo:2.7.2
+    container_name: tempo
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo/config.yml"]
+    volumes:
+      - tempo-data:/var/tempo
+      - ./config/tempo.yml:/etc/tempo/config.yml:ro
+    ports:
+      - "3200:3200"
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+    networks:
+      - observability
+
+  grafana:
+    image: grafana/grafana:11.6.1
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://observability.lan:3001}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SMTP_ENABLED: "true"
+      GF_SMTP_HOST: ${SMTP_HOST}
+      GF_SMTP_USER: ${SMTP_USER}
+      GF_SMTP_PASSWORD: ${SMTP_PASSWORD}
+      GF_SMTP_FROM_ADDRESS: ${SMTP_FROM:-alerts@forgentic.app}
+      GF_UNIFIED_ALERTING_ENABLED: "false" # use Alertmanager instead
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ../../infra/grafana-dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    ports:
+      - "3001:3000"
+    networks:
+      - observability
+
+  # Status page — Tailscale access only (no public Cloudflare route)
+  cachet:
+    image: cachethq/docker:latest
+    container_name: cachet
+    restart: unless-stopped
+    environment:
+      DB_DRIVER: pgsql
+      DB_HOST: cachet-postgres
+      DB_DATABASE: ${CACHET_DB_NAME:-cachet}
+      DB_USERNAME: ${CACHET_DB_USER:-cachet}
+      DB_PASSWORD: ${CACHET_DB_PASSWORD}
+      APP_KEY: ${CACHET_APP_KEY}
+      APP_ENV: production
+      APP_URL: ${CACHET_APP_URL:-http://status.forgentic.app}
+      MAIL_DRIVER: smtp
+      MAIL_HOST: ${SMTP_HOST}
+      MAIL_USERNAME: ${SMTP_USER}
+      MAIL_PASSWORD: ${SMTP_PASSWORD}
+      MAIL_FROM_ADDRESS: ${SMTP_FROM:-status@forgentic.app}
+    ports:
+      - "8000:8000"
+    networks:
+      - observability
+    depends_on:
+      cachet-postgres:
+        condition: service_healthy
+
+  cachet-postgres:
+    image: postgres:16.6-alpine
+    container_name: cachet-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${CACHET_DB_USER:-cachet}
+      POSTGRES_PASSWORD: ${CACHET_DB_PASSWORD}
+      POSTGRES_DB: ${CACHET_DB_NAME:-cachet}
+    volumes:
+      - /opt/observability/cachet-postgres:/var/lib/postgresql/data
+    networks:
+      - observability
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CACHET_DB_USER:-cachet}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: observability-node-exporter
+    restart: unless-stopped
+    command:
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    network_mode: host
+    pid: host
+    volumes:
+      - /:/host:ro,rslave

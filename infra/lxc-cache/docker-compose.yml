@@ -1,0 +1,116 @@
+# forgentic-cache.lan — Redis LXC
+# Phase 0 stack: Redis 7 single + AOF every 1s + nightly RDB to SAN
+#                + node-exporter for Prometheus scrape
+#
+# Client config uses Sentinel-compatible URL format so env-only swap to AWS
+# ElastiCache Redis Multi-AZ works without code changes.
+#
+# REDIS_URL (prod): redis://:${REDIS_PASSWORD}@forgentic-cache.lan:6379/0
+
+networks:
+  forgentic-cache:
+    name: forgentic-cache
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/forgentic/redis/data
+
+services:
+  redis:
+    image: redis:7.4-alpine
+    container_name: forgentic-redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --requirepass
+      - "${REDIS_PASSWORD}"
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+      - --save
+      - "3600 1"
+      - --save
+      - "300 100"
+      - --save
+      - "60 10000"
+      - --maxmemory
+      - "1200mb"
+      - --maxmemory-policy
+      - allkeys-lru
+      - --loglevel
+      - notice
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - /san/forgentic-cache/rdb-backups:/rdb-backups
+    networks:
+      - forgentic-cache
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nightly RDB snapshot copy to SAN
+  redis-backup:
+    image: redis:7.4-alpine
+    container_name: forgentic-redis-backup
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          sleep_until=$(date -d "tomorrow 02:30" +%s 2>/dev/null || date -j -f "%Y-%m-%d %H:%M:%S" "$(date -v+1d '+%Y-%m-%d') 02:30:00" +%s)
+          now=$(date +%s)
+          sleep $((sleep_until - now))
+          redis-cli -h redis -a "${REDIS_PASSWORD}" BGSAVE
+          sleep 5
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          cp /data/dump.rdb "/rdb-backups/dump_${TIMESTAMP}.rdb"
+          find /rdb-backups -name "dump_*.rdb" -mtime +7 -delete
+          echo "✓ RDB snapshot ${TIMESTAMP} saved"
+        done
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data:ro
+      - /san/forgentic-cache/rdb-backups:/rdb-backups
+    networks:
+      - forgentic-cache
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: forgentic-cache-node-exporter
+    restart: unless-stopped
+    command:
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    network_mode: host
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.69.0-alpine
+    container_name: forgentic-redis-exporter
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - "9121:9121"
+    networks:
+      - forgentic-cache
+    depends_on:
+      redis:
+        condition: service_healthy
