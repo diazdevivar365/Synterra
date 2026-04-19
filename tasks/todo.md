@@ -29,24 +29,27 @@
 - [x] A7 — `CODEOWNERS` (`* @diazdevivar365` + reglas para paths críticos)
 - [x] A8 — Primer commit `chore: initial repo skeleton` (`ece316e`) — NO push aún (push al final de W0-1 verde)
 
-## B. Node toolchain
-- [ ] B1 — `.nvmrc` → `22`
-- [ ] B2 — `.node-version` → `22` (soporta Volta/fnm además de nvm)
-- [ ] B3 — `package.json` raíz: `private: true`, `engines`, `packageManager: "pnpm@10.x.x"` (versión exacta detectada)
-- [ ] B4 — `pnpm-workspace.yaml` (`apps/*`, `packages/*`)
-- [ ] B5 — `.npmrc` (`strict-peer-dependencies=true`, `auto-install-peers=false`, `node-linker=isolated`)
+## B. Node toolchain ✅ (2026-04-19, commit `9d0730c`)
+- [x] B1 — `.nvmrc` → `22`
+- [x] B2 — `.node-version` → `22` (soporta Volta/asdf además de nvm/fnm)
+- [x] B3 — `package.json` raíz: `private: true`, `engines` (node 22, pnpm 10), `packageManager: "pnpm@10.33.0"`, catalog setup, scripts via turbo
+- [x] B4 — `pnpm-workspace.yaml` (`apps/*`, `packages/*` + catalog versionado)
+- [x] B5 — `.npmrc` (`engine-strict=true`, `strict-peer-dependencies=true`, `auto-install-peers=false`, `node-linker=isolated`)
+- [x] B6 — `docs/SETUP.md` (fnm + corepack + troubleshooting playbook)
+- [x] B7 — Commit `chore(tooling): pin Node 22 LTS + pnpm 10 toolchain` (`9d0730c`)
 
-## C. Turborepo
-- [ ] C1 — `turbo.json` con tasks: `build`, `lint`, `typecheck`, `test`, `test:e2e`, `dev` (`dev` con `persistent: true` y `cache: false`)
-- [ ] C2 — Scripts raíz: `build`, `lint`, `typecheck`, `test`, `test:e2e`, `dev`, `clean`
-- [ ] C3 — `.turbo/` en `.gitignore`
+## C. Turborepo ✅ (2026-04-19, commit `f7fb3f4`)
+- [x] C1 — `turbo.json` con tasks: `build` (^build chain), `dev` (persistent+interruptible), `lint`, `typecheck` (^typecheck chain), `test`, `test:e2e` (^build chain, no cache), `clean` + global deps + env allowlist
+- [x] C2 — Scripts raíz ya integrados en B3 (`package.json`)
+- [x] C3 — `.turbo/` ya ignorado en A3 (`.gitignore`)
 
-## D. TypeScript base config
-- [ ] D1 — `packages/tsconfig/` con:
-  - `base.json` (strict + `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `noFallthroughCasesInSwitch`, `isolatedModules`, `moduleResolution: "bundler"`)
-  - `node.json` (extends base, para `apps/api`, `apps/workers`, packages Node-side)
-  - `next.json` (extends base, para `apps/web`)
-- [ ] D2 — `packages/tsconfig/package.json` (private, exportado por workspaces)
+## D. TypeScript base config ✅ (2026-04-19)
+- [x] D1 — `packages/tsconfig/`:
+  - `base.json` (strict full: `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `noImplicitOverride`, `noFallthroughCasesInSwitch`, `noPropertyAccessFromIndexSignature`, `noUnusedLocals`, `noUnusedParameters`, `isolatedModules`, `moduleResolution: "Bundler"`, target ES2023)
+  - `node.json` (extends base, types: `node`)
+  - `next.json` (extends base, lib: `DOM + DOM.Iterable`, `jsx: preserve`, `noEmit: true`, Next plugin)
+- [x] D2 — `packages/tsconfig/package.json` (`@synterra/tsconfig`, private, exports map para `./base`, `./node`, `./next`)
+- [x] D3 — `turbo.json` globalDependencies actualizado para trackear `packages/tsconfig/*.json`
 
 ## E. Linting + formatting
 - [ ] E1 — ESLint 9 flat config (`eslint.config.mjs` raíz) con:

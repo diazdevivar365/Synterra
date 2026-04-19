@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig.json",
+  "_note": "Forgentic Next.js tsconfig. Use for apps/web only. JSX is preserved for Next's own transformer.",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2023"],
+    "types": ["node"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "preserve",
+    "allowJs": false,
+    "noEmit": true,
+    "incremental": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "plugins": [{ "name": "next" }]
+  }
+}

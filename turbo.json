@@ -6,7 +6,7 @@
     ".node-version",
     ".npmrc",
     "pnpm-workspace.yaml",
-    "tsconfig.base.json"
+    "packages/tsconfig/*.json"
   ],
   "globalEnv": [
     "NODE_ENV",
@@ -55,8 +55,7 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "tsconfig.json",
-        "tsconfig.*.json",
-        "../../tsconfig.base.json"
+        "tsconfig.*.json"
       ]
     },
     "test": {
