@@ -9,6 +9,8 @@
  */
 import pino, { type DestinationStream, type Logger, type LoggerOptions } from 'pino';
 
+import { otelMixin } from '@synterra/telemetry';
+
 import { env } from './config.js';
 
 const REDACT_PATHS = [
@@ -29,6 +31,7 @@ export function createLogger(): Logger {
   const options: LoggerOptions = {
     level: env.LOG_LEVEL,
     base,
+    mixin: otelMixin,
     redact: { paths: REDACT_PATHS, censor: '[REDACTED]' },
     timestamp: pino.stdTimeFunctions.isoTime,
   };

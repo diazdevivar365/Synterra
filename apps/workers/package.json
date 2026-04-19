@@ -14,17 +14,22 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:integration": "vitest run --include='src/**/*.integration.test.ts'",
     "test:watch": "vitest",
     "clean": "rm -rf dist .turbo coverage"
   },
   "dependencies": {
     "bullmq": "catalog:",
     "ioredis": "catalog:",
+    "@opentelemetry/api": "catalog:",
+    "@synterra/telemetry": "workspace:*",
     "pino": "catalog:",
+    "prom-client": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@synterra/tsconfig": "workspace:*",
+    "@testcontainers/redis": "catalog:",
     "@types/ioredis-mock": "^8.2.5",
     "@types/node": "catalog:",
     "typescript": "catalog:",
@@ -34,6 +39,7 @@
     "@vitest/coverage-v8": "catalog:",
     "ioredis-mock": "catalog:",
     "pino-pretty": "catalog:",
+    "testcontainers": "catalog:",
     "eslint": "^9.17.0"
   }
 }

@@ -18,7 +18,12 @@
  */
 import http, { type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 
+import { collectDefaultMetrics, register } from 'prom-client';
+
 import logger from './logger.js';
+
+// Collect default Node.js process metrics (event loop lag, heap, GC, etc.)
+collectDefaultMetrics({ register });
 
 /**
  * Redis client statuses we surface on /health. The `'ready'` state is the
@@ -110,6 +115,22 @@ export function createHealthServer({ port, getStatus, version }: HealthServerOpt
     if (url === '/ready' || url.startsWith('/ready?')) {
       const payload = buildPayload(getStatus, resolvedVersion);
       writeJson(res, payload.redis === 'ready' ? 200 : 503, payload);
+      return;
+    }
+
+    if (url === '/metrics' || url.startsWith('/metrics?')) {
+      register
+        .metrics()
+        .then((metrics: string) => {
+          res.writeHead(200, { 'Content-Type': register.contentType });
+          res.end(metrics);
+        })
+        .catch((err: unknown) => {
+          const message = err instanceof Error ? err.message : String(err);
+          logger.error({ event: 'metrics.error', err: { message } }, 'metrics error');
+          res.writeHead(500);
+          res.end();
+        });
       return;
     }
 

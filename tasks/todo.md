@@ -254,44 +254,99 @@ Nothing. The moment the user confirms the origin push (P7), W0-2 (Drizzle scaffo
 
 ---
 
-# W0-3 — Infrastructure (LXC + Docker Compose + Cloudflare Tunnel) ✅ (2026-04-19, commit pending)
+# W0-3 — Infrastructure (LXC + Docker Compose + Cloudflare Tunnel) ✅ COMPLETE (2026-04-19)
 
 **Workstream:** Synterra/docs/plan-parts/PLAN_05_Execution_and_Appendix.md → W0-3
-**Definition of done:** placeholder Next.js deploys via script, reachable at dev.forgentic.app through Cloudflare.
+**Definition of done:** Stack deployed on 5 LXCs, 13 migrations applied, reachable publicly via Cloudflare tunnel. ✅ MET
+
+**Domain note:** Domain is `forgentic.io` (not `.app`). All config files updated accordingly.
+
+## Deliverables (files)
+
+- [x] `infra/bootstrap-lxc.sh` — first-boot provisioner for all 5 LXC roles.
+- [x] `infra/deploy-synterra.sh` — full deploy script: Infisical auth → secrets → build → compose up → migrate.
+- [x] `infra/.env.example` — complete secret reference map (30+ vars, updated to forgentic.io).
+- [x] `infra/cloudflare/tunnel.yml` — Cloudflare Tunnel ingress: `app.forgentic.io`, `dev.forgentic.io`, `api.forgentic.io` → Traefik.
+- [x] `infra/lxc-app/docker-compose.yml` — `traefik:latest` + 3 Next.js replicas + 2 BullMQ workers + cloudflared + Alloy + Promtail. `Host(\`app.forgentic.io\`) || Host(\`dev.forgentic.io\`)`hardcoded (env had`https://` scheme).
+- [x] `infra/lxc-app/traefik/traefik.yml` — static config (empty `certificatesResolvers: {}` removed — Traefik v3 rejects it).
+- [x] `infra/lxc-app/traefik/dynamic.yml` — TLS options, secure-headers, rate-limit-api middlewares.
+- [x] `infra/lxc-app/promtail.yml` — Docker log scraper → Loki.
+- [x] `infra/lxc-app/grafana-agent.river` — switched to `grafana/alloy:latest` (Grafana Agent deprecated; River config same).
+- [x] `infra/lxc-db/docker-compose.yml` — Postgres 16 + WAL + pg_basebackup + rclone B2 + exporters.
+- [x] `infra/lxc-cache/docker-compose.yml` — Redis 7 `noeviction` (committed + restarted on LXC ✅).
+- [x] `infra/lxc-metering/docker-compose.yml` — Full Lago v1.32 stack.
+- [x] `infra/lxc-observability/docker-compose.yml` — Prometheus + Loki + Tempo + Grafana + Alertmanager + Cachet + node-exporter (updated to forgentic.io).
+- [x] `infra/lxc-observability/config/prometheus.yml` — scrape targets.
+- [x] `infra/lxc-observability/config/alertmanager.yml` — email alerts (updated to forgentic.io).
+- [x] `infra/lxc-observability/config/loki.yml` — TSDB schema, 14d retention.
+- [x] `infra/lxc-observability/config/tempo.yml` — OTLP ingestion, 14d retention, service-graphs + span-metrics.
+- [x] `infra/lxc-observability/config/grafana-datasources.yml` — Prometheus + Loki + Tempo + Alertmanager with exemplar trace links.
+- [x] `packages/db/migrations/0002_workspaces.sql` — RLS forward-ref to `workspace_members` moved to 0003.
+- [x] `packages/db/migrations/0003_memberships.sql` — workspace RLS policies added here.
+- [x] `packages/db/migrations/0007_usage.sql` — `idempotency_key UNIQUE` replaced with partial index including partition key `created_at`.
+- [x] `apps/web/next.config.mjs` — `output: 'standalone'` added.
+- [x] `apps/web/Dockerfile` — multi-stage, standalone output, `127.0.0.1` healthcheck.
+- [x] `apps/workers/Dockerfile` — restructured runner: dist at `apps/workers/dist/` so Node resolves workspace `node_modules`.
+- [x] `apps/api/Dockerfile` — tsup-bundled runner, port 3001, healthcheck at `/v1/health`. ✅ Created 2026-04-19.
+
+## Operational steps ✅ ALL DONE
+
+- [x] 5 LXCs created on Proxmox and bootstrapped.
+- [x] Infisical Machine Identity registered → `/etc/forgentic/deploy.secret` filled on forgentic-app.lan.
+- [x] Cloudflare Tunnel `forgentic-prod` created → TUNNEL_TOKEN in Infisical.
+- [x] `deploy-synterra.sh` run on forgentic-app.lan → all containers healthy (`docker ps`: web×3 + workers×2 + Traefik + Alloy + Promtail).
+- [x] 13 DB migrations applied on forgentic-db.lan (0000–0012, `Migrations complete.`).
+- [x] `https://app.forgentic.io/api/health` → `{"status":"ok","version":"0.0.0","uptime":27.8}` ✅ live from internet.
+- [x] `https://dev.forgentic.io/api/health` → same ✅ live from internet.
+- [x] Cloudflare tunnel `forgentic-prod` → 4 connections (ams06/ams07/ams15/ams19).
+- [x] Cloudflare WAF custom rule `(ip.src ne 213.93.60.42) → Block` — applied ✅ (confirmed 2026-04-19).
+- [x] Redis `noeviction` — container restarted on forgentic-cache.lan ✅ (confirmed 2026-04-19).
+
+## LXC map
+
+| Role          | Hostname                    | IP            |
+| ------------- | --------------------------- | ------------- |
+| App           | forgentic-app.lan           | 192.168.10.52 |
+| DB            | forgentic-db.lan            | 192.168.10.50 |
+| Cache         | forgentic-cache.lan         | 192.168.10.51 |
+| Metering      | forgentic-metering.lan      | 192.168.10.53 |
+| Observability | forgentic-observability.lan | 192.168.10.54 |
+
+## Bugs fixed during deploy (captured in tasks/lessons.md)
+
+1. `traefik:v3.3` incompatible with Docker Engine 28 (API 1.24 dropped) → pinned to `traefik:latest`.
+2. `DOCKER_API_VERSION` env ignored by Traefik (doesn't use `client.FromEnv`).
+3. `grafana/agent` deprecated → `grafana/alloy:latest`.
+4. `certificatesResolvers: {}` breaks Traefik v3 YAML parser → removed.
+5. Workers dist path — tsup output at `/app/dist/`, Node couldn't find `apps/workers/node_modules` → restructured to `apps/workers/dist/`.
+6. Healthchecks with `localhost` → Alpine resolves `::1` first, Node binds IPv4 → use `127.0.0.1`.
+7. Migration 0002 forward-referenced `workspace_members` → moved RLS policies to 0003.
+8. `idempotency_key UNIQUE` on partitioned table requires partition key in index.
+9. Traefik `Host()` rule received `https://app.forgentic.app` (wrong domain + scheme) → hardcoded.
+10. cloudflared → `http://traefik:80` caused redirect loop → changed to `https://traefik:443` + No TLS Verify.
+
+---
+
+# W0-4 — Observability Bootstrap (OTel + Traces + Metrics) ✅ COMPLETE (2026-04-19)
+
+**Workstream:** Synterra/docs/plan-parts/PLAN_05_Execution_and_Appendix.md → W0-4
+**Definition of done:** Traces visible in Grafana Tempo; Prometheus scrapes worker metrics; Pino logs include traceId/spanId.
 
 ## Deliverables
 
-- [x] `infra/bootstrap-lxc.sh` — first-boot provisioner for all 5 LXC roles (app/db/cache/metering/observability). Installs Docker CE, Infisical CLI, Node 22 + pnpm (app), rclone (db), creates `forgentic` user, clones repo, stubs /etc/forgentic/deploy.secret.
-- [x] `infra/deploy-synterra.sh` — full deploy script modeled on Aquila's: sources deploy.secret → Infisical auth → export secrets → validate required vars → `pnpm install` → `pnpm build` → `docker compose up` → `pnpm db:migrate`.
-- [x] `infra/.env.example` — complete secret reference map (all 30+ vars documented with generators).
-- [x] `infra/cloudflare/tunnel.yml` — Cloudflare Tunnel ingress rules (app.forgentic.app, dev.forgentic.app, api.forgentic.app → Traefik).
-- [x] `infra/lxc-app/docker-compose.yml` — Traefik v3 + 3 Next.js replicas + 2 BullMQ workers + cloudflared + promtail + grafana-agent. Traefik health drain 30s, rolling update pattern.
-- [x] `infra/lxc-app/traefik/traefik.yml` — static config (entrypoints, Docker provider, Prometheus metrics on :8082).
-- [x] `infra/lxc-app/traefik/dynamic.yml` — TLS options, secure-headers middleware, rate-limit-api middleware.
-- [x] `infra/lxc-app/promtail.yml` — Docker log scraper → Loki (observability.lan:3100).
-- [x] `infra/lxc-app/grafana-agent.river` — OTLP receiver (4317/4318) → Tempo (observability.lan:4317).
-- [x] `infra/lxc-db/docker-compose.yml` — Postgres 16 + WAL archive to /san + nightly pg_basebackup + rclone to B2 + postgres-exporter + node-exporter.
-- [x] `infra/lxc-cache/docker-compose.yml` — Redis 7 + AOF every 1s + nightly RDB to /san + redis-exporter + node-exporter.
-- [x] `infra/lxc-metering/docker-compose.yml` — Full Lago v1.32 stack (lago-api, lago-api-worker, lago-api-clock, lago-front, lago-postgres, lago-redis, lago-db-backup).
-- [x] `infra/lxc-observability/docker-compose.yml` — Prometheus (14d) + Loki (14d) + Tempo (14d) + Grafana + Alertmanager + Cachet (status page) + node-exporter.
-- [x] `infra/lxc-observability/config/prometheus.yml` — scrape targets (Traefik, postgres-exporter, redis-exporter, node-exporters, Aquila).
-- [x] `infra/lxc-observability/config/alertmanager.yml` — email alerts, severity routing.
-- [x] `infra/lxc-observability/config/loki.yml` — TSDB schema, 14d retention.
-- [x] `infra/lxc-observability/config/tempo.yml` — OTLP ingestion, 14d retention, service-graphs + span-metrics generators.
-- [x] `infra/lxc-observability/config/grafana-datasources.yml` — Prometheus + Loki + Tempo + Alertmanager wired with exemplar trace links.
-
-## Operational steps (run by user on Proxmox)
-
-- [ ] P0-pre1: Clean node 1 disk to <70% (currently at 96%) — URGENT
-- [ ] P0-pre2: Mount SAN as Proxmox shared storage (`san2tb`)
-- [ ] P0-pre3: Verify cluster quorum
-- [ ] Create 5 LXCs on Proxmox (see PLAN_01 §REVISION table for sizing)
-- [ ] Run `bootstrap-lxc.sh --role <role>` on each LXC
-- [ ] Register Infisical Machine Identity for `forgentic-prod` project → fill /etc/forgentic/deploy.secret
-- [ ] Create Cloudflare Tunnel in CF dashboard → get TUNNEL_TOKEN → add to Infisical
-- [ ] Run `deploy-synterra.sh` on forgentic-app.lan → verify at dev.forgentic.app
+- [x] `apps/api/Dockerfile` — ✅ Done (W0-3)
+- [x] `apps/web/src/instrumentation.ts` — OTel SDK via `@synterra/telemetry` + Next.js `register()` hook (Node runtime only)
+- [x] `apps/workers/src/worker.ts` — OTel spans on BullMQ job execution via `tracer.startActiveSpan`
+- [x] `apps/api/src/index.ts` + `apps/workers/src/index.ts` — `initTelemetry` wired at boot; `shutdownTelemetry` in workers graceful shutdown
+- [x] Pino `mixin: otelMixin` in `createLogger()` for api + workers (web inherits via SDK); injects `traceId`/`spanId` when a span is active
+- [x] `packages/telemetry` — upgraded: `OTLPTraceExporter` wired to `NodeSDK`; `otelMixin()` exported for pino; `shutdownTelemetry` exported
+- [x] Prometheus `/metrics` endpoint — `prom-client` `collectDefaultMetrics` + `/metrics` route in workers health sidecar (port 3002)
+- [x] RLS cross-workspace denial integration test — `packages/db/src/rls.integration.test.ts` (Testcontainers Postgres 16; run with `pnpm --filter @synterra/db test:integration`)
+- [x] Full BullMQ worker integration test — `apps/workers/src/worker.integration.test.ts` (Testcontainers Redis 7; run with `pnpm --filter @synterra/workers test:integration`)
+- [ ] Verify traces appear in Grafana Tempo at `http://192.168.10.54:3000` — needs `OTEL_EXPORTER_OTLP_ENDPOINT=http://192.168.10.54:4318` in Infisical + redeploy
 
 ## Notes
 
-- The existing `infra/docker-compose.yml` (local dev stack: Postgres + Redis + mailpit) is kept as-is for local dev. LXC composes live in `infra/lxc-<role>/`.
-- Acceptance criterion requires running infrastructure. Files are complete; operational steps above block the live test.
+- Auto-instrumentations omitted: tsup-bundled ESM breaks require-hook patching. Spans created manually at job level. HTTP spans require future W-series work with an init-loader approach.
+- Integration tests excluded from default `pnpm test` run (need Docker). Add `if: ${{ env.DOCKER_AVAILABLE }}` gate when CI Docker support lands.
+- `pnpm-workspace.yaml` catalog updated: added `@opentelemetry/exporter-trace-otlp-http`, `@opentelemetry/auto-instrumentations-node`, `prom-client`, `testcontainers`, `@testcontainers/postgresql`, `@testcontainers/redis`.

@@ -41,6 +41,9 @@ catalog:
   pino-pretty: ^13.0.0
   "@opentelemetry/api": ^1.9.0
   "@opentelemetry/sdk-node": ^0.56.0
+  "@opentelemetry/exporter-trace-otlp-http": ^0.56.0
+  "@opentelemetry/auto-instrumentations-node": ^0.56.0
+  prom-client: ^15.1.0
 
   # Build tooling
   tsup: ^8.3.0
@@ -53,6 +56,9 @@ catalog:
   jsdom: ^25.0.0
   ioredis-mock: ^8.9.0
   "@playwright/test": ^1.49.0
+  testcontainers: ^10.24.0
+  "@testcontainers/postgresql": ^10.24.0
+  "@testcontainers/redis": ^10.24.0
 
 # Only allow these built scripts to execute during install (pnpm 10+).
 # https://pnpm.io/settings#onlybuiltdependencies

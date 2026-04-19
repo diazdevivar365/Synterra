@@ -20,6 +20,7 @@
   "dependencies": {
     "hono": "catalog:",
     "@hono/node-server": "catalog:",
+    "@synterra/telemetry": "workspace:*",
     "pino": "catalog:",
     "zod": "catalog:"
   },

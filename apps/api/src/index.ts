@@ -8,9 +8,17 @@
  */
 import { serve } from '@hono/node-server';
 
+import { initTelemetry } from '@synterra/telemetry';
+
 import { buildApp } from './app.js';
 import { env } from './config.js';
 import logger from './logger.js';
+
+initTelemetry({
+  serviceName: 'synterra-api',
+  serviceVersion: process.env['npm_package_version'] ?? '0.0.0',
+  enabled: env.NODE_ENV !== 'test',
+});
 
 const app = buildApp();
 

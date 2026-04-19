@@ -15,6 +15,7 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:integration": "vitest run --include='src/**/*.integration.test.ts'",
     "db:migrate": "tsx scripts/migrate.ts",
     "clean": "rm -rf dist .turbo coverage"
   },
@@ -25,9 +26,11 @@
   },
   "devDependencies": {
     "@synterra/tsconfig": "workspace:*",
+    "@testcontainers/postgresql": "catalog:",
     "@types/node": "catalog:",
     "drizzle-kit": "catalog:",
     "eslint": "^9.17.0",
+    "testcontainers": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

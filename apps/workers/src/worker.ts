@@ -10,6 +10,7 @@
  * The caller is responsible for `await worker.waitUntilReady()` and for
  * closing the worker during graceful shutdown.
  */
+import { trace, SpanStatusCode, type Span } from '@opentelemetry/api';
 import { Worker, type Job } from 'bullmq';
 
 import { env } from './config.js';
@@ -17,6 +18,8 @@ import logger from './logger.js';
 import { QUEUE_NAMES } from './queues.js';
 
 import type { Redis } from 'ioredis';
+
+const tracer = trace.getTracer('@synterra/workers', '0.0.0');
 
 export interface DefaultJobResult {
   ok: true;
@@ -45,43 +48,59 @@ export function createDefaultWorker(
 
   const worker = new Worker<unknown, DefaultJobResult>(
     QUEUE_NAMES.DEFAULT,
-    async (job: Job<unknown, DefaultJobResult>): Promise<DefaultJobResult> => {
-      logger.info(
+    (job: Job<unknown, DefaultJobResult>): Promise<DefaultJobResult> =>
+      tracer.startActiveSpan(
+        `job.process ${job.name}`,
         {
-          event: 'job.processing',
-          queue: QUEUE_NAMES.DEFAULT,
-          jobId: job.id,
-          name: job.name,
-          attemptsMade: job.attemptsMade,
+          attributes: {
+            'bullmq.queue': QUEUE_NAMES.DEFAULT,
+            'bullmq.job.id': job.id ?? 'unknown',
+            'bullmq.job.name': job.name,
+            'bullmq.job.attempts': job.attemptsMade,
+          },
         },
-        'processing job',
-      );
+        async (span: Span) => {
+          try {
+            logger.info(
+              {
+                event: 'job.processing',
+                queue: QUEUE_NAMES.DEFAULT,
+                jobId: job.id,
+                name: job.name,
+                attemptsMade: job.attemptsMade,
+              },
+              'processing job',
+            );
 
-      // TODO: real dispatch dispatches here. The concrete handler (provisioner,
-      // usage-aggregator, notifications, …) is selected by `job.name` and
-      // resolved via a job-type registry once that module lands. For now we
-      // perform an explicit microtask yield so the handler is structurally
-      // async and the path remains identical to the real implementation.
-      await Promise.resolve();
+            // TODO: real dispatch here — job-type registry + handler lookup.
+            await Promise.resolve();
 
-      const result: DefaultJobResult = {
-        ok: true,
-        jobId: job.id ?? 'unknown',
-        processedAt: new Date().toISOString(),
-      };
+            const result: DefaultJobResult = {
+              ok: true,
+              jobId: job.id ?? 'unknown',
+              processedAt: new Date().toISOString(),
+            };
 
-      logger.info(
-        {
-          event: 'job.processed',
-          queue: QUEUE_NAMES.DEFAULT,
-          jobId: result.jobId,
-          name: job.name,
+            logger.info(
+              {
+                event: 'job.processed',
+                queue: QUEUE_NAMES.DEFAULT,
+                jobId: result.jobId,
+                name: job.name,
+              },
+              'job processed',
+            );
+
+            span.setStatus({ code: SpanStatusCode.OK });
+            return result;
+          } catch (err) {
+            span.setStatus({ code: SpanStatusCode.ERROR, message: (err as Error).message });
+            throw err;
+          } finally {
+            span.end();
+          }
         },
-        'job processed',
-      );
-
-      return result;
-    },
+      ),
     {
       connection,
       concurrency,

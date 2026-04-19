@@ -24,7 +24,7 @@ const nextConfig = {
   // NOTE: @synterra/ui and @synterra/shared are placeholders — they do not
   // exist yet in packages/. They will be scaffolded in a follow-up change;
   // keeping them here now prevents config churn when they land.
-  transpilePackages: ['@synterra/ui', '@synterra/shared'],
+  transpilePackages: ['@synterra/ui', '@synterra/shared', '@synterra/telemetry'],
 
   logging: {
     fetches: {

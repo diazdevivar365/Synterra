@@ -6,6 +6,8 @@
  * timeout of `SHUTDOWN_TIMEOUT_MS` fires via `setTimeout(...).unref()` so a
  * stuck drain cannot keep the container alive forever.
  */
+import { initTelemetry, shutdownTelemetry } from '@synterra/telemetry';
+
 import { env } from './config.js';
 import { createRedisConnection } from './connection.js';
 import { createHealthServer } from './health-server.js';
@@ -13,6 +15,12 @@ import logger from './logger.js';
 import { createDefaultWorker } from './worker.js';
 
 async function main(): Promise<void> {
+  initTelemetry({
+    serviceName: 'synterra-workers',
+    serviceVersion: process.env['npm_package_version'] ?? '0.0.0',
+    enabled: env.NODE_ENV !== 'test',
+  });
+
   logger.info({ event: 'worker.booting', nodeEnv: env.NODE_ENV }, 'worker booting');
 
   const connection = createRedisConnection(env.REDIS_URL);
@@ -55,6 +63,7 @@ async function main(): Promise<void> {
         healthServer.close((err) => (err ? reject(err) : resolve()));
       });
       await connection.quit();
+      await shutdownTelemetry();
       logger.info({ event: 'worker.shutdown.complete' }, 'shutdown complete');
       process.exit(0);
     } catch (err) {
