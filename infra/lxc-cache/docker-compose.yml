@@ -42,7 +42,7 @@ services:
       - --maxmemory
       - "1200mb"
       - --maxmemory-policy
-      - allkeys-lru
+      - noeviction
       - --loglevel
       - notice
     ports:
