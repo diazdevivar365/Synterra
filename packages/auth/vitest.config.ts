@@ -9,6 +9,10 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.ts'],
   },
   resolve: {
-    alias: { '@': path.resolve(__dirname, './src') },
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      // server-only throws in non-Next.js test environments; stub it out.
+      'server-only': path.resolve(__dirname, 'src/__mocks__/server-only.ts'),
+    },
   },
 });
