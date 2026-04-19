@@ -54,11 +54,12 @@ export async function POST(req: Request): Promise<NextResponse> {
     )
     .limit(1);
 
-  if (rows.length === 0) {
+  const first = rows[0];
+  if (!first) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const { role, slug } = rows[0]!;
+  const { role, slug } = first;
 
   const secret = process.env['WORKSPACE_JWT_SECRET'];
   if (!secret) {
@@ -73,7 +74,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   const cookieStore = await cookies();
   cookieStore.set(WORKSPACE_COOKIE, token, {
     httpOnly: true,
-    secure: process.env['NODE_ENV'] === 'production',
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: COOKIE_MAX_AGE,
     path: '/',
