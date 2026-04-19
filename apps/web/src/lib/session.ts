@@ -8,5 +8,5 @@ export interface RequestSession {
 
 export function getSessionOrThrow(): Promise<RequestSession> {
   // TODO(W1-1): replace with real better-auth getSession()
-  throw new ForbiddenError('Authentication not yet wired — see W1-1');
+  return Promise.reject(new ForbiddenError('Authentication not yet wired — see W1-1'));
 }
