@@ -1,0 +1,44 @@
+# ─── Dependency & build artefacts ─────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+.yarn/
+dist/
+build/
+out/
+.next/
+.turbo/
+coverage/
+playwright-report/
+test-results/
+blob-report/
+*.tsbuildinfo
+next-env.d.ts
+
+# ─── Lockfiles / generated ────────────────────────────────────────────────────
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# ─── Drizzle generated SQL (keep exactly as emitted by drizzle-kit) ───────────
+**/drizzle/**/*.sql
+
+# ─── Env files — never format ─────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── Static / binary ──────────────────────────────────────────────────────────
+*.ico
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.avif
+*.svg
+*.pdf
+*.woff
+*.woff2
+
+# ─── Committed docs we leave untouched ────────────────────────────────────────
+LICENSE
+CHANGELOG.md

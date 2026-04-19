@@ -57,8 +57,8 @@
   - `eslint-plugin-import` (resolver typescript)
   - `eslint-plugin-unused-imports`
   - `eslint-config-next` (solo para `apps/web`)
-- [ ] E2 — `.prettierrc.mjs` + `.prettierignore` (singleQuote, trailingComma all, printWidth 100, plugin tailwindcss para `apps/web`)
-- [ ] E3 — `.editorconfig` (LF, utf-8, 2 spaces, insert_final_newline)
+- [x] E2 — `.prettierrc.mjs` + `.prettierignore` ✅ (2026-04-19) — 100-col/singleQuote/trailingComma=all/LF + overrides por filetype; `prettier-plugin-tailwindcss` en overrides scoped a `apps/web/**` y pinned en devDeps; ignore cubre drizzle SQL, env files, build artefacts, binaries.
+- [x] E3 — `.editorconfig` ✅ (2026-04-19) — UTF-8/LF/2-space/insert_final_newline global + markdown trailing-whitespace exception + Makefile tab + CRLF para `.bat/.cmd/.ps1`.
 
 ## F. Testing
 - [ ] F1 — Vitest config raíz (`vitest.workspace.ts`) agregando `apps/*` y `packages/*`
