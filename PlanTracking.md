@@ -10,9 +10,9 @@
 | W0-4  | Observability bootstrap (OTel + Prometheus)     | hecha ✅     | W0-3                |
 | W1-1  | better-auth integration                         | hecha ✅     | W0-2                |
 | W1-2  | Multi-workspace JWT + workspace UI              | hecha ✅     | W1-1                |
-| W1-3  | WorkOS adapter (SSO/SAML/SCIM)                  | pendiente ⏳ | W1-1                |
+| W1-3  | WorkOS adapter (SSO/SAML/SCIM)                  | hecha ✅     | W1-1                |
 | W2-1  | Workspace CRUD + memberships                    | hecha ✅     | W1-2 (impl en W1-2) |
-| W2-2  | Aquila org provisioning (workspace-provisioner) | pendiente ⏳ | W1-2, AQ-1          |
+| W2-2  | Aquila org provisioning (workspace-provisioner) | en curso 🔄  | W1-2, AQ-1          |
 | W2-3  | URL-first onboarding (90-second wow)            | pendiente ⏳ | W2-2                |
 | W2-4  | Workspace switcher + multi-workspace UX         | hecha ✅     | W1-2 (impl en W1-2) |
 | W3-1  | Plans + Stripe integration                      | pendiente ⏳ | W2-1                |

@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation';
-import type { ReactNode } from 'react';
 
 import { NavLink } from '@/components/nav-link';
 import { getWorkspaceContext } from '@/lib/workspace-context';
+
+import type { ReactNode } from 'react';
 
 export default async function SettingsLayout({
   children,
@@ -33,6 +34,11 @@ export default async function SettingsLayout({
           {(ctx.role === 'owner' || ctx.role === 'admin') && (
             <NavLink href={`${base}/billing`} exact>
               Billing
+            </NavLink>
+          )}
+          {(ctx.role === 'owner' || ctx.role === 'admin') && (
+            <NavLink href={`${base}/sso`} exact>
+              SSO
             </NavLink>
           )}
         </nav>

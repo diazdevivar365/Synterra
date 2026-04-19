@@ -9,3 +9,16 @@ export {
   type WorkspaceJwtPayload,
   type WorkspaceRole,
 } from './workspace-jwt.js';
+
+export {
+  createWorkOSClient,
+  createWorkOSOrganization,
+  getSsoAuthorizationUrl,
+  exchangeSsoCode,
+  getAdminPortalLink,
+  constructScimEvent,
+  type WorkOSProfile,
+  type ScimUser,
+  type ScimEvent,
+  type ScimEventType,
+} from './workos.js';

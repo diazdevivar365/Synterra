@@ -403,3 +403,31 @@ Nothing. The moment the user confirms the origin push (P7), W0-2 (Drizzle scaffo
 - `pnpm typecheck` — 11/11 workspaces clean
 - `pnpm test` — 49 tests passing across 11 workspaces
 - `pnpm build` — all 3 buildable apps green
+
+---
+
+# W1-3 — WorkOS adapter (SSO/SAML/SCIM) ✅ COMPLETE (2026-04-20)
+
+**Workstream:** Synterra/PLAN.md §C.1 → W1-3
+**Definition of done:** SSO/SAML/SCIM integration gated to Scale plan. WorkOS handles SAML negotiation; Synterra issues its own JWTs. Workspace admins can enable SSO via settings UI.
+
+## Deliverables ✅
+
+- [x] `packages/db/migrations/0014_sso_connections.sql` — `sso_connections` table + RLS policy + unique index on `workspace_id`
+- [x] `packages/db/src/schemas/sso.ts` — Drizzle schema (`ssoConnections`, `SsoConnection`, `NewSsoConnection`)
+- [x] `packages/auth/src/env.ts` — `WORKOS_API_KEY`, `WORKOS_CLIENT_ID`, `WORKOS_WEBHOOK_SECRET` optional env vars
+- [x] `packages/auth/src/workos.ts` — adapter: `createWorkOSClient`, `createWorkOSOrganization`, `getSsoAuthorizationUrl`, `exchangeSsoCode`, `getAdminPortalLink`, `constructScimEvent`
+- [x] `packages/auth/src/workos.test.ts` — 8 unit tests covering all exported functions
+- [x] `apps/web/src/app/api/auth/sso/initiate/route.ts` — GET: builds WorkOS SSO URL, redirects
+- [x] `apps/web/src/app/api/auth/sso/callback/route.ts` — GET: exchange code → upsert user + ba_account → create ba_session → set cookies → redirect
+- [x] `apps/web/src/app/api/webhooks/workos/route.ts` — POST: SCIM webhook, signature verification, dsync.user.\* handling
+- [x] `apps/web/src/actions/sso.ts` — `enableSso`, `getAdminPortalUrl`, `toggleSso` Server Actions with RBAC
+- [x] `apps/web/src/app/[workspace]/settings/sso/page.tsx` — RSC page, owner/admin guard
+- [x] `apps/web/src/components/sso-settings-form.tsx` — setup form + status panel + Admin Portal buttons + toggle
+- [x] `apps/web/src/app/[workspace]/settings/layout.tsx` — SSO NavLink for owner/admin
+
+## Verification ✅ (2026-04-20)
+
+- `pnpm typecheck` — 11/11 workspaces clean
+- `pnpm test` — 71 tests passing (49 web + 22 auth, includes 8 new WorkOS unit tests)
+- WorkOS SDK non-exported enums handled via `as unknown as` casts (established pattern from `server.ts`)
