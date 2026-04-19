@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Bash(rm -rf*)",
+      "Bash(git push --force*)",
+      "Bash(pnpm install*)"
+    ]
+  }
+}
