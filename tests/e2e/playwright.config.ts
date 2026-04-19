@@ -80,14 +80,12 @@ export default defineConfig({
     },
   ],
 
-  // webServer: enable once `apps/web` lands (W0-1 §G).
-  //
-  // webServer: {
-  //   command: 'pnpm --filter @synterra/web dev',
-  //   url: process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://localhost:3000',
-  //   reuseExistingServer: !isCI,
-  //   timeout: 120_000,
-  //   stdout: 'pipe',
-  //   stderr: 'pipe',
-  // },
+  webServer: {
+    command: 'pnpm --filter @synterra/web dev',
+    url: process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://localhost:3000',
+    reuseExistingServer: !isCI,
+    timeout: 120_000,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  },
 });

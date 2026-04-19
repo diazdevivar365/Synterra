@@ -10,61 +10,61 @@ packages:
 # https://pnpm.io/catalogs
 catalog:
   # Core framework
-  next: ^16.0.0
-  react: ^19.0.0
-  react-dom: ^19.0.0
-
-  # Language + typing
-  typescript: ^5.9.0
+  "@hono/node-server": ^1.13.0
+  "@opentelemetry/api": ^1.9.0
+  "@opentelemetry/auto-instrumentations-node": ^0.56.0
+  "@opentelemetry/exporter-trace-otlp-http": ^0.56.0
+  "@opentelemetry/sdk-node": ^0.56.0
+  "@playwright/test": ^1.49.0
+  "@testcontainers/postgresql": ^10.24.0
+  "@testcontainers/redis": ^10.24.0
+  "@testing-library/react": ^16.1.0
   "@types/node": ^22.10.0
   "@types/react": ^19.0.0
   "@types/react-dom": ^19.0.0
-
-  # Validation + utilities
-  zod: ^3.24.0
+  "@vitest/coverage-v8": ^3.0.0
 
   # Auth
   better-auth: ^1.6.5
 
-  # JWT (edge-compatible)
-  jose: ^5.9.0
-
-  # HTTP / API
-  hono: ^4.6.0
-  "@hono/node-server": ^1.13.0
+  # Queue
+  bullmq: ^5.34.0
+  drizzle-kit: ^0.31.4
 
   # DB
   drizzle-orm: ^0.45.2
-  drizzle-kit: ^0.31.4
-  postgres: ^3.4.0
 
-  # Queue
-  bullmq: ^5.34.0
+  # HTTP / API
+  hono: ^4.6.0
   ioredis: ^5.4.0
+  ioredis-mock: ^8.9.0
+
+  # JWT (edge-compatible)
+  jose: ^5.9.0
+  jsdom: ^25.0.0
+  next: ^16.0.0
 
   # Observability
   pino: ^9.5.0
   pino-pretty: ^13.0.0
-  "@opentelemetry/api": ^1.9.0
-  "@opentelemetry/sdk-node": ^0.56.0
-  "@opentelemetry/exporter-trace-otlp-http": ^0.56.0
-  "@opentelemetry/auto-instrumentations-node": ^0.56.0
+  postgres: ^3.4.9
   prom-client: ^15.1.0
+  react: ^19.0.0
+  react-dom: ^19.0.0
+  testcontainers: ^10.24.0
 
   # Build tooling
   tsup: ^8.3.0
   tsx: ^4.19.0
 
+  # Language + typing
+  typescript: ^5.9.0
+
   # Testing
   vitest: ^3.0.0
-  "@vitest/coverage-v8": ^3.0.0
-  "@testing-library/react": ^16.1.0
-  jsdom: ^25.0.0
-  ioredis-mock: ^8.9.0
-  "@playwright/test": ^1.49.0
-  testcontainers: ^10.24.0
-  "@testcontainers/postgresql": ^10.24.0
-  "@testcontainers/redis": ^10.24.0
+
+  # Validation + utilities
+  zod: ^3.24.0
 
 # Only allow these built scripts to execute during install (pnpm 10+).
 # https://pnpm.io/settings#onlybuiltdependencies

@@ -72,7 +72,7 @@
 ## F. Testing
 
 - [x] F1 — Vitest config raíz ✅ (2026-04-19) — `vitest.config.ts` con `test.projects: ['apps/*', 'packages/*']` (pattern Vitest 3), coverage v8 con reporters text+html+lcov+json-summary, mock hygiene (clearMocks/restoreMocks/mockReset), reporter CI-aware (junit+github-actions en CI).
-- [ ] F2 — Sanity test por workspace — DEFERRED: se escribe junto a cada workspace en §G/§H (apps/web, apps/api, apps/workers, packages/\*).
+- [x] F2 — Sanity test por workspace ✅ (2026-04-20) — tests presentes en todos los workspaces: apps/api, apps/web (health + rbac + errors), apps/workers, packages/db, auth, billing, aquila-client, shared, telemetry.
 - [x] F3 — Playwright config ✅ (2026-04-19) — `tests/e2e/playwright.config.ts` production-grade: chromium + webkit + mobile-chromium, retries 2-en-CI, workers capped a 2 en CI, trace on-first-retry, screenshot+video on-failure, locale+timezone pinned, reporter github+html+junit en CI. `webServer` comentado hasta que lande apps/web.
 - [x] F4 — Smoke spec ✅ (2026-04-19) — `tests/e2e/smoke.spec.ts` — dos invariantes: `/` tiene título con "Forgentic" y `GET /api/health` responde 200 JSON con `{status, version, uptime}`. Falla a propósito hasta que lande apps/web.
 
@@ -163,7 +163,7 @@
 - [x] P5 — `pnpm build` ✅ — 3/3 buildable workspaces green (web next build, api + workers tsup bundles).
 - [x] P5b — `pnpm format:check` ✅ — Prettier baseline clean.
 - [x] P5c — `scripts/check-brand.sh` ✅ — zero "Synterra" leaks in apps/web/src, apps/web/public, packages/ui/src, packages/emails/src.
-- [ ] P6 — Playwright smoke — deferred: `tests/e2e/smoke.spec.ts` fails intentionally until `apps/web` is served against `PLAYWRIGHT_BASE_URL`. CI e2e workflow is `if: false`-gated until the webServer block lands.
+- [x] P6 — Playwright smoke ✅ (2026-04-20) — webServer block habilitado en `tests/e2e/playwright.config.ts`; gate `if: false` removido de `.github/workflows/e2e.yml`. CI E2E corre en push a main + PRs.
 - [x] P7 — `git push --force origin main` ✅ (2026-04-19) — 19 commits subidos, remote en `f3861ab`.
 - [x] P8 — CI trigger lanzado en push ✅ (2026-04-19).
 
@@ -343,10 +343,31 @@ Nothing. The moment the user confirms the origin push (P7), W0-2 (Drizzle scaffo
 - [x] Prometheus `/metrics` endpoint — `prom-client` `collectDefaultMetrics` + `/metrics` route in workers health sidecar (port 3002)
 - [x] RLS cross-workspace denial integration test — `packages/db/src/rls.integration.test.ts` (Testcontainers Postgres 16; run with `pnpm --filter @synterra/db test:integration`)
 - [x] Full BullMQ worker integration test — `apps/workers/src/worker.integration.test.ts` (Testcontainers Redis 7; run with `pnpm --filter @synterra/workers test:integration`)
-- [ ] Verify traces appear in Grafana Tempo at `http://192.168.10.54:3000` — needs `OTEL_EXPORTER_OTLP_ENDPOINT=http://192.168.10.54:4318` in Infisical + redeploy
+- [x] Verify traces appear in Grafana Tempo ✅ (2026-04-20) — `OTEL_EXPORTER_OTLP_ENDPOINT=http://192.168.10.54:4318` en Infisical + redeploy lxc-app aplicado. W0-4 COMPLETO.
 
 ## Notes
 
 - Auto-instrumentations omitted: tsup-bundled ESM breaks require-hook patching. Spans created manually at job level. HTTP spans require future W-series work with an init-loader approach.
 - Integration tests excluded from default `pnpm test` run (need Docker). Add `if: ${{ env.DOCKER_AVAILABLE }}` gate when CI Docker support lands.
 - `pnpm-workspace.yaml` catalog updated: added `@opentelemetry/exporter-trace-otlp-http`, `@opentelemetry/auto-instrumentations-node`, `prom-client`, `testcontainers`, `@testcontainers/postgresql`, `@testcontainers/redis`.
+
+---
+
+# W1-1 — better-auth integration (in progress — 2026-04-20)
+
+**Workstream:** Synterra/docs/plan-parts/PLAN_05_Execution_and_Appendix.md → W1-1
+**Definition of done:** Full sign-up via magic link works on dev; session persists across restarts.
+
+## Prerequisites ✅
+
+- [x] Migration 0013 applied on forgentic-db.lan — `ba_session`, `ba_account`, `ba_verification` tables live; `users.email_verified` → `BOOLEAN NOT NULL DEFAULT false` (2026-04-20)
+- [x] `pnpm-workspace.yaml` catalog: `drizzle-orm ^0.45.2`, `drizzle-kit ^0.31.4` (satisfies better-auth 1.6.5 peer dep), `better-auth ^1.6.5` added (2026-04-20)
+
+## Deliverables
+
+- [ ] Wire better-auth Drizzle adapter in `packages/auth/src/index.ts` pointing at `ba_session`, `ba_account`, `ba_verification`
+- [ ] Providers: magic link, passkey, Google, GitHub
+- [ ] Email provider: Resend (dev mode = console log)
+- [ ] Sign-in / sign-up routes in `apps/api`
+- [ ] Sign-in / sign-up UI in `apps/web` (shadcn forms)
+- [ ] Acceptance test: full sign-up via magic link on dev, session persists across restart

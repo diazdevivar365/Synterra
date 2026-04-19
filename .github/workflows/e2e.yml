@@ -25,9 +25,7 @@ jobs:
     name: Playwright (chromium + webkit + mobile-chromium)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Skip until apps/web is wired into playwright.config.ts webServer block.
-    # Flip this to `false` (or remove the `if`) when W0-1 section G lands the app.
-    if: false
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

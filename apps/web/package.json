@@ -13,6 +13,7 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:watch": "vitest",
     "clean": "rm -rf .next .turbo coverage dist"
   },
@@ -40,6 +41,7 @@
     "typescript": "catalog:",
     "vitest": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "@testcontainers/postgresql": "catalog:",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "catalog:",
     "@testing-library/jest-dom": "^6.6.0",

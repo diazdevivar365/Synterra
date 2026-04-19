@@ -265,6 +265,9 @@ importers:
       '@synterra/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
+      '@testcontainers/postgresql':
+        specifier: 'catalog:'
+        version: 10.28.0
       '@testing-library/dom':
         specifier: ^10.4.0
         version: 10.4.1

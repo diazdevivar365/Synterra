@@ -1,7 +1,7 @@
 import 'server-only';
 
-import { createDb } from '@synterra/db';
 import { createBetterAuth, parseAuthEnv } from '@synterra/auth';
+import { createDb } from '@synterra/db';
 
 const env = parseAuthEnv(process.env);
 const db = createDb(env.DATABASE_URL);

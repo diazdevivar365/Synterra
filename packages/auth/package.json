@@ -36,6 +36,7 @@
     "@types/node": "catalog:",
     "drizzle-orm": "catalog:",
     "eslint": "^9.17.0",
+    "postgres": "catalog:",
     "testcontainers": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
