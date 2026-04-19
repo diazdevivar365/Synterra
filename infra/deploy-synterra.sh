@@ -72,6 +72,10 @@ infisical export \
   --domain="$INFISICAL_DOMAIN" \
   --token="$INFISICAL_TOKEN" \
   --format=dotenv > "$REPO_DIR/.env"
+# Infisical CLI wraps values in single-quotes; strip them so docker compose
+# and shell export both receive bare values without literal quote characters.
+sed -i "s/='\(.*\)'\s*\$/=\1/" "$REPO_DIR/.env"
+sed -i 's/="\(.*\)"\s*$/=\1/' "$REPO_DIR/.env"
 
 # ── Validate required env vars ───────────────────────────────────────────────
 echo "→ Validating env vars..."
