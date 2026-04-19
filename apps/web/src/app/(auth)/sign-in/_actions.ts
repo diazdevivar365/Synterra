@@ -11,7 +11,10 @@ export async function sendMagicLink(formData: FormData): Promise<void> {
     throw new Error('A valid email address is required.');
   }
 
-  await auth.api.signInMagicLink({
+  // auth.api is typed as base Auth which omits plugin endpoints; cast to any
+  // to reach the magic-link plugin's signInMagicLink endpoint at runtime.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (auth.api as any).signInMagicLink({
     body: { email, callbackURL: '/dashboard' },
     headers: await headers(),
   });

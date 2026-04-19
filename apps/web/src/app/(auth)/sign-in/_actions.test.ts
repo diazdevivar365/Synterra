@@ -26,7 +26,8 @@ describe('sendMagicLink', () => {
 
     await sendMagicLink(formData);
 
-    expect(auth.api.signInMagicLink).toHaveBeenCalledWith(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((auth.api as any).signInMagicLink).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({ email: 'test@forgentic.io' }),
       }),
