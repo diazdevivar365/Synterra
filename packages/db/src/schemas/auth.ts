@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import { pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
 
 import { users } from './users.js';
@@ -11,8 +12,12 @@ export const baSessions = pgTable('ba_session', {
   userId: uuid('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
 });
 
 export const baAccounts = pgTable(
@@ -31,10 +36,14 @@ export const baAccounts = pgTable(
     refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
     scope: text('scope'),
     password: text('password'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
   },
-  (t) => [unique().on(t.providerId, t.accountId)],
+  (t) => [unique('uq_ba_account_provider').on(t.providerId, t.accountId)],
 );
 
 export const baVerifications = pgTable('ba_verification', {
@@ -42,10 +51,18 @@ export const baVerifications = pgTable('ba_verification', {
   identifier: text('identifier').notNull(),
   value: text('value').notNull(),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
 });
 
 export type BaSession = typeof baSessions.$inferSelect;
 export type BaAccount = typeof baAccounts.$inferSelect;
 export type BaVerification = typeof baVerifications.$inferSelect;
+
+export type NewBaSession = typeof baSessions.$inferInsert;
+export type NewBaAccount = typeof baAccounts.$inferInsert;
+export type NewBaVerification = typeof baVerifications.$inferInsert;

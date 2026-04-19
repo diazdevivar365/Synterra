@@ -17,7 +17,6 @@ CREATE TABLE ba_session (
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX ix_ba_session_user  ON ba_session(user_id);
-CREATE INDEX ix_ba_session_token ON ba_session(token);
 
 -- 3. ba_account — OAuth / magic-link account links
 CREATE TABLE ba_account (
@@ -34,7 +33,7 @@ CREATE TABLE ba_account (
   password                  TEXT,
   created_at                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (provider_id, account_id)
+  CONSTRAINT uq_ba_account_provider UNIQUE (provider_id, account_id)
 );
 CREATE INDEX ix_ba_account_user ON ba_account(user_id);
 
