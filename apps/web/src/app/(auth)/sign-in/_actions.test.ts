@@ -1,5 +1,24 @@
 import { describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/lib/db', () => ({
+  db: {
+    select: vi.fn().mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        innerJoin: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      }),
+    }),
+  },
+}));
+
+vi.mock('@synterra/db', () => ({
+  ssoConnections: {},
+  workspaces: {},
+}));
+
 vi.mock('@/lib/auth', () => ({
   auth: {
     api: {
@@ -26,7 +45,6 @@ describe('sendMagicLink', () => {
 
     await sendMagicLink(formData);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((auth.api as any).signInMagicLink).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({ email: 'test@forgentic.io' }),

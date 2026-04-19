@@ -3,17 +3,17 @@ import { redirect } from 'next/navigation';
 
 import { auth } from '@/lib/auth';
 
-import { sendMagicLink } from './_actions';
+import { initiateSso, sendMagicLink } from './_actions';
 
 interface Props {
-  searchParams: Promise<{ sent?: string; error?: string }>;
+  searchParams: Promise<{ sent?: string; error?: string; sso_error?: string }>;
 }
 
 export default async function SignInPage({ searchParams }: Props) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (session) redirect('/dashboard');
 
-  const { sent, error } = await searchParams;
+  const { sent, error, sso_error } = await searchParams;
 
   return (
     <div className="space-y-6">
@@ -63,6 +63,45 @@ export default async function SignInPage({ searchParams }: Props) {
           </button>
         </form>
       )}
+
+      <div className="relative">
+        <div className="border-border absolute inset-0 flex items-center">
+          <div className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-bg text-muted-fg px-2">or</span>
+        </div>
+      </div>
+
+      <form action={initiateSso} className="space-y-4">
+        <div className="space-y-1.5">
+          <label htmlFor="sso-email" className="text-fg block text-sm font-medium">
+            Continue with SSO
+          </label>
+          <input
+            id="sso-email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="you@company.com"
+            className="border-border bg-surface text-fg placeholder:text-muted-fg focus:border-brand-500 focus:ring-brand-500/20 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
+          />
+        </div>
+        {sso_error && (
+          <p className="text-sm text-red-400">
+            {sso_error === 'not_found'
+              ? 'No SSO connection found for this email domain.'
+              : 'Invalid email address.'}
+          </p>
+        )}
+        <button
+          type="submit"
+          className="border-border bg-surface hover:bg-surface/80 text-fg w-full rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors"
+        >
+          Sign in with SSO →
+        </button>
+      </form>
     </div>
   );
 }
