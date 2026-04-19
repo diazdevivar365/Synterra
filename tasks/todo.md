@@ -164,8 +164,8 @@
 - [x] P5b — `pnpm format:check` ✅ — Prettier baseline clean.
 - [x] P5c — `scripts/check-brand.sh` ✅ — zero "Synterra" leaks in apps/web/src, apps/web/public, packages/ui/src, packages/emails/src.
 - [ ] P6 — Playwright smoke — deferred: `tests/e2e/smoke.spec.ts` fails intentionally until `apps/web` is served against `PLAYWRIGHT_BASE_URL`. CI e2e workflow is `if: false`-gated until the webServer block lands.
-- [ ] P7 — `chore(release): green baseline` commit queued; `git push -u origin main` holds for manual user confirmation (remote Forgentic is private; user validates branch protection first).
-- [ ] P8 — CI trigger lands after push.
+- [x] P7 — `git push --force origin main` ✅ (2026-04-19) — 19 commits subidos, remote en `f3861ab`.
+- [x] P8 — CI trigger lanzado en push ✅ (2026-04-19).
 
 ---
 
