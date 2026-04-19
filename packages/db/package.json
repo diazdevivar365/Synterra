@@ -15,7 +15,8 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "clean": "rm -rf dist .turbo coverage drizzle"
+    "db:migrate": "tsx scripts/migrate.ts",
+    "clean": "rm -rf dist .turbo coverage"
   },
   "dependencies": {
     "drizzle-orm": "catalog:",
@@ -27,6 +28,7 @@
     "@types/node": "catalog:",
     "drizzle-kit": "catalog:",
     "eslint": "^9.17.0",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

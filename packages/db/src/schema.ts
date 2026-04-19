@@ -1,28 +1,19 @@
-// Synterra Postgres schema — aggregator module.
-//
-// The real schema lives one-file-per-domain (workspace.ts, user.ts, billing.ts,
-// audit.ts, …) under `./schemas/*` and gets re-exported from here. That layout
-// lands in W0-2 per PLAN.md §B.2. Until then this file only exposes a shared
-// `timestamps` column helper plus a re-export of `pgTable` so downstream code
-// can `import { pgTable, timestamps } from '@synterra/db'` today and keep those
-// imports stable through the domain split.
+// Aggregator — re-exports all Synterra domain schemas.
+// Every table/type lives in src/schemas/<domain>.ts; import from here.
 
-import { sql } from 'drizzle-orm';
-import { pgTable, timestamp } from 'drizzle-orm/pg-core';
+export { timestamps } from './timestamps.js';
+export { pgTable } from 'drizzle-orm/pg-core';
 
-/**
- * Reusable `created_at` / `updated_at` columns with database-side defaults.
- *
- * Spread into any `pgTable(...)` columns object:
- *   `pgTable('workspace', { id: ..., ...timestamps })`
- */
-export const timestamps = {
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
-    .notNull()
-    .default(sql`now()`),
-  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
-    .notNull()
-    .default(sql`now()`),
-} as const;
-
-export { pgTable };
+// Domain schemas
+export * from './schemas/users.js';
+export * from './schemas/workspaces.js';
+export * from './schemas/memberships.js';
+export * from './schemas/invites.js';
+export * from './schemas/aquila-credentials.js';
+export * from './schemas/billing.js';
+export * from './schemas/usage.js';
+export * from './schemas/quota.js';
+export * from './schemas/audit.js';
+export * from './schemas/notifications.js';
+export * from './schemas/public-api-keys.js';
+export * from './schemas/webhooks.js';
