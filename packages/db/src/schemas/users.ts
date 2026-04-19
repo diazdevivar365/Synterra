@@ -8,7 +8,7 @@ export const users = pgTable('users', {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   email: text('email').notNull().unique(),
-  emailVerified: timestamp('email_verified', { withTimezone: true }),
+  emailVerified: boolean('email_verified').notNull().default(false),
   name: text('name'),
   avatarUrl: text('avatar_url'),
   locale: text('locale').default('en'),

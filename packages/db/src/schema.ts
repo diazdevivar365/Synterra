@@ -17,3 +17,4 @@ export * from './schemas/audit.js';
 export * from './schemas/notifications.js';
 export * from './schemas/public-api-keys.js';
 export * from './schemas/webhooks.js';
+export * from './schemas/auth.js';
