@@ -277,6 +277,12 @@ importers:
       '@opentelemetry/api':
         specifier: 'catalog:'
         version: 1.9.1
+      '@opentelemetry/exporter-trace-otlp-http':
+        specifier: 'catalog:'
+        version: 0.56.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-node':
+        specifier: 'catalog:'
+        version: 0.56.0(@opentelemetry/api@1.9.1)
       '@synterra/telemetry':
         specifier: workspace:*
         version: link:../../packages/telemetry

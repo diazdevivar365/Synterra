@@ -22,6 +22,8 @@
     "bullmq": "catalog:",
     "ioredis": "catalog:",
     "@opentelemetry/api": "catalog:",
+    "@opentelemetry/sdk-node": "catalog:",
+    "@opentelemetry/exporter-trace-otlp-http": "catalog:",
     "@synterra/telemetry": "workspace:*",
     "pino": "catalog:",
     "prom-client": "catalog:",
