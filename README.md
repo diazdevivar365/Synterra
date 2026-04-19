@@ -14,21 +14,21 @@ The implementation plan lives in **[`PLAN.md`](./PLAN.md)** — 17 sections, 11 
 
 ## Stack
 
-| Layer           | Choice                                                    |
-| --------------- | --------------------------------------------------------- |
-| Runtime         | Node 22 LTS                                               |
-| Package manager | pnpm 10 (workspaces)                                      |
-| Task graph      | Turborepo 2                                               |
-| Language        | TypeScript 5.9 (strict)                                   |
-| Web             | Next.js 16 · React 19 · Tailwind v4 · shadcn/ui           |
-| API             | Hono on Node · pino · zod                                 |
-| Workers         | BullMQ · Redis 7                                          |
-| DB              | Postgres 16 · Drizzle ORM · RLS per workspace             |
-| Auth            | better-auth · WorkOS SSO proxy                            |
-| Billing         | Stripe · Lago (self-hosted metering)                      |
-| Testing         | Vitest · Playwright · Testcontainers                      |
-| Observability   | OpenTelemetry · Grafana · Loki · Prometheus               |
-| Pre-commit      | lefthook (parallel, workspace-aware) · commitlint         |
+| Layer           | Choice                                            |
+| --------------- | ------------------------------------------------- |
+| Runtime         | Node 22 LTS                                       |
+| Package manager | pnpm 10 (workspaces)                              |
+| Task graph      | Turborepo 2                                       |
+| Language        | TypeScript 5.9 (strict)                           |
+| Web             | Next.js 16 · React 19 · Tailwind v4 · shadcn/ui   |
+| API             | Hono on Node · pino · zod                         |
+| Workers         | BullMQ · Redis 7                                  |
+| DB              | Postgres 16 · Drizzle ORM · RLS per workspace     |
+| Auth            | better-auth · WorkOS SSO proxy                    |
+| Billing         | Stripe · Lago (self-hosted metering)              |
+| Testing         | Vitest · Playwright · Testcontainers              |
+| Observability   | OpenTelemetry · Grafana · Loki · Prometheus       |
+| Pre-commit      | lefthook (parallel, workspace-aware) · commitlint |
 
 ## Repository layout
 
@@ -64,12 +64,12 @@ docker compose -f infra/docker-compose.yml up -d   # Postgres + Redis + Mailpit
 pnpm dev                             # turbo runs web/api/workers in parallel
 ```
 
-| URL                      | Surface                 |
-| ------------------------ | ----------------------- |
-| http://localhost:3000    | Next.js web app         |
-| http://localhost:3001/v1 | Public HTTP API (Hono)  |
-| http://localhost:3002    | Worker health sidecar   |
-| http://localhost:8025    | Mailpit (dev SMTP UI)   |
+| URL                      | Surface                |
+| ------------------------ | ---------------------- |
+| http://localhost:3000    | Next.js web app        |
+| http://localhost:3001/v1 | Public HTTP API (Hono) |
+| http://localhost:3002    | Worker health sidecar  |
+| http://localhost:8025    | Mailpit (dev SMTP UI)  |
 
 ## Verification (clean-clone contract)
 

@@ -42,3 +42,7 @@ yarn.lock
 # ─── Committed docs we leave untouched ────────────────────────────────────────
 LICENSE
 CHANGELOG.md
+
+# ─── Planning + scratch docs authored by humans — never auto-format ───────────
+PLAN.md
+multi.md

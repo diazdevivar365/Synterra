@@ -6,12 +6,12 @@ Forgentic (codename: **Synterra**) is a proprietary monorepo. This document cove
 
 ## Prerequisites
 
-| Tool              | Version                   | Why                                          |
-| ----------------- | ------------------------- | -------------------------------------------- |
-| Node              | `22.x` (LTS)              | Pinned in `package.json` `engines` + `.nvmrc` |
-| pnpm              | `10.x` (exact: `10.33.0`) | Pinned in `packageManager`                    |
-| Git               | `>=2.42`                  | Sparse-checkout + improved partial clone       |
-| Corepack          | `enabled`                 | Activates the pinned pnpm automatically        |
+| Tool     | Version                   | Why                                           |
+| -------- | ------------------------- | --------------------------------------------- |
+| Node     | `22.x` (LTS)              | Pinned in `package.json` `engines` + `.nvmrc` |
+| pnpm     | `10.x` (exact: `10.33.0`) | Pinned in `packageManager`                    |
+| Git      | `>=2.42`                  | Sparse-checkout + improved partial clone      |
+| Corepack | `enabled`                 | Activates the pinned pnpm automatically       |
 
 ```bash
 # Recommended install via fnm:
@@ -95,12 +95,12 @@ BREAKING CHANGE: customers on legacy-research must migrate to /v1/research.
 
 Installed by `lefthook install` (via `pnpm install`'s `prepare` script). Runs on every `git commit`:
 
-| Command               | Scope              | Blocks commit? |
-| --------------------- | ------------------ | -------------- |
-| `prettier --write`    | Staged files matching `*.{ts,tsx,…,md,mdx,yml,yaml,css,html}` | Yes — auto-fixes + re-stages |
-| `eslint --fix`        | Staged files matching `*.{ts,tsx,js,…}` | Yes — auto-fixes + re-stages; hard-fails on unfixable + warnings |
-| `typecheck-affected`  | Workspaces changed vs `HEAD` (via `turbo ...[HEAD]`) | Yes |
-| `test-affected`       | Same filter as above | Yes |
+| Command              | Scope                                                         | Blocks commit?                                                   |
+| -------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `prettier --write`   | Staged files matching `*.{ts,tsx,…,md,mdx,yml,yaml,css,html}` | Yes — auto-fixes + re-stages                                     |
+| `eslint --fix`       | Staged files matching `*.{ts,tsx,js,…}`                       | Yes — auto-fixes + re-stages; hard-fails on unfixable + warnings |
+| `typecheck-affected` | Workspaces changed vs `HEAD` (via `turbo ...[HEAD]`)          | Yes                                                              |
+| `test-affected`      | Same filter as above                                          | Yes                                                              |
 
 Plus the `commit-msg` hook runs commitlint (see above).
 

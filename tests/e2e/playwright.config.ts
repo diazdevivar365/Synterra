@@ -44,10 +44,7 @@ export default defineConfig({
         ['json', { outputFile: '../../test-results/e2e-results.json' }],
         ['junit', { outputFile: '../../test-results/e2e-junit.xml' }],
       ]
-    : [
-        ['list'],
-        ['html', { open: 'on-failure', outputFolder: '../../playwright-report' }],
-      ],
+    : [['list'], ['html', { open: 'on-failure', outputFolder: '../../playwright-report' }]],
 
   outputDir: '../../test-results',
 

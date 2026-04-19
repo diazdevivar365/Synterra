@@ -55,10 +55,7 @@ export default tseslint.config(
   //    which auto-finds each workspace's tsconfig without us listing them.
   {
     files: ['**/*.{ts,tsx,mts,cts}'],
-    extends: [
-      ...tseslint.configs.strictTypeChecked,
-      ...tseslint.configs.stylisticTypeChecked,
-    ],
+    extends: [...tseslint.configs.strictTypeChecked, ...tseslint.configs.stylisticTypeChecked],
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -85,10 +82,7 @@ export default tseslint.config(
       ],
       '@typescript-eslint/no-unnecessary-condition': 'warn',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
-      '@typescript-eslint/no-confusing-void-expression': [
-        'error',
-        { ignoreArrowShorthand: true },
-      ],
+      '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],
     },
   },
 
@@ -110,11 +104,7 @@ export default tseslint.config(
       'import/resolver': {
         typescript: {
           alwaysTryTypes: true,
-          project: [
-            './tsconfig.json',
-            './apps/*/tsconfig.json',
-            './packages/*/tsconfig.json',
-          ],
+          project: ['./tsconfig.json', './apps/*/tsconfig.json', './packages/*/tsconfig.json'],
         },
         node: true,
       },
@@ -130,15 +120,7 @@ export default tseslint.config(
       'import/order': [
         'error',
         {
-          groups: [
-            'builtin',
-            'external',
-            'internal',
-            'parent',
-            'sibling',
-            'index',
-            'type',
-          ],
+          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'type'],
           'newlines-between': 'always',
           alphabetize: { order: 'asc', caseInsensitive: true },
           pathGroups: [

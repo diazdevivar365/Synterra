@@ -12,10 +12,7 @@
     "helpers:pinGitHubActionDigests",
     ":maintainLockFilesMonthly"
   ],
-  "schedule": [
-    "after 9am on monday",
-    "before 5pm on monday"
-  ],
+  "schedule": ["after 9am on monday", "before 5pm on monday"],
   "labels": ["deps", "renovate"],
   "prConcurrentLimit": 10,
   "prHourlyLimit": 2,
@@ -71,47 +68,28 @@
     },
     {
       "description": "Group Vitest updates together (core + coverage + ui).",
-      "matchPackageNames": [
-        "vitest",
-        "/^@vitest//"
-      ],
+      "matchPackageNames": ["vitest", "/^@vitest//"],
       "groupName": "Vitest"
     },
     {
       "description": "Group Playwright updates (core + browsers pin in lockstep).",
-      "matchPackageNames": [
-        "@playwright/test",
-        "playwright",
-        "playwright-core"
-      ],
+      "matchPackageNames": ["@playwright/test", "playwright", "playwright-core"],
       "groupName": "Playwright"
     },
     {
       "description": "Group Next.js + React stack (Next, React, React-DOM, @next/*).",
-      "matchPackageNames": [
-        "next",
-        "react",
-        "react-dom",
-        "/^@next//"
-      ],
+      "matchPackageNames": ["next", "react", "react-dom", "/^@next//"],
       "excludePackageNames": ["@next/eslint-plugin-next"],
       "groupName": "Next.js + React"
     },
     {
       "description": "Group Drizzle (drizzle-orm + drizzle-kit must move together).",
-      "matchPackageNames": [
-        "drizzle-orm",
-        "drizzle-kit",
-        "/^@drizzle//"
-      ],
+      "matchPackageNames": ["drizzle-orm", "drizzle-kit", "/^@drizzle//"],
       "groupName": "Drizzle"
     },
     {
       "description": "Group commitlint updates.",
-      "matchPackageNames": [
-        "/^@commitlint//",
-        "commitlint"
-      ],
+      "matchPackageNames": ["/^@commitlint//", "commitlint"],
       "groupName": "commitlint"
     },
     {

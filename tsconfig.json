@@ -6,13 +6,7 @@
     "noEmit": true,
     "resolveJsonModule": true
   },
-  "include": [
-    "*.ts",
-    "*.mts",
-    "*.cts",
-    "scripts/**/*.ts",
-    "tests/**/*.ts"
-  ],
+  "include": ["*.ts", "*.mts", "*.cts", "scripts/**/*.ts", "tests/**/*.ts"],
   "exclude": [
     "node_modules",
     "dist",

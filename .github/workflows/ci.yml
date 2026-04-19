@@ -16,9 +16,9 @@ permissions:
   contents: read
 
 env:
-  NODE_VERSION: '22'
-  PNPM_VERSION: '10.33.0'
-  TURBO_TELEMETRY_DISABLED: '1'
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10.33.0"
+  TURBO_TELEMETRY_DISABLED: "1"
   # TURBO_TOKEN / TURBO_TEAM are repo secrets; when populated they enable
   # remote cache. Deferred until we wire Vercel/self-hosted remote cache.
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -26,7 +26,7 @@ env:
 
 jobs:
   lint:
-    name: Lint (ESLint + Prettier)
+    name: Lint (ESLint + Prettier + brand-check)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -55,6 +55,9 @@ jobs:
 
       - name: Check Prettier formatting
         run: pnpm format:check
+
+      - name: Brand-purity check (no "Synterra" in apps/web)
+        run: ./scripts/check-brand.sh
 
   typecheck:
     name: Typecheck (tsc --noEmit)
