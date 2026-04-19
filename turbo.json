@@ -1,0 +1,78 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalDependencies": [
+    ".nvmrc",
+    ".node-version",
+    ".npmrc",
+    "pnpm-workspace.yaml",
+    "tsconfig.base.json"
+  ],
+  "globalEnv": [
+    "NODE_ENV",
+    "CI"
+  ],
+  "globalPassThroughEnv": [
+    "NPM_TOKEN",
+    "GITHUB_TOKEN",
+    "TURBO_TOKEN",
+    "TURBO_TEAM"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env",
+        ".env.local",
+        ".env.production",
+        "!.env*.example"
+      ],
+      "outputs": [
+        "dist/**",
+        "build/**",
+        ".next/**",
+        "!.next/cache/**"
+      ]
+    },
+    "dev": {
+      "persistent": true,
+      "cache": false,
+      "interruptible": true
+    },
+    "lint": {
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".eslintrc*",
+        "eslint.config.*",
+        "../../eslint.config.*"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": ["**/*.tsbuildinfo"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "tsconfig.json",
+        "tsconfig.*.json",
+        "../../tsconfig.base.json"
+      ]
+    },
+    "test": {
+      "outputs": ["coverage/**"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "vitest.config.*",
+        "vitest.workspace.*"
+      ]
+    },
+    "test:e2e": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}
