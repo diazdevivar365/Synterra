@@ -23,6 +23,7 @@
     "@synterra/auth": "workspace:*",
     "@synterra/db": "workspace:*",
     "@synterra/telemetry": "workspace:*",
+    "@synterra/ui": "workspace:*",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",
     "jose": "catalog:",
