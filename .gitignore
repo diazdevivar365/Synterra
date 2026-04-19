@@ -1,0 +1,78 @@
+# ─── Node ──────────────────────────────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+.pnp.*
+*.tsbuildinfo
+.yarn/
+
+# ─── Env / secrets ─────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ─── Turborepo ─────────────────────────────────────────────────────────────────
+.turbo/
+
+# ─── Next.js ───────────────────────────────────────────────────────────────────
+.next/
+out/
+next-env.d.ts
+
+# ─── Build outputs ─────────────────────────────────────────────────────────────
+dist/
+build/
+*.tgz
+
+# ─── Testing ───────────────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+# ─── Logs ──────────────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ─── IDE / editors ─────────────────────────────────────────────────────────────
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ─── Runtime ───────────────────────────────────────────────────────────────────
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# ─── OS ────────────────────────────────────────────────────────────────────────
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# ─── Temp ──────────────────────────────────────────────────────────────────────
+tmp/
+temp/
+.tmp/
+
+# ─── Claude Code ───────────────────────────────────────────────────────────────
+.claude/settings.local.json
+
+# ─── Drizzle ───────────────────────────────────────────────────────────────────
+drizzle/
+!packages/db/drizzle/

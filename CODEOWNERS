@@ -1,0 +1,30 @@
+# CODEOWNERS — Forgentic (Synterra)
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+#
+# These owners are automatically requested for review on PRs that touch
+# matching paths. The LAST matching line wins — put more-specific rules below.
+
+# Default owner for everything in the repo.
+*                                   @diazdevivar365
+
+# Plan, docs, architectural-level files demand explicit owner review.
+/PLAN.md                            @diazdevivar365
+/README.md                          @diazdevivar365
+/LICENSE                            @diazdevivar365
+/CODEOWNERS                         @diazdevivar365
+/docs/                              @diazdevivar365
+/docs/ADR/                          @diazdevivar365
+
+# CI + infra changes — high blast radius.
+/.github/                           @diazdevivar365
+/infra/                             @diazdevivar365
+/lefthook.yml                       @diazdevivar365
+/turbo.json                         @diazdevivar365
+/pnpm-workspace.yaml                @diazdevivar365
+/package.json                       @diazdevivar365
+
+# Claude Code agents + settings — prompt quality matters.
+/.claude/                           @diazdevivar365
+
+# Database schema + migrations — cross-cutting, needs architect eyes.
+/packages/db/                       @diazdevivar365

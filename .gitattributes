@@ -1,0 +1,50 @@
+# Auto detect text files and normalize line endings to LF on commit.
+* text=auto eol=lf
+
+# Explicit text
+*.ts       text eol=lf
+*.tsx      text eol=lf
+*.js       text eol=lf
+*.jsx      text eol=lf
+*.mjs      text eol=lf
+*.cjs      text eol=lf
+*.json     text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+*.md       text eol=lf
+*.sh       text eol=lf
+*.css      text eol=lf
+*.html     text eol=lf
+*.sql      text eol=lf
+*.toml     text eol=lf
+Dockerfile text eol=lf
+
+# Binary — never touch EOLs, never try to diff as text
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.webp     binary
+*.ico      binary
+*.pdf      binary
+*.woff     binary
+*.woff2    binary
+*.ttf      binary
+*.otf      binary
+*.eot      binary
+*.mp4      binary
+*.mov      binary
+*.zip      binary
+*.tgz      binary
+*.gz       binary
+
+# Lockfiles — keep stable, don't collapse diffs in GitHub UI
+pnpm-lock.yaml    -diff linguist-generated=true
+package-lock.json -diff linguist-generated=true
+yarn.lock         -diff linguist-generated=true
+
+# Generated code
+**/dist/**     linguist-generated=true
+**/build/**    linguist-generated=true
+**/.next/**    linguist-generated=true
+next-env.d.ts  linguist-generated=true
