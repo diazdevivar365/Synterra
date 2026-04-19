@@ -72,7 +72,7 @@ services:
       - traefik.http.services.web.loadbalancer.server.port=3000
       - traefik.http.services.web.loadbalancer.healthcheck.path=/api/health
       - traefik.http.services.web.loadbalancer.healthcheck.interval=10s
-      - traefik.http.routers.web.rule=Host(`${NEXT_PUBLIC_APP_URL:-dev.forgentic.io}`)
+      - "traefik.http.routers.web.rule=Host(`app.forgentic.io`) || Host(`dev.forgentic.io`)"
       - traefik.http.routers.web.entrypoints=websecure
       - traefik.http.routers.web.tls=true
     healthcheck:
