@@ -101,9 +101,8 @@ export default function HomePage() {
               Docs
             </a>
             <a
-              href="#"
+              href="/sign-in"
               className="border-border bg-surface text-fg hover:border-brand-500 focus-visible:border-brand-500 rounded-md border px-3 py-1.5 transition-colors focus-visible:outline-none"
-              /* Routed in a later milestone once auth lands. */
             >
               Sign in
             </a>
