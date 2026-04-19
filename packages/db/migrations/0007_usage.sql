@@ -10,7 +10,7 @@ CREATE TABLE usage_events (
     cost_credits    INT NOT NULL,
     cost_usd_micros BIGINT,
     metadata        JSONB NOT NULL DEFAULT '{}'::jsonb,
-    idempotency_key TEXT UNIQUE,
+    idempotency_key TEXT,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 ) PARTITION BY RANGE (created_at);
 
@@ -20,6 +20,9 @@ CREATE TABLE usage_events_default PARTITION OF usage_events DEFAULT;
 
 CREATE INDEX ix_usage_ws_time ON usage_events(workspace_id, created_at DESC);
 CREATE INDEX ix_usage_type    ON usage_events(workspace_id, event_type, created_at DESC);
+-- Partitioned UNIQUE must include the partition key (created_at)
+CREATE UNIQUE INDEX ix_usage_idempotency ON usage_events(idempotency_key, created_at)
+  WHERE idempotency_key IS NOT NULL;
 
 ALTER TABLE usage_events ENABLE ROW LEVEL SECURITY;
 

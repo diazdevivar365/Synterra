@@ -63,4 +63,76 @@ Entries sorted newest-first.
 
 ---
 
+## 2026-04-19 — Traefik v3.3 incompatible with Docker Engine 28 API
+
+**What we tried:** `traefik:v3.3` with Docker Engine 28 (API 1.54) on LXC.
+
+**What went wrong:** Traefik's bundled Go Docker client negotiates API 1.24, which Docker 28 dropped. Error: "client version 1.24 is too old. Minimum supported API version is 1.40". `DOCKER_API_VERSION` env var has no effect because Traefik creates its Docker client without `client.FromEnv`.
+
+**Lesson / rule:** Pin `traefik:latest` (or a version known to bundle docker/docker v28+). Check Traefik release notes for Docker API support before pinning a specific version.
+
+**Where it applies:** `infra/lxc-app/docker-compose.yml` Traefik image tag.
+
+---
+
+## 2026-04-19 — Alpine Linux `localhost` resolves IPv6 first
+
+**What we tried:** Docker HEALTHCHECK using `wget -qO- http://localhost:3000/api/health` inside Alpine-based containers.
+
+**What went wrong:** Alpine's `localhost` resolves to `::1` (IPv6) first. Node.js binds `0.0.0.0` (IPv4 only) by default. wget fails with "can't connect to remote host" even though the server is up.
+
+**Lesson / rule:** Always use `http://127.0.0.1:<port>` (explicit IPv4) in Docker healthchecks for Alpine images. Never use `localhost`.
+
+**Where it applies:** All `HEALTHCHECK` directives and compose `healthcheck.test` for Node.js services.
+
+---
+
+## 2026-04-19 — pnpm workspace `node_modules` not in Docker runner `$NODE_PATH`
+
+**What we tried:** Workers Dockerfile runner stage copied only root `node_modules` to `/app/node_modules`, placed dist at `/app/dist/index.mjs`.
+
+**What went wrong:** pnpm stores workspace-specific deps (like `zod`) in `apps/workers/node_modules/`, not the root. Node resolves from the file's directory upward — from `/app/dist/` it never reaches `apps/workers/node_modules/`.
+
+**Lesson / rule:** Keep the monorepo path structure in the runner stage: put dist at `apps/<name>/dist/` and copy both root and workspace `node_modules`. Then Node walks `/app/apps/<name>/dist/ → /app/apps/<name>/node_modules/ → /app/node_modules/`.
+
+**Where it applies:** All pnpm-workspace Docker runners that don't fully bundle dependencies.
+
+---
+
+## 2026-04-19 — Grafana Agent v0.43 static mode, not Flow mode
+
+**What we tried:** `grafana/agent:v0.43.3` with `command: run /etc/agent/config.river`.
+
+**What went wrong:** The `grafana/agent` image defaults to static mode (expects `-config.file`). The `run` subcommand for River/Flow config is in `grafana/agent-flow` or the newer `grafana/alloy`.
+
+**Lesson / rule:** Use `grafana/alloy:latest` for River (Flow) configs. It's the official successor; command is `run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/tmp/alloy/data /etc/alloy/config.alloy`.
+
+**Where it applies:** `infra/lxc-app/docker-compose.yml` grafana-agent service.
+
+---
+
+## 2026-04-19 — RLS policies can't forward-reference tables not yet created
+
+**What we tried:** `0002_workspaces.sql` created RLS policies on `workspaces` that referenced `workspace_members`, which is created in `0003_memberships.sql`.
+
+**What went wrong:** `relation "workspace_members" does not exist` at policy creation time.
+
+**Lesson / rule:** RLS policies that reference other tables must run AFTER those tables exist. Move cross-table policies to the migration that creates the referenced table (or a later one). Never write RLS policies forward-referencing tables in later migrations.
+
+**Where it applies:** `packages/db/migrations/` whenever adding RLS policies that JOIN or subquery other tables.
+
+---
+
+## 2026-04-19 — UNIQUE constraints on partitioned tables must include the partition key
+
+**What we tried:** `idempotency_key TEXT UNIQUE` on the `usage_events` table partitioned by `RANGE (created_at)`.
+
+**What went wrong:** Postgres error: "unique constraint on partitioned table must include all partitioning columns". A simple UNIQUE constraint can't span partitions without the partition key.
+
+**Lesson / rule:** On range-partitioned tables, replace inline `UNIQUE` column constraints with `CREATE UNIQUE INDEX ... (unique_col, partition_key) WHERE condition`. This enforces uniqueness within each partition.
+
+**Where it applies:** Any partitioned table (`usage_events`, `audit_log`) where uniqueness is needed.
+
+---
+
 _(New lessons land here — newest first.)_

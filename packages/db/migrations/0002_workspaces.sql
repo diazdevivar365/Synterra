@@ -22,24 +22,4 @@ CREATE INDEX ix_workspaces_plan   ON workspaces(plan_id)  WHERE deleted_at IS NU
 CREATE INDEX ix_workspaces_active ON workspaces(id)       WHERE deleted_at IS NULL AND suspended_at IS NULL;
 
 ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY workspaces_member_read ON workspaces FOR SELECT
-  USING (
-    id = current_setting('synterra.workspace_id', true)::UUID
-    OR EXISTS (
-      SELECT 1 FROM workspace_members
-       WHERE workspace_id = workspaces.id
-         AND user_id = current_setting('synterra.user_id', true)::UUID
-    )
-  );
-
-CREATE POLICY workspaces_owner_write ON workspaces FOR UPDATE
-  USING (
-    id = current_setting('synterra.workspace_id', true)::UUID
-    AND EXISTS (
-      SELECT 1 FROM workspace_members
-       WHERE workspace_id = workspaces.id
-         AND user_id = current_setting('synterra.user_id', true)::UUID
-         AND role IN ('owner', 'admin')
-    )
-  );
+-- RLS policies referencing workspace_members are added in 0003_memberships.sql

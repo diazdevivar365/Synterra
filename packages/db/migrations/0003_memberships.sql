@@ -33,3 +33,25 @@ CREATE POLICY members_admin_write ON workspace_members FOR ALL
          AND m.role IN ('owner', 'admin')
     )
   );
+
+-- workspace_members now exists — safe to add workspaces RLS policies
+CREATE POLICY workspaces_member_read ON workspaces FOR SELECT
+  USING (
+    id = current_setting('synterra.workspace_id', true)::UUID
+    OR EXISTS (
+      SELECT 1 FROM workspace_members
+       WHERE workspace_id = workspaces.id
+         AND user_id = current_setting('synterra.user_id', true)::UUID
+    )
+  );
+
+CREATE POLICY workspaces_owner_write ON workspaces FOR UPDATE
+  USING (
+    id = current_setting('synterra.workspace_id', true)::UUID
+    AND EXISTS (
+      SELECT 1 FROM workspace_members
+       WHERE workspace_id = workspaces.id
+         AND user_id = current_setting('synterra.user_id', true)::UUID
+         AND role IN ('owner', 'admin')
+    )
+  );

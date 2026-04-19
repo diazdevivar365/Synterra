@@ -21,38 +21,38 @@ scrape_configs:
   # Forgentic app LXC
   - job_name: traefik
     static_configs:
-      - targets: ["forgentic-app.lan:8082"]
+      - targets: ["192.168.10.52:8082"]
     labels:
       service: traefik
 
   - job_name: forgentic-app-node
     static_configs:
-      - targets: ["forgentic-app.lan:9100"]
+      - targets: ["192.168.10.52:9100"]
 
   # DB LXC
   - job_name: postgres
     static_configs:
-      - targets: ["forgentic-db.lan:9187"]
+      - targets: ["192.168.10.50:9187"]
     labels:
       service: postgres
 
   - job_name: forgentic-db-node
     static_configs:
-      - targets: ["forgentic-db.lan:9100"]
+      - targets: ["192.168.10.50:9100"]
 
   # Cache LXC
   - job_name: redis
     static_configs:
-      - targets: ["forgentic-cache.lan:9121"]
+      - targets: ["192.168.10.51:9121"]
     labels:
       service: redis
 
   - job_name: forgentic-cache-node
     static_configs:
-      - targets: ["forgentic-cache.lan:9100"]
+      - targets: ["192.168.10.51:9100"]
 
   # Aquila (existing data plane)
   - job_name: aquila
     static_configs:
-      - targets: ["aquila.lan:9090"]
+      - targets: ["192.168.10.42:9090"]
     honor_labels: true

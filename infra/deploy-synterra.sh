@@ -45,9 +45,14 @@ source "$SECRET_FILE"
 : "${INFISICAL_PROJECT_ID:?INFISICAL_PROJECT_ID must be set (env or $SECRET_FILE)}"
 
 # ── Pull latest code ─────────────────────────────────────────────────────────
+# Skips if no remote configured (e.g. first deploy via rsync bootstrap).
 echo "→ Pulling latest code..."
 cd "$REPO_DIR"
-git pull --ff-only
+if git remote get-url origin &>/dev/null; then
+  git pull --ff-only
+else
+  echo "  (no git remote — skipping pull, using current working tree)"
+fi
 
 # ── Authenticate to Infisical ────────────────────────────────────────────────
 echo "→ Authenticating to Infisical (domain=$INFISICAL_DOMAIN)..."

@@ -16,7 +16,7 @@ otelcol.receiver.otlp "default" {
 
 otelcol.exporter.otlp "tempo" {
   client {
-    endpoint = "observability.lan:4317"
+    endpoint = "192.168.10.54:4317"
     tls {
       insecure = true
     }

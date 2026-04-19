@@ -30,8 +30,7 @@ providers:
     watch: true
 
 # Cloudflare Origin CA handles public TLS — cloudflared terminates at edge.
-# Traefik handles internal routing + LAN TLS only.
-certificatesResolvers: {}
+# Traefik handles internal routing + LAN TLS only — no cert resolver needed.
 
 log:
   level: INFO

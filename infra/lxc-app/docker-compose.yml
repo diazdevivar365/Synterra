@@ -18,7 +18,7 @@ volumes:
 services:
   # ── Load balancer ───────────────────────────────────────────────────────────
   traefik:
-    image: traefik:v3.3
+    image: traefik:latest
     container_name: forgentic-traefik
     restart: unless-stopped
     command:
@@ -27,6 +27,8 @@ services:
       - "80:80"
       - "443:443"
       - "8080:8080" # dashboard (Cloudflare Access protected in production)
+    environment:
+      DOCKER_API_VERSION: "1.47"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
@@ -59,7 +61,7 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://observability.lan:4318}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://192.168.10.54:4318}
       OTEL_SERVICE_NAME: forgentic-web
     expose:
       - "3000"
@@ -74,7 +76,7 @@ services:
       - traefik.http.routers.web.entrypoints=websecure
       - traefik.http.routers.web.tls=true
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health | grep -q ok"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health | grep -q ok"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -105,7 +107,7 @@ services:
       AQUILA_API_KEY: ${AQUILA_API_KEY}
       RESEND_API_KEY: ${RESEND_API_KEY}
       HEALTH_PORT: "3002"
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://observability.lan:4318}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://192.168.10.54:4318}
       OTEL_SERVICE_NAME: forgentic-workers
     expose:
       - "3002"
@@ -149,14 +151,15 @@ services:
 
   # ── Grafana Agent — ship OTLP traces → Tempo ────────────────────────────────
   grafana-agent:
-    image: grafana/agent:v0.43.3
+    image: grafana/alloy:latest
     container_name: forgentic-grafana-agent
     restart: unless-stopped
     command:
       - run
-      - /etc/agent/config.river
-      - --storage.path=/tmp/agent/data
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/tmp/alloy/data
+      - /etc/alloy/config.alloy
     volumes:
-      - ./grafana-agent.river:/etc/agent/config.river:ro
+      - ./grafana-agent.river:/etc/alloy/config.alloy:ro
     networks:
       - forgentic-internal

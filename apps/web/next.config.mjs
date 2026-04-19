@@ -8,6 +8,9 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Standalone output bundles only the runtime needed to serve the app.
+  // Required for Docker — copies /standalone + /static into the image.
+  output: 'standalone',
 
   experimental: {
     // Type-safe <Link href="..."> — broken routes fail the build.
