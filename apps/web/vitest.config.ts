@@ -22,6 +22,9 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@synterra/db': path.resolve(__dirname, '../../packages/db/src/index.ts'),
+      '@synterra/shared': path.resolve(__dirname, '../../packages/shared/src/index.ts'),
+      'drizzle-orm': path.resolve(__dirname, 'node_modules/@synterra/db/node_modules/drizzle-orm'),
+      postgres: path.resolve(__dirname, 'node_modules/@synterra/db/node_modules/postgres'),
     },
   },
 });
