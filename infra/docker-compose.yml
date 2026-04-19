@@ -1,0 +1,61 @@
+# Local development stack for Forgentic (codename: Synterra).
+#
+# LOCAL DEV ONLY — not a production topology. Phase 0 runs on Proxmox LXCs
+# (see PLAN.md §M.1); Phase 1 lifts the same images onto AWS ECS Fargate.
+#
+# Bring up:   docker compose -f infra/docker-compose.yml up -d
+# Tear down:  docker compose -f infra/docker-compose.yml down
+# Wipe data:  docker compose -f infra/docker-compose.yml down -v && rm -rf infra/.local-data
+
+services:
+  postgres:
+    image: postgres:16.6-alpine
+    container_name: synterra-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: forgentic
+      POSTGRES_PASSWORD: forgentic_local
+      POSTGRES_DB: synterra
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.local-data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U forgentic -d synterra"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - forgentic
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: synterra-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./.local-data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - forgentic
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: synterra-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - forgentic
+
+networks:
+  forgentic:
+    name: forgentic
+    driver: bridge

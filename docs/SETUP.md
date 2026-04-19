@@ -98,6 +98,7 @@ Got: v25.9.0
 ### `fnm` doesn't auto-switch on `cd`
 
 → Shell hook missing `--use-on-cd`. Re-run:
+
 ```bash
 echo 'eval "$(fnm env --use-on-cd --shell zsh)"' >> ~/.zshrc && exec zsh
 ```

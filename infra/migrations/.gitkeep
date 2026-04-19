@@ -1,0 +1,1 @@
+# Reserved for infra-level migrations (schema already lives under packages/db/drizzle).
