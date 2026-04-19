@@ -19,15 +19,15 @@
 
 ---
 
-## A. Git + repo init
-- [ ] A1 — `git init` dentro de `Synterra/` (rama `main`)
-- [ ] A2 — `git remote add origin git@github.com:diazdevivar365/Forgentic.git`
-- [ ] A3 — `.gitignore` (Node, Next, Turbo cache, IDE, `.env*`, coverage, playwright-report, test-results)
-- [ ] A4 — `.gitattributes` (`* text=auto eol=lf`, binary overrides)
-- [ ] A5 — `LICENSE` → proprietary text "Copyright © 2026 Forgentic. All Rights Reserved." + `"license": "UNLICENSED"` en `package.json` raíz.
-- [ ] A6 — `README.md` raíz (descripción breve, link a `PLAN.md`, quickstart, estructura)
-- [ ] A7 — `CODEOWNERS` (`* @diazdevivar365`)
-- [ ] A8 — Primer commit `chore: initial skeleton` (NO push todavía — push al final cuando todo esté verde)
+## A. Git + repo init ✅ (2026-04-19, commit `ece316e`)
+- [x] A1 — `git init` dentro de `Synterra/` (rama `main`)
+- [x] A2 — `git remote add origin git@github.com:diazdevivar365/Forgentic.git`
+- [x] A3 — `.gitignore` (Node, Next, Turbo cache, IDE, `.env*`, coverage, playwright-report, test-results)
+- [x] A4 — `.gitattributes` (`* text=auto eol=lf`, binary overrides)
+- [x] A5 — `LICENSE` → proprietary text "Copyright © 2026 Forgentic. All Rights Reserved."
+- [x] A6 — `README.md` raíz (stack, layout, quickstart, verification contract)
+- [x] A7 — `CODEOWNERS` (`* @diazdevivar365` + reglas para paths críticos)
+- [x] A8 — Primer commit `chore: initial repo skeleton` (`ece316e`) — NO push aún (push al final de W0-1 verde)
 
 ## B. Node toolchain
 - [ ] B1 — `.nvmrc` → `22`

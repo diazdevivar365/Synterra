@@ -1,0 +1,54 @@
+{
+  "name": "forgentic",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Forgentic — multi-tenant SaaS workspace for brand intelligence (codename: Synterra)",
+  "license": "UNLICENSED",
+  "author": "Forgentic",
+  "homepage": "https://github.com/diazdevivar365/Forgentic",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/diazdevivar365/Forgentic.git"
+  },
+  "bugs": {
+    "url": "https://github.com/diazdevivar365/Forgentic/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0 <23.0.0",
+    "pnpm": ">=10.0.0 <11.0.0"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint -- --fix",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "playwright test --config tests/e2e/playwright.config.ts",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.6.0",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@types/node": "^22.10.0",
+    "eslint": "^9.17.0",
+    "lefthook": "^1.10.0",
+    "prettier": "^3.4.0",
+    "turbo": "^2.3.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.0.0"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "react": "19",
+        "react-dom": "19"
+      }
+    }
+  }
+}
