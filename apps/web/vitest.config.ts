@@ -19,6 +19,9 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: { '@': path.resolve(__dirname, './src') },
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@synterra/db': path.resolve(__dirname, '../../packages/db/src/index.ts'),
+    },
   },
 });
