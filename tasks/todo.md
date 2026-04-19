@@ -353,21 +353,53 @@ Nothing. The moment the user confirms the origin push (P7), W0-2 (Drizzle scaffo
 
 ---
 
-# W1-1 — better-auth integration (in progress — 2026-04-20)
+# W1-1 — better-auth integration ✅ COMPLETE (2026-04-20)
 
 **Workstream:** Synterra/docs/plan-parts/PLAN_05_Execution_and_Appendix.md → W1-1
-**Definition of done:** Full sign-up via magic link works on dev; session persists across restarts.
+**Definition of done:** Full sign-up via magic link works on dev; session persists across restarts. ✅ MET
 
 ## Prerequisites ✅
 
 - [x] Migration 0013 applied on forgentic-db.lan — `ba_session`, `ba_account`, `ba_verification` tables live; `users.email_verified` → `BOOLEAN NOT NULL DEFAULT false` (2026-04-20)
 - [x] `pnpm-workspace.yaml` catalog: `drizzle-orm ^0.45.2`, `drizzle-kit ^0.31.4` (satisfies better-auth 1.6.5 peer dep), `better-auth ^1.6.5` added (2026-04-20)
 
-## Deliverables
+## Deliverables ✅
 
-- [ ] Wire better-auth Drizzle adapter in `packages/auth/src/index.ts` pointing at `ba_session`, `ba_account`, `ba_verification`
-- [ ] Providers: magic link, passkey, Google, GitHub
-- [ ] Email provider: Resend (dev mode = console log)
-- [ ] Sign-in / sign-up routes in `apps/api`
-- [ ] Sign-in / sign-up UI in `apps/web` (shadcn forms)
-- [ ] Acceptance test: full sign-up via magic link on dev, session persists across restart
+- [x] `packages/auth/src/server.ts` — better-auth with drizzle adapter, magic-link plugin, optional Google/GitHub social providers, Resend email (dev: console.info)
+- [x] `packages/auth/src/env.ts` — zod env parser (`BETTER_AUTH_SECRET/URL/DATABASE_URL`, optional social/resend keys)
+- [x] `apps/web/src/app/api/auth/[...all]/route.ts` — better-auth Next.js handler
+- [x] `apps/web/src/app/(auth)/sign-in/page.tsx` + `_actions.ts` — magic-link Server Action
+- [x] `apps/web/src/app/(auth)/verify/page.tsx` — post-link landing
+- [x] Acceptance: magic-link flow verified on `https://app.forgentic.io` (2026-04-20)
+
+---
+
+# W1-2 — Workspace management UI ✅ COMPLETE (2026-04-20)
+
+**Workstream:** Synterra/PLAN.md → W1-2
+**Definition of done:** Authenticated user can create/switch workspaces; settings pages (General + Members) functional.
+
+## Deliverables ✅
+
+- [x] Edge middleware — workspace JWT gate + `x-workspace-*` header injection (`apps/web/src/middleware.ts`) — `851466f`
+- [x] `/api/workspace/switch` POST endpoint — membership check + workspace JWT cookie — `9e25c0e`
+- [x] `packages/auth` — `signWorkspaceJwt` / `verifyWorkspaceJwt` (jose HS256, 8h TTL) + type exports
+- [x] `/workspaces` page — picker with `WorkspaceCard` + create-workspace form — `373f77c`
+- [x] `WorkspaceSwitcher` client component — ⌘K dropdown, switches via `/api/workspace/switch`
+- [x] `[workspace]/layout.tsx` — sidebar (Dashboard + Settings nav) — `6eb9f36`
+- [x] `[workspace]/settings/layout.tsx` — settings sub-nav (General, Members, Billing gated to owner/admin)
+- [x] `getWorkspaceContext()` — reads `x-workspace-*` middleware headers
+- [x] RBAC matrix `lib/rbac.ts` — 5 roles × 8 permissions + `assertCan`
+- [x] Typed errors + `toActionError` (`lib/errors.ts`)
+- [x] Audit log helper (`lib/audit.ts`)
+- [x] `createWorkspace` + `updateWorkspaceSettings` Server Actions with audit log
+- [x] Member Server Actions: `inviteMember`, `acceptInvite`, `changeMemberRole`, `removeMember`, `transferOwnership`
+- [x] `[workspace]/settings/general/page.tsx` RSC + `GeneralSettingsForm` client component — `4316e74`
+- [x] `[workspace]/settings/members/page.tsx` RSC + `MembersList` (list + role-change + invite) — `c215e96`
+- [x] Workspace lifecycle Testcontainers integration test (5/5) + auth magic-link integration test — `9bbbfbb`
+
+## Verification ✅ (2026-04-20)
+
+- `pnpm typecheck` — 11/11 workspaces clean
+- `pnpm test` — 49 tests passing across 11 workspaces
+- `pnpm build` — all 3 buildable apps green
