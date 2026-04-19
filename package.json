@@ -55,6 +55,11 @@
     "vitest": "^3.0.0"
   },
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "lefthook",
+      "unrs-resolver"
+    ],
     "peerDependencyRules": {
       "allowedVersions": {
         "react": "19",
