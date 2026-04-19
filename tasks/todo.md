@@ -116,14 +116,10 @@
 - [ ] I5 — Doc `Synterra/CONTRIBUTING.md` con ejemplo de commit conventional válido + troubleshooting lefthook
 
 ## J. CI — GitHub Actions
-- [ ] J1 — `.github/workflows/ci.yml`:
-  - Trigger: PR a main, push a main
-  - Jobs: `lint`, `typecheck`, `test`, `build` (en paralelo donde se pueda)
-  - Node 22, pnpm via `pnpm/action-setup@v4`, cache `~/.pnpm-store`
-  - Turbo remote cache deferred (TODO comment para cuando montemos Vercel/self-hosted)
-- [ ] J2 — `.github/workflows/e2e.yml` — Playwright en job separado con `pnpm exec playwright install --with-deps chromium`
-- [ ] J3 — `.github/PULL_REQUEST_TEMPLATE.md` (checklist mínimo)
-- [ ] J4 — `renovate.json` raíz (pnpm monorepo preset, grouping de minor/patch, semana laboral, auto-merge para patches + devDependencies)
+- [x] J1 — `.github/workflows/ci.yml` ✅ (2026-04-19) — PR/push main + workflow_dispatch; concurrency cancela runs viejos; jobs paralelos: `lint` (ESLint + prettier format:check), `typecheck`, `test` (uploads coverage + junit artefacts), `build`, `commitlint` (PR-only con env-indirection de SHAs); Node 22, pnpm 10.33.0 vía `pnpm/action-setup@v4`, cache pnpm store vía `actions/setup-node@v4`. `TURBO_TOKEN/TURBO_TEAM` pasan a env listos para activar remote cache.
+- [x] J2 — `.github/workflows/e2e.yml` ✅ (2026-04-19) — Playwright job separado (chromium + webkit + mobile-chromium), cache de `~/.cache/ms-playwright` por hash de pnpm-lock, uploads de playwright-report + traces con retention 14d. **Gated `if: false` hasta que lande `apps/web`** con el `webServer` block activado en `playwright.config.ts`.
+- [x] J3 — `.github/PULL_REQUEST_TEMPLATE.md` ✅ (2026-04-19) — Summary + Changes + Workstream + Checklist (conventional commit, lint/typecheck/test clean, migración + RLS test si toca schema, Aquila contract pin si toca client, docs, tasks/todo.md) + Test plan + Risk/rollback + Follow-ups.
+- [x] J4 — `renovate.json` ✅ (2026-04-19) — Extends `config:recommended` + `:semanticCommits` + digest-pinning de actions; grouping por toolchain (ESLint, Vitest, Playwright, Next+React, Drizzle, commitlint); auto-merge sólo patches de devDependencies y `@types/*` minor/patch; Node/pnpm/TS major/minor manual; `vulnerabilityAlerts` + `osvVulnerabilityAlerts` on; schedule lunes 9-17 Buenos Aires.
 
 ## K. Docs stubs
 - [ ] K1 — `docs/ARCHITECTURE.md` (1 párrafo + link a `PLAN.md`)

@@ -1,0 +1,149 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)",
+    ":semanticCommitScope(deps)",
+    ":prHourlyLimit2",
+    ":prConcurrentLimit10",
+    ":timezone(America/Argentina/Buenos_Aires)",
+    ":dependencyDashboard",
+    "helpers:pinGitHubActionDigests",
+    ":maintainLockFilesMonthly"
+  ],
+  "schedule": [
+    "after 9am on monday",
+    "before 5pm on monday"
+  ],
+  "labels": ["deps", "renovate"],
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 2,
+  "rebaseWhen": "behind-base-branch",
+  "rangeStrategy": "bump",
+  "semanticCommits": "enabled",
+  "commitMessagePrefix": "chore(deps):",
+  "commitMessageAction": "update",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": false,
+    "commitMessageAction": "refresh"
+  },
+  "packageRules": [
+    {
+      "description": "Pin Node engine — never upgrade engines auto.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["node"],
+      "enabled": false
+    },
+    {
+      "description": "Group pnpm + npm type-definitions patches/minors together.",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["/^@types//"],
+      "groupName": "devDependencies — @types/*",
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Auto-merge patch-level dev dependencies (safe by convention).",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Group ESLint + typescript-eslint updates together (must move in lockstep).",
+      "matchPackageNames": [
+        "eslint",
+        "/^@typescript-eslint//",
+        "typescript-eslint",
+        "eslint-config-prettier",
+        "eslint-plugin-import",
+        "eslint-plugin-unused-imports",
+        "eslint-import-resolver-typescript",
+        "/^@next/eslint-plugin-next$/",
+        "@eslint/js",
+        "globals"
+      ],
+      "groupName": "ESLint toolchain"
+    },
+    {
+      "description": "Group Vitest updates together (core + coverage + ui).",
+      "matchPackageNames": [
+        "vitest",
+        "/^@vitest//"
+      ],
+      "groupName": "Vitest"
+    },
+    {
+      "description": "Group Playwright updates (core + browsers pin in lockstep).",
+      "matchPackageNames": [
+        "@playwright/test",
+        "playwright",
+        "playwright-core"
+      ],
+      "groupName": "Playwright"
+    },
+    {
+      "description": "Group Next.js + React stack (Next, React, React-DOM, @next/*).",
+      "matchPackageNames": [
+        "next",
+        "react",
+        "react-dom",
+        "/^@next//"
+      ],
+      "excludePackageNames": ["@next/eslint-plugin-next"],
+      "groupName": "Next.js + React"
+    },
+    {
+      "description": "Group Drizzle (drizzle-orm + drizzle-kit must move together).",
+      "matchPackageNames": [
+        "drizzle-orm",
+        "drizzle-kit",
+        "/^@drizzle//"
+      ],
+      "groupName": "Drizzle"
+    },
+    {
+      "description": "Group commitlint updates.",
+      "matchPackageNames": [
+        "/^@commitlint//",
+        "commitlint"
+      ],
+      "groupName": "commitlint"
+    },
+    {
+      "description": "Lefthook major/minor — review manually, no auto-merge.",
+      "matchPackageNames": ["lefthook"],
+      "matchUpdateTypes": ["major", "minor"],
+      "automerge": false
+    },
+    {
+      "description": "Turbo major/minor — review manually; task graph contract changes land here.",
+      "matchPackageNames": ["turbo"],
+      "matchUpdateTypes": ["major", "minor"],
+      "automerge": false
+    },
+    {
+      "description": "TypeScript compiler — major/minor always reviewed manually.",
+      "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["major", "minor"],
+      "automerge": false
+    },
+    {
+      "description": "Pin GitHub Actions to full SHAs (supply-chain).",
+      "matchManagers": ["github-actions"],
+      "pinDigests": true,
+      "groupName": "GitHub Actions"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"],
+    "prPriority": 10,
+    "schedule": ["at any time"]
+  },
+  "osvVulnerabilityAlerts": true
+}
