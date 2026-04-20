@@ -25,6 +25,9 @@ const envSchema = z.object({
   AQUILA_ENCRYPT_KEY: z
     .string()
     .regex(/^[0-9a-fA-F]{64}$/, 'must be 64 hex chars (32-byte AES-256 key)'),
+  // Lago — metering (self-hosted at metering.lan)
+  LAGO_API_URL: z.string().url().default('http://metering.lan:3000'),
+  LAGO_API_KEY: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

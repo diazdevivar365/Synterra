@@ -138,3 +138,24 @@ export function createStripeClient(secretKey: string): Stripe {
 export function getPlanBySlug(slug: string): BillingPlan | undefined {
   return PLANS.find((p) => p.slug === slug);
 }
+
+// ---------------------------------------------------------------------------
+// Lago client
+// ---------------------------------------------------------------------------
+
+export { createLagoClient, LagoClientError } from './lago/client.js';
+export type {
+  LagoClient,
+  LagoClientConfig,
+  LagoEventInput,
+  LagoEventResponse,
+  LagoCustomerUsageResponse,
+  LagoUsageCharge,
+} from './lago/types.js';
+
+// ---------------------------------------------------------------------------
+// Quota helpers
+// ---------------------------------------------------------------------------
+
+export { consumeCredits, seedWorkspaceQuota } from './quota.js';
+export type { ConsumeCreditsEvent, ConsumeCreditsResult } from './quota.js';

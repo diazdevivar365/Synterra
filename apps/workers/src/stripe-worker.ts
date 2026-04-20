@@ -8,7 +8,7 @@
 import { eq } from 'drizzle-orm';
 import { Worker, type Job } from 'bullmq';
 
-import { createStripeClient } from '@synterra/billing';
+import { createStripeClient, seedWorkspaceQuota } from '@synterra/billing';
 import { createDb, serviceRoleQuery, subscriptions } from '@synterra/db';
 
 import { env } from './config.js';
@@ -52,6 +52,8 @@ export function createStripeEventsWorker(connection: Redis): Worker<StripeEventJ
           const customerId =
             typeof sub.customer === 'string' ? sub.customer : (sub.customer as { id: string }).id;
 
+          const effectivePlanSlug = planSlug ?? 'starter';
+
           await serviceRoleQuery(db, async (tx) => {
             await tx
               .insert(subscriptions)
@@ -59,7 +61,7 @@ export function createStripeEventsWorker(connection: Redis): Worker<StripeEventJ
                 workspaceId,
                 stripeCustomerId: customerId,
                 stripeSubscriptionId: sub.id,
-                planId: planSlug ?? 'starter',
+                planId: effectivePlanSlug,
                 status: sub.status,
                 currentPeriodStart: periodStart,
                 currentPeriodEnd: periodEnd,
@@ -71,7 +73,7 @@ export function createStripeEventsWorker(connection: Redis): Worker<StripeEventJ
                 set: {
                   stripeCustomerId: customerId,
                   stripeSubscriptionId: sub.id,
-                  planId: planSlug ?? 'starter',
+                  planId: effectivePlanSlug,
                   status: sub.status,
                   currentPeriodStart: periodStart,
                   currentPeriodEnd: periodEnd,
@@ -79,11 +81,18 @@ export function createStripeEventsWorker(connection: Redis): Worker<StripeEventJ
                   updatedAt: now,
                 },
               });
+
+            await seedWorkspaceQuota(tx, workspaceId, effectivePlanSlug, periodStart, periodEnd);
           });
 
           logger.info(
-            { event: 'stripe.subscription.upserted', workspaceId, planSlug, status: sub.status },
-            'subscription upserted',
+            {
+              event: 'stripe.subscription.upserted',
+              workspaceId,
+              planSlug: effectivePlanSlug,
+              status: sub.status,
+            },
+            'subscription upserted and quota seeded',
           );
           break;
         }

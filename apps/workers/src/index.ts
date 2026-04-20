@@ -14,6 +14,10 @@ import { createHealthServer } from './health-server.js';
 import logger from './logger.js';
 import { createProvisionerWorker } from './provisioner.js';
 import { createStripeEventsWorker } from './stripe-worker.js';
+import {
+  createUsageAggregatorWorker,
+  registerUsageAggregatorRepeatable,
+} from './usage-aggregator.js';
 import { createDefaultWorker } from './worker.js';
 
 async function main(): Promise<void> {
@@ -36,6 +40,10 @@ async function main(): Promise<void> {
 
   const stripeWorker = createStripeEventsWorker(connection);
   await stripeWorker.waitUntilReady();
+
+  const usageAggregator = createUsageAggregatorWorker(connection);
+  await usageAggregator.waitUntilReady();
+  const usageAggregatorQueue = await registerUsageAggregatorRepeatable(connection);
 
   const healthServer = createHealthServer({
     port: env.HEALTH_PORT,
@@ -69,6 +77,8 @@ async function main(): Promise<void> {
       await worker.close();
       await provisioner.close();
       await stripeWorker.close();
+      await usageAggregator.close();
+      await usageAggregatorQueue.close();
       await new Promise<void>((resolve, reject) => {
         healthServer.close((err) => (err ? reject(err) : resolve()));
       });
