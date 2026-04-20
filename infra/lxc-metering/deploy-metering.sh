@@ -83,10 +83,6 @@ if [[ ${#MISSING[@]} -gt 0 ]]; then
 fi
 echo "✓ All required env vars present."
 
-echo "→ Preparing data directories..."
-mkdir -p /opt/metering/postgres/data /opt/metering/redis/data /opt/metering/storage /opt/metering/backups
-chown -R 999:999 /opt/metering/postgres/data /opt/metering/redis/data
-
 echo "→ Recreating containers..."
 docker compose \
   --env-file "$ENV_FILE" \
