@@ -24,9 +24,9 @@ INFISICAL_PROJECT_ID="${INFISICAL_PROJECT_ID:-}"
 INFISICAL_DOMAIN="http://192.168.10.30:8080"
 INFISICAL_ENV="${INFISICAL_ENV:-prod}"
 
-INFRA_DIR="/opt/observability"
+INFRA_DIR="/home/forgentic/infra/lxc-observability"
+ENV_FILE="/opt/observability/.env"
 COMPOSE_FILE="$INFRA_DIR/docker-compose.yml"
-ENV_FILE="$INFRA_DIR/.env"
 
 if [[ ! -f "$SECRET_FILE" ]]; then
   echo "ERROR: $SECRET_FILE not found." >&2
