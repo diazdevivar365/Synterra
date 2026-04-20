@@ -4,7 +4,13 @@
  * DB and Resend are mocked. Redis is mocked via ioredis-mock.
  * config.ts is hoisted-mocked so Zod env parser never sees real env vars.
  */
+import RedisMock from 'ioredis-mock';
 import { describe, expect, it, vi } from 'vitest';
+
+import { createNotificationDispatcherWorker } from './notification-dispatcher-worker.js';
+import { QUEUE_NAMES } from './queues.js';
+
+import type { Redis } from 'ioredis';
 
 vi.mock('./config.js', () => ({
   env: {
@@ -31,7 +37,7 @@ vi.mock('./logger.js', () => ({
 
 vi.mock('@synterra/db', () => ({
   createDb: vi.fn(() => ({})),
-  serviceRoleQuery: vi.fn((db: unknown, fn: (tx: unknown) => Promise<unknown>) =>
+  serviceRoleQuery: vi.fn((_db: unknown, fn: (tx: unknown) => Promise<unknown>) =>
     fn({ select: vi.fn(), insert: vi.fn(), update: vi.fn() }),
   ),
   notificationSubscriptions: {},
@@ -46,21 +52,16 @@ vi.mock('resend', () => ({
   })),
 }));
 
-import RedisMock from 'ioredis-mock';
-
-import { createNotificationDispatcherWorker } from './notification-dispatcher-worker.js';
-import { QUEUE_NAMES } from './queues.js';
-
 describe('createNotificationDispatcherWorker', () => {
   it('returns a Worker bound to QUEUE_NAMES.NOTIFICATIONS', () => {
-    const conn = new RedisMock() as unknown as import('ioredis').Redis;
+    const conn = new RedisMock() as unknown as Redis;
     const worker = createNotificationDispatcherWorker(conn);
     expect(worker.name).toBe(QUEUE_NAMES.NOTIFICATIONS);
     void worker.close();
   });
 
   it('worker name does not contain a colon', () => {
-    const conn = new RedisMock() as unknown as import('ioredis').Redis;
+    const conn = new RedisMock() as unknown as Redis;
     const worker = createNotificationDispatcherWorker(conn);
     expect(worker.name).not.toContain(':');
     void worker.close();

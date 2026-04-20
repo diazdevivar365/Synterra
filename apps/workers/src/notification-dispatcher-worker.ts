@@ -78,9 +78,7 @@ async function dispatchEmail(
 
   const html = [
     `<h2 style="font-family:monospace;color:#1a1a1a">${data.title}</h2>`,
-    data.description
-      ? `<p style="font-family:sans-serif;color:#555">${data.description}</p>`
-      : '',
+    data.description ? `<p style="font-family:sans-serif;color:#555">${data.description}</p>` : '',
     `<p style="font-family:monospace;font-size:12px;color:#999">`,
     `Severity: ${data.severity} · Brand: ${data.brandId}`,
     `</p>`,
@@ -102,7 +100,7 @@ async function dispatchEmail(
       channel: 'email',
       status,
       payload: data as unknown as Record<string, unknown>,
-      error: error ? String(error) : null,
+      error: error ? ((error as { message?: string }).message ?? 'unknown error') : null,
       sentAt: error ? null : new Date(),
     }),
   );
@@ -113,10 +111,7 @@ async function dispatchEmail(
       'email dispatch failed',
     );
   } else {
-    logger.info(
-      { event: 'notif.email.sent', userId: sub.userId },
-      'email notification dispatched',
-    );
+    logger.info({ event: 'notif.email.sent', userId: sub.userId }, 'email notification dispatched');
   }
 }
 
