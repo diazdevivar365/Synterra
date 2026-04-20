@@ -89,7 +89,7 @@ case "$ROLE" in
     echo "✓ Cache data directories created"
     ;;
   metering)
-    mkdir -p /opt/metering/postgres/data /opt/metering/redis/data /opt/metering/storage /san/metering/lago-db-backups
+    mkdir -p /opt/metering/postgres/data /opt/metering/redis/data /opt/metering/storage /opt/metering/backups
     chown -R 999:999 /opt/metering/postgres/data /opt/metering/redis/data
     echo "✓ Metering data directories created"
     ;;
