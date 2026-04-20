@@ -1,11 +1,26 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
-vi.mock('../lib/session', () => ({ getSessionOrThrow: vi.fn() }));
+// vi.hoisted — variables declared here are available inside vi.mock factories
+// (which are hoisted to the top of the file by Vitest's transform).
+const { mockAdd, mockDbInsert } = vi.hoisted(() => {
+  const dbChain: Record<string, ReturnType<typeof vi.fn>> = {
+    values: vi.fn(),
+    returning: vi.fn(),
+    onConflictDoNothing: vi.fn().mockResolvedValue([{ id: 'ws-1' }]),
+  };
+  dbChain['values']!.mockReturnValue(dbChain);
+  dbChain['returning']!.mockReturnValue(dbChain);
 
-// Mock DB dependencies so Vitest doesn't need a real Postgres connection.
-// Tests only exercise validation and RBAC paths — no DB calls are reached.
+  return {
+    mockDbInsert: vi.fn(() => dbChain),
+    mockAdd: vi.fn().mockResolvedValue({ id: 'job-1' }),
+  };
+});
+
+vi.mock('../lib/session', () => ({ getSessionOrThrow: vi.fn() }));
+vi.mock('../lib/queue', () => ({ getProvisionQueue: vi.fn(() => ({ add: mockAdd })) }));
 vi.mock('@synterra/db', () => ({
-  createDb: vi.fn(() => ({})),
+  createDb: vi.fn(() => ({ insert: mockDbInsert })),
   withWorkspaceContext: vi.fn(),
   workspaces: {},
   workspaceMembers: {},
@@ -21,6 +36,16 @@ const mockSession = { userId: 'user-1', email: 'a@b.com' };
 beforeEach(() => vi.mocked(getSessionOrThrow).mockResolvedValue(mockSession));
 
 describe('createWorkspace', () => {
+  it('enqueues a provision job on success', async () => {
+    mockAdd.mockClear();
+    const result = await createWorkspace({ name: 'Acme Corp', slug: 'acme-corp' });
+    expect(result.ok).toBe(true);
+    expect(mockAdd).toHaveBeenCalledWith(
+      'provision',
+      expect.objectContaining({ workspaceId: 'ws-1', workspaceSlug: 'acme-corp' }),
+    );
+  });
+
   it('returns VALIDATION when name is empty', async () => {
     const result = await createWorkspace({ name: '', slug: 'my-ws' });
     expect(result.ok).toBe(false);

@@ -7,6 +7,7 @@ import { WorkspaceSlugSchema } from '@synterra/shared';
 
 import { logAudit } from '../lib/audit.js';
 import { ConflictError, toActionError } from '../lib/errors.js';
+import { getProvisionQueue } from '../lib/queue.js';
 import { assertCan, type WorkspaceRole } from '../lib/rbac.js';
 import { getSessionOrThrow } from '../lib/session.js';
 
@@ -63,6 +64,12 @@ export async function createWorkspace(
       resourceType: 'workspace',
       resourceId: workspace.id,
       after: { name: nameTrimmed, slug },
+    });
+
+    await getProvisionQueue().add('provision', {
+      workspaceId: workspace.id,
+      workspaceSlug: slug,
+      workspaceName: nameTrimmed,
     });
 
     return { ok: true, data: { workspaceId: workspace.id } };

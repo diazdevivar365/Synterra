@@ -27,6 +27,8 @@
     "@synterra/ui": "workspace:*",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",
+    "bullmq": "catalog:",
+    "ioredis": "catalog:",
     "jose": "catalog:",
     "postgres": "catalog:",
     "server-only": "^0.0.1",
