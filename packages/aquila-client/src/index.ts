@@ -48,6 +48,8 @@ export interface AquilaClient {
     organizationId: string,
     options?: { cursor?: string; limit?: number },
   ): Promise<Paginated<ResearchRun>>;
+  /** Fetch a single research run by ID (includes result when completed). */
+  getResearchRun(organizationId: string, runId: string): Promise<ResearchRun>;
 }
 
 async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
@@ -148,6 +150,13 @@ export function createAquilaClient(config: AquilaClientConfig): AquilaClient {
           headers: { Authorization: `Bearer ${apiKey}`, 'X-Org-Slug': orgSlug },
         },
       );
+    },
+
+    async getResearchRun(organizationId, runId) {
+      return fetchJson<ResearchRun>(`${baseUrl}/orgs/${organizationId}/research-runs/${runId}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${apiKey}`, 'X-Org-Slug': orgSlug },
+      });
     },
   };
 }

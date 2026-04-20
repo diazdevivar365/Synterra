@@ -19,3 +19,4 @@ export * from './schemas/public-api-keys';
 export * from './schemas/webhooks';
 export * from './schemas/auth';
 export * from './schemas/sso';
+export * from './schemas/inflight-bootstrap';

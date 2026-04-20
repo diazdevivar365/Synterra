@@ -32,6 +32,7 @@ export interface ResearchRun {
   status: ResearchRunStatus;
   createdAt: string;
   completedAt: string | null;
+  result?: unknown;
 }
 
 /** Envelope for list endpoints — matches Aquila's pagination convention. */

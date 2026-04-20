@@ -21,6 +21,7 @@
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "@synterra/aquila-client": "workspace:*",
     "@synterra/auth": "workspace:*",
     "@synterra/db": "workspace:*",
     "@synterra/telemetry": "workspace:*",

@@ -222,6 +222,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@synterra/aquila-client':
+        specifier: workspace:*
+        version: link:../../packages/aquila-client
       '@synterra/auth':
         specifier: workspace:*
         version: link:../../packages/auth
