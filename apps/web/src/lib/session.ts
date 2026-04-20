@@ -1,4 +1,8 @@
-// Stub replaced when W1-1 (better-auth) lands.
+import 'server-only';
+
+import { headers } from 'next/headers';
+
+import { auth } from './auth';
 import { ForbiddenError } from './errors';
 
 export interface RequestSession {
@@ -6,7 +10,11 @@ export interface RequestSession {
   email: string;
 }
 
-export function getSessionOrThrow(): Promise<RequestSession> {
-  // TODO(W1-1): replace with real better-auth getSession()
-  return Promise.reject(new ForbiddenError('Authentication not yet wired — see W1-1'));
+export async function getSessionOrThrow(): Promise<RequestSession> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) throw new ForbiddenError('Not authenticated');
+  return {
+    userId: session.user.id,
+    email: session.user.email,
+  };
 }
