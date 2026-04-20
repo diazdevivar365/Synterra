@@ -13,6 +13,7 @@ import { createRedisConnection } from './connection.js';
 import { createHealthServer } from './health-server.js';
 import logger from './logger.js';
 import { createProvisionerWorker } from './provisioner.js';
+import { createStripeEventsWorker } from './stripe-worker.js';
 import { createDefaultWorker } from './worker.js';
 
 async function main(): Promise<void> {
@@ -32,6 +33,9 @@ async function main(): Promise<void> {
 
   const provisioner = createProvisionerWorker(connection);
   await provisioner.waitUntilReady();
+
+  const stripeWorker = createStripeEventsWorker(connection);
+  await stripeWorker.waitUntilReady();
 
   const healthServer = createHealthServer({
     port: env.HEALTH_PORT,
@@ -64,6 +68,7 @@ async function main(): Promise<void> {
     try {
       await worker.close();
       await provisioner.close();
+      await stripeWorker.close();
       await new Promise<void>((resolve, reject) => {
         healthServer.close((err) => (err ? reject(err) : resolve()));
       });

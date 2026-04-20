@@ -87,6 +87,9 @@ catalogs:
     react-dom:
       specifier: ^19.0.0
       version: 19.2.5
+    stripe:
+      specifier: ^17.0.0
+      version: 17.7.0
     testcontainers:
       specifier: ^10.24.0
       version: 10.28.0
@@ -228,6 +231,9 @@ importers:
       '@synterra/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@synterra/billing':
+        specifier: workspace:*
+        version: link:../../packages/billing
       '@synterra/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -270,9 +276,15 @@ importers:
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
+      stripe:
+        specifier: 'catalog:'
+        version: 17.7.0
       tailwindcss:
         specifier: ^4.0.0
         version: 4.2.2
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
       '@synterra/tsconfig':
         specifier: workspace:*
@@ -331,6 +343,9 @@ importers:
       '@synterra/aquila-client':
         specifier: workspace:*
         version: link:../../packages/aquila-client
+      '@synterra/billing':
+        specifier: workspace:*
+        version: link:../../packages/billing
       '@synterra/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -355,6 +370,9 @@ importers:
       prom-client:
         specifier: 'catalog:'
         version: 15.1.3
+      stripe:
+        specifier: 'catalog:'
+        version: 17.7.0
       zod:
         specifier: 'catalog:'
         version: 3.25.76
@@ -474,6 +492,10 @@ importers:
         version: 3.2.4(@types/node@22.19.17)(jiti@2.6.1)(jsdom@25.0.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.3)
 
   packages/billing:
+    dependencies:
+      stripe:
+        specifier: 'catalog:'
+        version: 17.7.0
     devDependencies:
       '@synterra/tsconfig':
         specifier: workspace:*
@@ -5218,6 +5240,10 @@ packages:
   strip-literal@3.1.0:
     resolution: {integrity: sha512-8r3mkIM/2+PpjHoOtiAW8Rg3jJLHaV7xPwG+YRGrv6FP0wwk/toTpATxWYOW0BKdWwl82VT2tFYi5DlROa0Mxg==}
 
+  stripe@17.7.0:
+    resolution: {integrity: sha512-aT2BU9KkizY9SATf14WhhYVv2uOapBWX0OFWF4xvcj1mPaNotlSc2CsxpS4DS46ZueSppmCF5BX1sNYBtwBvfw==}
+    engines: {node: '>=12.*'}
+
   styled-jsx@5.1.6:
     resolution: {integrity: sha512-qSVyDTeMotdvQYoHWLNGwRFJHC+i+ZvdBRYosOFgC+Wg1vx4frN2/RG/NA7SYqqvKNLf39P2LSRA2pu6n0XYZA==}
     engines: {node: '>= 12.0.0'}
@@ -9952,6 +9978,11 @@ snapshots:
   strip-literal@3.1.0:
     dependencies:
       js-tokens: 9.0.1
+
+  stripe@17.7.0:
+    dependencies:
+      '@types/node': 22.19.17
+      qs: 6.14.1
 
   styled-jsx@5.1.6(react@19.2.5):
     dependencies:

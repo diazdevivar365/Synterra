@@ -2,17 +2,31 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 // vi.hoisted — variables declared here are available inside vi.mock factories
 // (which are hoisted to the top of the file by Vitest's transform).
-const { mockAdd, mockDbInsert } = vi.hoisted(() => {
-  const dbChain: Record<string, ReturnType<typeof vi.fn>> = {
-    values: vi.fn(),
-    returning: vi.fn(),
-    onConflictDoNothing: vi.fn().mockResolvedValue([{ id: 'ws-1' }]),
+const { mockAdd, mockDbInsert, mockTransaction } = vi.hoisted(() => {
+  const makeInsertChain = () => {
+    const chain: Record<string, ReturnType<typeof vi.fn>> = {
+      values: vi.fn(),
+      returning: vi.fn(),
+      onConflictDoNothing: vi.fn().mockResolvedValue([{ id: 'ws-1' }]),
+    };
+    chain['values']!.mockReturnValue(chain);
+    chain['returning']!.mockReturnValue(chain);
+    return chain;
   };
-  dbChain['values']!.mockReturnValue(dbChain);
-  dbChain['returning']!.mockReturnValue(dbChain);
+
+  const dbChain = makeInsertChain();
+
+  // transaction mock: executes the callback immediately with a tx that has its
+  // own insert stub, so createWorkspace's transactional body runs through and
+  // returns the workspace id from the mocked onConflictDoNothing result.
+  const mockTransaction = vi.fn(
+    (cb: (tx: { insert: ReturnType<typeof vi.fn> }) => Promise<unknown>) =>
+      cb({ insert: vi.fn(() => makeInsertChain()) }),
+  );
 
   return {
     mockDbInsert: vi.fn(() => dbChain),
+    mockTransaction,
     mockAdd: vi.fn().mockResolvedValue({ id: 'job-1' }),
   };
 });
@@ -20,10 +34,11 @@ const { mockAdd, mockDbInsert } = vi.hoisted(() => {
 vi.mock('../lib/session', () => ({ getSessionOrThrow: vi.fn() }));
 vi.mock('../lib/queue', () => ({ getProvisionQueue: vi.fn(() => ({ add: mockAdd })) }));
 vi.mock('@synterra/db', () => ({
-  createDb: vi.fn(() => ({ insert: mockDbInsert })),
+  createDb: vi.fn(() => ({ insert: mockDbInsert, transaction: mockTransaction })),
   withWorkspaceContext: vi.fn(),
   workspaces: {},
   workspaceMembers: {},
+  subscriptions: {},
   auditLog: {},
 }));
 vi.mock('drizzle-orm', () => ({ eq: vi.fn() }));

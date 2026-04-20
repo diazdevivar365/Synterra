@@ -33,6 +33,9 @@
     "jose": "catalog:",
     "postgres": "catalog:",
     "server-only": "^0.0.1",
+    "stripe": "catalog:",
+    "zod": "catalog:",
+    "@synterra/billing": "workspace:*",
     "tailwindcss": "^4.0.0",
     "@tailwindcss/postcss": "^4.0.0"
   },

@@ -2,7 +2,7 @@
 
 import { eq } from 'drizzle-orm';
 
-import { createDb, withWorkspaceContext, workspaces, workspaceMembers } from '@synterra/db';
+import { createDb, withWorkspaceContext, workspaces, workspaceMembers, subscriptions } from '@synterra/db';
 import { WorkspaceSlugSchema } from '@synterra/shared';
 
 import { logAudit } from '../lib/audit';
@@ -43,36 +43,52 @@ export async function createWorkspace(
     }
     const slug = slugParsed.data;
 
-    const [workspace] = await db
-      .insert(workspaces)
-      .values({ name: nameTrimmed, slug, aquilaOrgSlug: slug })
-      .returning({ id: workspaces.id })
-      .onConflictDoNothing();
+    const workspaceId = await db.transaction(async (tx) => {
+      const [workspace] = await tx
+        .insert(workspaces)
+        .values({ name: nameTrimmed, slug, aquilaOrgSlug: slug })
+        .returning({ id: workspaces.id })
+        .onConflictDoNothing();
 
-    if (!workspace) throw new ConflictError(`Slug '${slug}' is already taken`);
+      if (!workspace) throw new ConflictError(`Slug '${slug}' is already taken`);
 
-    await db.insert(workspaceMembers).values({
-      workspaceId: workspace.id,
-      userId: session.userId,
-      role: 'owner',
-    });
+      await tx.insert(workspaceMembers).values({
+        workspaceId: workspace.id,
+        userId: session.userId,
+        role: 'owner',
+      });
 
-    await logAudit(db, {
-      workspaceId: workspace.id,
-      actorUserId: session.userId,
-      action: 'workspace.created',
-      resourceType: 'workspace',
-      resourceId: workspace.id,
-      after: { name: nameTrimmed, slug },
+      const now = new Date();
+      await tx.insert(subscriptions).values({
+        workspaceId: workspace.id,
+        stripeCustomerId: 'cus_pending',
+        stripeSubscriptionId: `sub_trial_${workspace.id}`,
+        planId: 'trial',
+        status: 'trialing',
+        currentPeriodStart: now,
+        currentPeriodEnd: new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000),
+        seatCount: 3,
+      });
+
+      await logAudit(tx as unknown as typeof db, {
+        workspaceId: workspace.id,
+        actorUserId: session.userId,
+        action: 'workspace.created',
+        resourceType: 'workspace',
+        resourceId: workspace.id,
+        after: { name: nameTrimmed, slug },
+      });
+
+      return workspace.id;
     });
 
     await getProvisionQueue().add('provision', {
-      workspaceId: workspace.id,
+      workspaceId,
       workspaceSlug: slug,
       workspaceName: nameTrimmed,
     });
 
-    return { ok: true, data: { workspaceId: workspace.id } };
+    return { ok: true, data: { workspaceId } };
   } catch (err) {
     return toActionError(err);
   }

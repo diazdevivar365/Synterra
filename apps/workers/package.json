@@ -29,6 +29,8 @@
     "@synterra/telemetry": "workspace:*",
     "drizzle-orm": "catalog:",
     "pino": "catalog:",
+    "stripe": "catalog:",
+    "@synterra/billing": "workspace:*",
     "postgres": "catalog:",
     "prom-client": "catalog:",
     "zod": "catalog:"

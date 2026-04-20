@@ -17,6 +17,9 @@
     "test": "vitest run",
     "clean": "rm -rf dist .turbo coverage"
   },
+  "dependencies": {
+    "stripe": "catalog:"
+  },
   "devDependencies": {
     "@synterra/tsconfig": "workspace:*",
     "@types/node": "catalog:",

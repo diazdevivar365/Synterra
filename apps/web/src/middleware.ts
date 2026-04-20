@@ -1,6 +1,29 @@
+import { unstable_cache } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { verifyWorkspaceJwt } from '@synterra/auth';
+
+async function fetchBillingStatus(workspaceId: string, origin: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `${origin}/api/billing/status?workspace_id=${encodeURIComponent(workspaceId)}`,
+      { next: { revalidate: 60 } },
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as { status: string | null };
+    return data.status;
+  } catch {
+    return null;
+  }
+}
+
+function getCachedBillingStatus(workspaceId: string, origin: string) {
+  return unstable_cache(
+    () => fetchBillingStatus(workspaceId, origin),
+    [`billing-status-${workspaceId}`],
+    { revalidate: 60 },
+  )();
+}
 
 const PUBLIC_PREFIXES = [
   '/sign-in',
@@ -61,6 +84,14 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
         res.headers.set('x-workspace-id', payload.workspaceId);
         res.headers.set('x-workspace-role', payload.role);
         res.headers.set('x-workspace-slug', payload.slug);
+
+        // Check billing status — cached 60s per workspace to avoid a DB hit on
+        // every request. Only annotates the response header; never blocks access.
+        const origin = req.nextUrl.origin;
+        const billingStatus = await getCachedBillingStatus(payload.workspaceId, origin);
+        if (billingStatus === 'past_due') {
+          res.headers.set('x-billing-status', 'past_due');
+        }
       } catch {
         // Already verified above — should not happen.
       }

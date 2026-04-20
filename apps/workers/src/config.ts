@@ -16,6 +16,8 @@ const envSchema = z.object({
   WORKER_CONCURRENCY: z.coerce.number().int().positive().default(5),
   // Database — provisioner writes aquila_credentials
   DATABASE_URL: z.string().url(),
+  // Stripe
+  STRIPE_SECRET_KEY: z.string().min(1),
   // Aquila provisioner
   AQUILA_BASE_URL: z.string().url(),
   AQUILA_PROVISIONER_SECRET: z.string().min(16),

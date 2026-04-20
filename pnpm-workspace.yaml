@@ -64,6 +64,9 @@ catalog:
   # Testing
   vitest: ^3.0.0
 
+  # Payments
+  stripe: ^17.0.0
+
   # Validation + utilities
   zod: ^3.24.0
 

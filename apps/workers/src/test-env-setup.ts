@@ -6,3 +6,4 @@ process.env['DATABASE_URL'] ??= 'postgres://localhost:5432/test';
 process.env['AQUILA_BASE_URL'] ??= 'https://aquila.test.invalid';
 process.env['AQUILA_PROVISIONER_SECRET'] ??= 'test-provisioner-secret-1234';
 process.env['AQUILA_ENCRYPT_KEY'] ??= 'a'.repeat(64);
+process.env['STRIPE_SECRET_KEY'] ??= 'sk_test_placeholder_for_tests';
