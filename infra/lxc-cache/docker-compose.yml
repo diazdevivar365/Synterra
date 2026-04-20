@@ -1,6 +1,8 @@
 # forgentic-cache.lan — Redis LXC
-# Phase 0 stack: Redis 7 single + AOF every 1s + nightly RDB to SAN
+# Phase 0 stack: Redis 7 single + AOF every 1s + nightly RDB to local storage
 #                + node-exporter for Prometheus scrape
+# NOTE: SAN not yet active. RDB backups use /opt/forgentic/redis/rdb-backups.
+#       Swap to /san/forgentic-cache/... when SAN is provisioned.
 #
 # Client config uses Sentinel-compatible URL format so env-only swap to AWS
 # ElastiCache Redis Multi-AZ works without code changes.
@@ -49,7 +51,6 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
-      - /san/forgentic-cache/rdb-backups:/rdb-backups
     networks:
       - forgentic-cache
     healthcheck:
@@ -58,9 +59,9 @@ services:
       timeout: 5s
       retries: 5
 
-  # Nightly RDB snapshot copy to SAN
+  # Nightly RDB snapshot copy to local storage (swap mount to SAN when active)
   redis-backup:
-    image: redis:7.4-alpine
+    image: redis:7.4
     container_name: forgentic-redis-backup
     restart: unless-stopped
     entrypoint: ["/bin/sh", "-c"]
@@ -81,7 +82,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     volumes:
       - redis-data:/data:ro
-      - /san/forgentic-cache/rdb-backups:/rdb-backups
+      - /opt/forgentic/redis/rdb-backups:/rdb-backups
     networks:
       - forgentic-cache
     depends_on:

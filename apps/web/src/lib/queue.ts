@@ -1,5 +1,5 @@
-import IORedis from 'ioredis';
 import { Queue } from 'bullmq';
+import IORedis from 'ioredis';
 
 // Must match QUEUE_NAMES.PROVISION in apps/workers/src/queues.ts
 const PROVISION_QUEUE_NAME = 'synterra-workspace-provision';
@@ -26,8 +26,6 @@ function getConnection(): IORedis {
 }
 
 export function getProvisionQueue(): Queue<ProvisionWorkspaceJobData> {
-  if (!_provisionQueue) {
-    _provisionQueue = new Queue(PROVISION_QUEUE_NAME, { connection: getConnection() });
-  }
+  _provisionQueue ??= new Queue(PROVISION_QUEUE_NAME, { connection: getConnection() });
   return _provisionQueue;
 }
