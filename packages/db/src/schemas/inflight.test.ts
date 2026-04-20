@@ -1,18 +1,35 @@
+import { getTableName } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 
 import { INFLIGHT_STATUS, inflightBootstrap } from './inflight.js';
 
 describe('inflightBootstrap schema', () => {
-  it('exports INFLIGHT_STATUS tuple', () => {
+  it('exports INFLIGHT_STATUS with correct values', () => {
     expect(INFLIGHT_STATUS).toEqual(['pending', 'running', 'preview_ready', 'claimed', 'failed']);
   });
 
-  it('inflightBootstrap table is defined with correct columns', () => {
-    expect(inflightBootstrap).toBeDefined();
-    // Verify key columns exist on the schema
-    expect(inflightBootstrap.id).toBeDefined();
-    expect(inflightBootstrap.urlInput).toBeDefined();
-    expect(inflightBootstrap.status).toBeDefined();
-    expect(inflightBootstrap.ipHash).toBeDefined();
+  it('table name is inflight_bootstrap', () => {
+    expect(getTableName(inflightBootstrap)).toBe('inflight_bootstrap');
+  });
+
+  it('has required non-nullable columns', () => {
+    const cols = inflightBootstrap;
+    // These columns must exist on the table object
+    expect(cols.id).toBeDefined();
+    expect(cols.urlInput).toBeDefined();
+    expect(cols.ipHash).toBeDefined();
+    expect(cols.status).toBeDefined();
+    expect(cols.createdAt).toBeDefined();
+    expect(cols.expiresAt).toBeDefined();
+  });
+
+  it('has nullable optional columns', () => {
+    const cols = inflightBootstrap;
+    expect(cols.email).toBeDefined();
+    expect(cols.aquilaRunId).toBeDefined();
+    expect(cols.workspaceId).toBeDefined();
+    expect(cols.previewData).toBeDefined();
+    expect(cols.error).toBeDefined();
+    expect(cols.claimedAt).toBeDefined();
   });
 });
