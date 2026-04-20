@@ -19,6 +19,9 @@ const envSchema = z.object({
   // Aquila provisioner
   AQUILA_BASE_URL: z.string().url(),
   AQUILA_PROVISIONER_SECRET: z.string().min(16),
+  AQUILA_ANON_API_KEY: z.string().min(1),
+  AQUILA_ANON_ORG_SLUG: z.string().min(1),
+  AQUILA_ANON_ORG_ID: z.string().min(1),
   // 64 hex chars = 32 bytes = AES-256 key for envelope-encrypting API key secrets
   AQUILA_ENCRYPT_KEY: z
     .string()

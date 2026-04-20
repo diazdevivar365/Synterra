@@ -8,6 +8,7 @@
  */
 import { initTelemetry, shutdownTelemetry } from '@synterra/telemetry';
 
+import { createBootstrapWorker } from './bootstrap-worker.js';
 import { env } from './config.js';
 import { createRedisConnection } from './connection.js';
 import { createHealthServer } from './health-server.js';
@@ -32,6 +33,9 @@ async function main(): Promise<void> {
 
   const provisioner = createProvisionerWorker(connection);
   await provisioner.waitUntilReady();
+
+  const bootstrapWorker = createBootstrapWorker(connection);
+  await bootstrapWorker.waitUntilReady();
 
   const healthServer = createHealthServer({
     port: env.HEALTH_PORT,
@@ -64,6 +68,7 @@ async function main(): Promise<void> {
     try {
       await worker.close();
       await provisioner.close();
+      await bootstrapWorker.close();
       await new Promise<void>((resolve, reject) => {
         healthServer.close((err) => (err ? reject(err) : resolve()));
       });

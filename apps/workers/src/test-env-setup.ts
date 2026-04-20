@@ -6,3 +6,6 @@ process.env['DATABASE_URL'] ??= 'postgres://localhost:5432/test';
 process.env['AQUILA_BASE_URL'] ??= 'https://aquila.test.invalid';
 process.env['AQUILA_PROVISIONER_SECRET'] ??= 'test-provisioner-secret-1234';
 process.env['AQUILA_ENCRYPT_KEY'] ??= 'a'.repeat(64);
+process.env['AQUILA_ANON_API_KEY'] ??= 'test-anon-api-key';
+process.env['AQUILA_ANON_ORG_SLUG'] ??= 'synterra-anon-test';
+process.env['AQUILA_ANON_ORG_ID'] ??= 'anon-org-test-id';
