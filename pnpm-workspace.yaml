@@ -65,6 +65,7 @@ catalog:
   vitest: ^3.0.0
 
   # Payments
+  resend: ^4.1.0
   stripe: ^17.0.0
 
   # Validation + utilities

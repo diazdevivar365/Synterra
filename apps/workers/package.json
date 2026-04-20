@@ -29,6 +29,7 @@
     "@synterra/telemetry": "workspace:*",
     "drizzle-orm": "catalog:",
     "pino": "catalog:",
+    "resend": "catalog:",
     "stripe": "catalog:",
     "@synterra/billing": "workspace:*",
     "postgres": "catalog:",
