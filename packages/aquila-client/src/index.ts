@@ -4,7 +4,7 @@
 // short-lived JWT obtained from /auth/issue-provisioner-token. Org-level calls
 // (createResearchRun, listResearchRuns) use the per-org apiKey directly.
 
-import type { ApiKey, Organization, Paginated, ResearchRun } from './types.js';
+import type { ApiKey, Organization, Paginated, ResearchRun } from './types';
 
 export type AquilaContractVersion = '2026-04';
 export const SUPPORTED_CONTRACT_VERSION: AquilaContractVersion = '2026-04';
@@ -43,6 +43,8 @@ export interface AquilaClient {
   issueApiKey(orgSlug: string): Promise<ApiKey & { rawKey: string }>;
   /** Kick off a research run on the data plane (AQ-3). */
   createResearchRun(organizationId: string, input: CreateResearchRunInput): Promise<ResearchRun>;
+  /** Fetch a single research run by ID. */
+  getResearchRun(organizationId: string, runId: string): Promise<ResearchRun>;
   /** Paginated listing of research runs for a given organisation. */
   listResearchRuns(
     organizationId: string,
@@ -136,6 +138,13 @@ export function createAquilaClient(config: AquilaClientConfig): AquilaClient {
       });
     },
 
+    async getResearchRun(organizationId, runId) {
+      return fetchJson<ResearchRun>(`${baseUrl}/orgs/${organizationId}/research-runs/${runId}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${apiKey}`, 'X-Org-Slug': orgSlug },
+      });
+    },
+
     async listResearchRuns(organizationId, options) {
       const params = new URLSearchParams();
       if (options?.cursor) params.set('cursor', options.cursor);
@@ -152,4 +161,4 @@ export function createAquilaClient(config: AquilaClientConfig): AquilaClient {
   };
 }
 
-export type { ApiKey, Organization, Paginated, ResearchRun, ResearchRunStatus } from './types.js';
+export type { ApiKey, Organization, Paginated, ResearchRun, ResearchRunStatus } from './types';
