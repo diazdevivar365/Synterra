@@ -38,8 +38,9 @@ export function ChangeEventCard({
     >
       {/* Severity dot */}
       <span
+        role="img"
         className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${SEVERITY_DOT[severity]}`}
-        aria-label={`severity: ${severity}`}
+        aria-label={`Severity: ${severity}`}
       />
 
       <div className="min-w-0 flex-1">
