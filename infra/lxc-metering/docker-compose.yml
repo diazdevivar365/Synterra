@@ -150,28 +150,28 @@ services:
 
   # Nightly Lago DB dump
   lago-db-backup:
-    image: postgres:16.6-alpine
+    image: postgres:16.6
     container_name: lago-db-backup
     restart: unless-stopped
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
         while true; do
-          sleep_until=$(date -d "tomorrow 03:00" +%s 2>/dev/null || date -j -f "%Y-%m-%d %H:%M:%S" "$(date -v+1d '+%Y-%m-%d') 03:00:00" +%s)
-          sleep $((sleep_until - $(date +%s)))
-          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          sleep_until=$$(date -d "tomorrow 03:00" +%s)
+          sleep $$((sleep_until - $$(date +%s)))
+          TIMESTAMP=$$(date +%Y%m%d_%H%M%S)
           PGPASSWORD="${LAGO_POSTGRES_PASSWORD}" pg_dump \
             -h lago-postgres -U "${LAGO_POSTGRES_USER:-lago}" \
-            "${LAGO_POSTGRES_DB:-lago}" | gzip > "/backups/lago_${TIMESTAMP}.sql.gz"
+            "${LAGO_POSTGRES_DB:-lago}" | gzip > "/backups/lago_$$TIMESTAMP.sql.gz"
           find /backups -name "lago_*.sql.gz" -mtime +14 -delete
-          echo "✓ Lago DB dump ${TIMESTAMP} complete"
+          echo "✓ Lago DB dump $$TIMESTAMP complete"
         done
     environment:
       LAGO_POSTGRES_USER: ${LAGO_POSTGRES_USER:-lago}
       LAGO_POSTGRES_PASSWORD: ${LAGO_POSTGRES_PASSWORD}
       LAGO_POSTGRES_DB: ${LAGO_POSTGRES_DB:-lago}
     volumes:
-      - /san/metering/lago-db-backups:/backups
+      - /opt/metering/backups:/backups
     networks:
       - lago
     depends_on:
