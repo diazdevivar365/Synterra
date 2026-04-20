@@ -12,6 +12,17 @@ export default defineConfig({
     globals: false,
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    exclude: [
+      '**/*.config.*',
+      '**/*.d.ts',
+      'src/app/layout.tsx',
+      '.next/**',
+      // Integration tests run under vitest.integration.config.ts (real Postgres
+      // via Testcontainers). Excluding them here prevents jsdom from being applied
+      // to Node-only code (e.g. TextEncoder inside jose) and keeps `pnpm test`
+      // fast (no Docker spin-up).
+      'src/**/*.integration.test.ts',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov', 'json-summary'],
