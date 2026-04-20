@@ -76,3 +76,4 @@ temp/
 # ─── Drizzle ───────────────────────────────────────────────────────────────────
 drizzle/
 !packages/db/drizzle/
+.worktrees/
