@@ -5,16 +5,16 @@
  * writes driven by Stripe callbacks, not user-initiated requests.
  * See packages/db/src/context.ts for the escape-hatch documentation.
  */
-import { eq } from 'drizzle-orm';
 import { Worker, type Job } from 'bullmq';
+import { eq } from 'drizzle-orm';
 
 import { createStripeClient } from '@synterra/billing';
-import { seedWorkspaceQuota } from './quota.js';
 import { createDb, serviceRoleQuery, subscriptions } from '@synterra/db';
 
 import { env } from './config.js';
 import logger from './logger.js';
 import { QUEUE_NAMES, type StripeEventJobData } from './queues.js';
+import { seedWorkspaceQuota } from './quota.js';
 
 import type { Redis } from 'ioredis';
 import type Stripe from 'stripe';
@@ -36,8 +36,8 @@ export function createStripeEventsWorker(connection: Redis): Worker<StripeEventJ
         case 'customer.subscription.created':
         case 'customer.subscription.updated': {
           const sub = job.data.data.object as unknown as Stripe.Subscription;
-          const workspaceId = sub.metadata?.['workspace_id'];
-          const planSlug = sub.metadata?.['plan_slug'];
+          const workspaceId = sub.metadata['workspace_id'];
+          const planSlug = sub.metadata['plan_slug'];
 
           if (!workspaceId) {
             logger.warn(
@@ -48,8 +48,8 @@ export function createStripeEventsWorker(connection: Redis): Worker<StripeEventJ
           }
 
           const now = new Date();
-          const periodStart = new Date((sub.current_period_start as number) * 1000);
-          const periodEnd = new Date((sub.current_period_end as number) * 1000);
+          const periodStart = new Date(sub.current_period_start * 1000);
+          const periodEnd = new Date(sub.current_period_end * 1000);
           const customerId =
             typeof sub.customer === 'string' ? sub.customer : (sub.customer as { id: string }).id;
 
@@ -100,7 +100,7 @@ export function createStripeEventsWorker(connection: Redis): Worker<StripeEventJ
 
         case 'customer.subscription.deleted': {
           const sub = job.data.data.object as unknown as Stripe.Subscription;
-          const workspaceId = sub.metadata?.['workspace_id'];
+          const workspaceId = sub.metadata['workspace_id'];
 
           if (!workspaceId) {
             logger.warn(

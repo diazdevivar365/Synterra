@@ -21,6 +21,7 @@ vi.mock('./config.js', () => ({
     AQUILA_BASE_URL: 'https://aquila.test.invalid',
     AQUILA_PROVISIONER_SECRET: 'test-provisioner-secret-1234',
     AQUILA_ENCRYPT_KEY: 'a'.repeat(64),
+    RESEND_API_KEY: 're_test_xxx',
   },
 }));
 

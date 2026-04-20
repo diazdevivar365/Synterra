@@ -7,8 +7,8 @@
  *     tenant cannot poison the batch.
  *   - Aquila polling: STUB — AQ-3 is not implemented. Logged once at startup.
  */
-import { eq, ne } from 'drizzle-orm';
 import { Queue, Worker, type Job } from 'bullmq';
+import { eq, ne } from 'drizzle-orm';
 
 import { createLagoClient, LagoClientError } from '@synterra/billing';
 import { createDb, serviceRoleQuery, subscriptions, workspaces } from '@synterra/db';

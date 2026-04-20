@@ -16,7 +16,25 @@
  */
 
 import RedisMock from 'ioredis-mock';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('./config.js', () => ({
+  env: {
+    NODE_ENV: 'test',
+    REDIS_URL: 'redis://localhost:6379',
+    HEALTH_PORT: 3002,
+    LOG_LEVEL: 'silent',
+    SHUTDOWN_TIMEOUT_MS: 15_000,
+    WORKER_CONCURRENCY: 5,
+    DATABASE_URL: 'postgres://localhost:5432/test',
+    STRIPE_SECRET_KEY: 'sk_test_xxx',
+    AQUILA_BASE_URL: 'https://aquila.test.invalid',
+    AQUILA_PROVISIONER_SECRET: 'test-provisioner-secret-1234',
+    AQUILA_ENCRYPT_KEY: 'a'.repeat(64),
+    LAGO_API_URL: 'http://localhost:3000',
+    LAGO_API_KEY: 'lago-test',
+  },
+}));
 
 import { createRedisConnection, type IoredisConstructor } from './connection.js';
 import { createHealthServer } from './health-server.js';

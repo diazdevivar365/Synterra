@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { QUEUE_NAMES } from './queues.js';
 
 describe('QUEUE_NAMES.NOTIFICATIONS invariant', () => {

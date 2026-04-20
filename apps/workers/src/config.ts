@@ -28,6 +28,8 @@ const envSchema = z.object({
   // Lago — metering (self-hosted at metering.lan)
   LAGO_API_URL: z.string().url().default('http://metering.lan:3000'),
   LAGO_API_KEY: z.string().min(1),
+  // Resend — transactional email
+  RESEND_API_KEY: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;
