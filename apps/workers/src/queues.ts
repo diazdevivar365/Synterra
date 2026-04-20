@@ -13,6 +13,7 @@
 export const QUEUE_NAMES = {
   DEFAULT: 'synterra-default',
   PROVISION: 'synterra-workspace-provision',
+  BOOTSTRAP_ANON: 'synterra-bootstrap-anon',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -21,4 +22,11 @@ export interface ProvisionWorkspaceJobData {
   workspaceId: string;
   workspaceSlug: string;
   workspaceName: string;
+}
+
+export interface BootstrapAnonJobData {
+  inflightId: string;
+  urlInput: string;
+  /** Present only for bootstrap-claim jobs. */
+  workspaceId?: string;
 }

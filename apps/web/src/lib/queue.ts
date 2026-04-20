@@ -29,3 +29,19 @@ export function getProvisionQueue(): Queue<ProvisionWorkspaceJobData> {
   _provisionQueue ??= new Queue(PROVISION_QUEUE_NAME, { connection: getConnection() });
   return _provisionQueue;
 }
+
+// Must match QUEUE_NAMES.BOOTSTRAP_ANON in apps/workers/src/queues.ts
+const BOOTSTRAP_ANON_QUEUE_NAME = 'synterra-bootstrap-anon';
+
+export interface BootstrapAnonJobData {
+  inflightId: string;
+  urlInput: string;
+  workspaceId?: string;
+}
+
+let _bootstrapQueue: Queue<BootstrapAnonJobData> | undefined;
+
+export function getBootstrapAnonQueue(): Queue<BootstrapAnonJobData> {
+  _bootstrapQueue ??= new Queue(BOOTSTRAP_ANON_QUEUE_NAME, { connection: getConnection() });
+  return _bootstrapQueue;
+}

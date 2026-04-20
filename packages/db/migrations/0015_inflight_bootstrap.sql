@@ -21,9 +21,15 @@ CREATE INDEX IF NOT EXISTS idx_inflight_bootstrap_expires ON inflight_bootstrap(
 -- a service-role bypass for inserts. Claimed rows are scoped by workspace.
 ALTER TABLE inflight_bootstrap ENABLE ROW LEVEL SECURITY;
 
--- Service role can read/write all rows (used by workers and Server Actions)
-CREATE POLICY inflight_service_all ON inflight_bootstrap
-  TO service_role USING (true) WITH CHECK (true);
+-- Service role can read/write all rows (used by workers and Server Actions).
+-- Conditional: service_role only exists in Supabase-hosted environments.
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'service_role') THEN
+    EXECUTE 'CREATE POLICY inflight_service_all ON inflight_bootstrap
+      TO service_role USING (true) WITH CHECK (true)';
+  END IF;
+END $$;
 
 -- Authenticated users can only read their own workspace's claimed rows
 CREATE POLICY inflight_workspace_select ON inflight_bootstrap
