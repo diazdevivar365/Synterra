@@ -8,7 +8,25 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env", ".env.local", ".env.production", "!.env*.example"],
-      "outputs": ["dist/**", "build/**", ".next/**", "!.next/cache/**"]
+      "outputs": ["dist/**", "build/**", ".next/**", "!.next/cache/**"],
+      "passThroughEnv": [
+        "DATABASE_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "REDIS_URL",
+        "AQUILA_BASE_URL",
+        "AQUILA_API_KEY",
+        "AQUILA_PROVISIONER_SECRET",
+        "AQUILA_ENCRYPT_KEY",
+        "NEXT_PUBLIC_APP_URL",
+        "RESEND_API_KEY",
+        "STRIPE_PUBLISHABLE_KEY",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "WORKOS_API_KEY",
+        "WORKOS_CLIENT_ID",
+        "CLOUDFLARE_TUNNEL_TOKEN"
+      ]
     },
     "dev": {
       "persistent": true,
