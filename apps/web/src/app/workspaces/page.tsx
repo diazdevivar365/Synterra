@@ -7,6 +7,7 @@ import { db } from '@/lib/db';
 import { ForbiddenError } from '@/lib/errors';
 import { getSessionOrThrow } from '@/lib/session';
 
+import { CreateWorkspaceForm } from './create-workspace-form';
 import { WorkspaceList } from './workspace-list';
 
 export default async function WorkspacesPage() {
@@ -38,6 +39,7 @@ export default async function WorkspacesPage() {
         <p className="text-muted-fg text-sm">Select a workspace to continue</p>
       </div>
       <WorkspaceList workspaces={rows} />
+      <CreateWorkspaceForm />
     </main>
   );
 }
