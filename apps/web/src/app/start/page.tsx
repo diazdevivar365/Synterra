@@ -1,6 +1,8 @@
 import { StartForm } from './_components/StartForm.js';
 
-export const metadata = { title: 'Analyze your brand — Forgentic' };
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = { title: 'Analyze your brand — Forgentic' };
 
 export default function StartPage() {
   return (
