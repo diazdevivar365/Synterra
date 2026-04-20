@@ -73,10 +73,10 @@ services:
           sleep $((sleep_until - now))
           redis-cli -h redis -a "${REDIS_PASSWORD}" BGSAVE
           sleep 5
-          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          cp /data/dump.rdb "/rdb-backups/dump_${TIMESTAMP}.rdb"
+          TIMESTAMP=$$(date +%Y%m%d_%H%M%S)
+          cp /data/dump.rdb "/rdb-backups/dump_$$TIMESTAMP.rdb"
           find /rdb-backups -name "dump_*.rdb" -mtime +7 -delete
-          echo "✓ RDB snapshot ${TIMESTAMP} saved"
+          echo "✓ RDB snapshot $$TIMESTAMP saved"
         done
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}

@@ -19,6 +19,16 @@
 #   sudo chmod 600 /etc/forgentic/deploy.secret
 set -euo pipefail
 
+# ── Node.js via fnm ──────────────────────────────────────────────────────────
+# forgentic user's fnm installs; find the active node version bin dir.
+_FNM_VERSIONS_DIR="/home/forgentic/.local/share/fnm/node-versions"
+_NODE_BIN=$(find "$_FNM_VERSIONS_DIR" -maxdepth 4 -name "pnpm" 2>/dev/null | head -1 | xargs -I{} dirname {})
+if [[ -n "$_NODE_BIN" ]]; then
+  export PATH="$_NODE_BIN:$PATH"
+else
+  echo "ERROR: pnpm not found under $_FNM_VERSIONS_DIR" >&2; exit 1
+fi
+
 # ── Infisical config (non-secret identifiers OK in script) ──────────────────
 SECRET_FILE="/etc/forgentic/deploy.secret"
 INFISICAL_CLIENT_ID="${INFISICAL_CLIENT_ID:-}"          # override via env or fill in here after registering machine identity
@@ -112,7 +122,7 @@ echo "✓ All required env vars present."
 # ── Install Node deps ────────────────────────────────────────────────────────
 echo "→ Installing dependencies..."
 cd "$REPO_DIR"
-pnpm install --frozen-lockfile
+CI=true pnpm install --frozen-lockfile
 
 # ── Build apps ───────────────────────────────────────────────────────────────
 # Dummy build-time env vars prevent Next.js module-level zod validation from

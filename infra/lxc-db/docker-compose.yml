@@ -81,16 +81,16 @@ services:
           sleep_until=$(date -d "tomorrow 02:00" +%s 2>/dev/null || date -j -f "%Y-%m-%d %H:%M:%S" "$(date -v+1d '+%Y-%m-%d') 02:00:00" +%s)
           now=$(date +%s)
           sleep $((sleep_until - now))
-          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          TIMESTAMP=$$(date +%Y%m%d_%H%M%S)
           PGPASSWORD="${POSTGRES_PASSWORD}" pg_basebackup \
             -h postgres -U "${POSTGRES_USER:-forgentic}" \
-            -D "/backup/${TIMESTAMP}" -Ft -z -P
+            -D "/backup/$$TIMESTAMP" -Ft -z -P
           rclone --config /etc/rclone/rclone.conf copy \
-            "/backup/${TIMESTAMP}" \
-            "b2:${B2_BUCKET_NAME:-forgentic-db-backups}/${TIMESTAMP}"
+            "/backup/$$TIMESTAMP" \
+            "b2:${B2_BUCKET_NAME:-forgentic-db-backups}/$$TIMESTAMP"
           # Keep 7 days of local backups
           find /backup -maxdepth 1 -type d -mtime +7 -exec rm -rf {} +
-          echo "✓ backup ${TIMESTAMP} complete and uploaded to B2"
+          echo "✓ backup $$TIMESTAMP complete and uploaded to B2"
         done
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-forgentic}
