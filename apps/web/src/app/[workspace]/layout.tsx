@@ -58,22 +58,34 @@ export default async function WorkspaceLayout({
 
   const base = `/${slug}`;
   const nav = [
-    { href: `${base}/brands`,   label: 'Brands',   icon: BarChart2 },
-    { href: `${base}/research`, label: 'Research',  icon: FlaskConical },
-    { href: `${base}/generate`, label: 'Generate',  icon: Sparkles },
-    { href: `${base}/settings`, label: 'Settings',  icon: Settings },
+    { href: `${base}/brands`, label: 'Brands', icon: <BarChart2 className="h-4 w-4 shrink-0" /> },
+    {
+      href: `${base}/research`,
+      label: 'Research',
+      icon: <FlaskConical className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/generate`,
+      label: 'Generate',
+      icon: <Sparkles className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/settings`,
+      label: 'Settings',
+      icon: <Settings className="h-4 w-4 shrink-0" />,
+    },
   ];
 
   return (
     <div className="flex min-h-dvh">
-      <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-surface">
+      <aside className="border-border bg-surface flex w-60 shrink-0 flex-col border-r">
         {/* Workspace indicator */}
-        <div className="flex h-14 items-center gap-2 border-b border-border px-4">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-accent" />
+        <div className="border-border flex h-14 items-center gap-2 border-b px-4">
+          <span className="bg-accent h-2 w-2 shrink-0 rounded-full" />
           <div className="flex min-w-0 flex-1 items-center gap-1">
             <WorkspaceSwitcher current={current} options={rows} />
           </div>
-          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-fg" />
+          <ChevronDown className="text-muted-fg h-3.5 w-3.5 shrink-0" />
         </div>
 
         {/* Navigation */}
@@ -86,13 +98,13 @@ export default async function WorkspaceLayout({
         </nav>
 
         {/* User footer */}
-        <div className="flex items-center gap-3 border-t border-border px-4 py-3">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-elevated text-[10px] font-bold text-muted-fg">
+        <div className="border-border flex items-center gap-3 border-t px-4 py-3">
+          <div className="bg-surface-elevated text-muted-fg flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold">
             {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-medium text-fg">{displayName}</p>
-            <p className="font-mono text-[10px] uppercase text-muted-fg">{ctx.role}</p>
+            <p className="text-fg truncate text-xs font-medium">{displayName}</p>
+            <p className="text-muted-fg font-mono text-[10px] uppercase">{ctx.role}</p>
           </div>
         </div>
       </aside>

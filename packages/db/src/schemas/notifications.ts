@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   boolean,
+  index,
   jsonb,
   pgTable,
   text,
@@ -35,23 +36,30 @@ export const notificationSubscriptions = pgTable(
   (t) => [unique('uq_notif_sub').on(t.workspaceId, t.userId, t.channel, t.eventType)],
 );
 
-export const notificationDeliveries = pgTable('notification_deliveries', {
-  id: uuid('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  workspaceId: uuid('workspace_id').notNull(),
-  userId: uuid('user_id'),
-  eventType: varchar('event_type', { length: 80 }).notNull(),
-  channel: varchar('channel', { length: 20 }).notNull(),
-  status: varchar('status', { length: 20 }).notNull(),
-  payload: jsonb('payload').notNull(),
-  deliveryMeta: jsonb('delivery_meta'),
-  error: text('error'),
-  sentAt: timestamp('sent_at', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .default(sql`now()`),
-});
+export const notificationDeliveries = pgTable(
+  'notification_deliveries',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    workspaceId: uuid('workspace_id').notNull(),
+    userId: uuid('user_id'),
+    eventType: varchar('event_type', { length: 80 }).notNull(),
+    channel: varchar('channel', { length: 20 }).notNull(),
+    status: varchar('status', { length: 20 }).notNull(),
+    payload: jsonb('payload').notNull(),
+    deliveryMeta: jsonb('delivery_meta'),
+    error: text('error'),
+    sentAt: timestamp('sent_at', { withTimezone: true }),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (t) => [
+    index('ix_notif_del_unread').on(t.workspaceId, t.userId, t.createdAt.desc()),
+  ],
+);
 
 export type NotificationSubscription = typeof notificationSubscriptions.$inferSelect;
 export type NewNotificationSubscription = typeof notificationSubscriptions.$inferInsert;
