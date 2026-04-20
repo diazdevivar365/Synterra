@@ -19,7 +19,7 @@
 | W3-2  | Lago self-hosted deployment                     | hecha ✅     | W0-3                |
 | W3-3  | Usage aggregator + quota enforcement            | hecha ✅     | W3-1, W3-2, AQ-3    |
 | W4-1  | Brand dashboard + DNA viewer                    | hecha ✅    | W2-1                |
-| W4-2  | Competitor monitoring + change feed             | pendiente ⏳ | W4-1                |
+| W4-2  | Competitor monitoring + change feed             | hecha ✅     | W4-1                |
 | W4-3  | Research run UI (live + history)                | pendiente ⏳ | W4-1, AQ-2          |
 | W4-4  | AI generation surface                           | pendiente ⏳ | W4-1                |
 | W5-1  | Notification engine                             | pendiente ⏳ | W3-1, W4-1          |
