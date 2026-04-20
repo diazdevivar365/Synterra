@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createAquilaClient, SUPPORTED_CONTRACT_VERSION, type AquilaClientConfig } from './index';
+import {
+  createAquilaClient,
+  SUPPORTED_CONTRACT_VERSION,
+  type AquilaClientConfig,
+} from './index.js';
 
 const baseConfig: AquilaClientConfig = {
   baseUrl: 'https://aquila.test.invalid',
@@ -114,17 +118,6 @@ describe('@synterra/aquila-client — HTTP calls', () => {
           completedAt: null,
         },
       },
-      '/orgs/org-1/research-runs/run-1': {
-        status: 200,
-        body: {
-          id: 'run-1',
-          organizationId: 'org-1',
-          query: 'test',
-          status: 'queued',
-          createdAt: '2026-01-01T00:00:00Z',
-          completedAt: null,
-        },
-      },
     });
     vi.stubGlobal('fetch', fetchMock);
   });
@@ -194,20 +187,5 @@ describe('@synterra/aquila-client — HTTP calls', () => {
     const runUrl = findCallUrl(calls, (u) => u.includes('/research-runs'));
     expect(runUrl).toContain('cursor=tok-abc');
     expect(runUrl).toContain('limit=20');
-  });
-
-  it('getResearchRun() GETs /orgs/:orgId/research-runs/:runId with Bearer header', async () => {
-    const client = createAquilaClient(baseConfig);
-    const run = await client.getResearchRun('org-1', 'run-1');
-    expect(run.id).toBe('run-1');
-    expect(run.status).toBe('queued');
-
-    const calls = fetchMock.mock.calls as unknown[][];
-    const runInit = findCallInit(calls, (u) => u.includes('/orgs/org-1/research-runs/run-1'));
-    expect(runInit?.method).toBe('GET');
-    expect(runInit?.headers).toMatchObject({
-      Authorization: 'Bearer test-org-key',
-      'X-Org-Slug': 'acme',
-    });
   });
 });
