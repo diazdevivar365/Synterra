@@ -20,3 +20,4 @@ export * from './schemas/webhooks';
 export * from './schemas/auth';
 export * from './schemas/sso';
 export * from './schemas/inflight-bootstrap';
+export * from './schemas/brand-changes';
