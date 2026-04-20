@@ -115,7 +115,14 @@ cd "$REPO_DIR"
 pnpm install --frozen-lockfile
 
 # ── Build apps ───────────────────────────────────────────────────────────────
+# Re-source .env with set -a so every variable is exported to child processes
+# (the validation loop above uses `export "$line"` which can silently fail for
+# values containing shell metacharacters; set -a + source is more reliable).
 echo "→ Building apps..."
+set -a
+# shellcheck disable=SC1090,SC1091
+source "$REPO_DIR/.env"
+set +a
 pnpm build --filter='@synterra/web' --filter='@synterra/api' --filter='@synterra/workers'
 
 # ── Rebuild + recreate containers ────────────────────────────────────────────
