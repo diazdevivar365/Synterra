@@ -2,7 +2,15 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { verifyWorkspaceJwt } from '@synterra/auth';
 
-const PUBLIC_PREFIXES = ['/sign-in', '/verify', '/api/', '/_next/', '/favicon', '/workspaces'];
+const PUBLIC_PREFIXES = [
+  '/sign-in',
+  '/verify',
+  '/api/',
+  '/_next/',
+  '/favicon',
+  '/workspaces',
+  '/start',
+];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
@@ -73,7 +81,5 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 };
