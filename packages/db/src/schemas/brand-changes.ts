@@ -26,7 +26,7 @@ export const brandChanges = pgTable(
       .default(sql`now()`),
   },
   (t) => [
-    index('idx_brand_changes_ws_brand').on(t.workspaceId, t.brandId, t.occurredAt),
+    index('idx_brand_changes_ws_brand').on(t.workspaceId, t.brandId, t.occurredAt.desc()),
   ],
 );
 
