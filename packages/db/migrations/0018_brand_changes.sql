@@ -15,5 +15,11 @@ CREATE TABLE brand_changes (
   created_at    timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_brand_changes_ws_brand
+-- append-only; rows are never mutated
+CREATE INDEX ix_brand_changes_ws_brand
   ON brand_changes (workspace_id, brand_id, occurred_at DESC);
+
+ALTER TABLE brand_changes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY bc_workspace ON brand_changes FOR ALL
+  USING (workspace_id = current_setting('synterra.workspace_id', true)::UUID);

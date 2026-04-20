@@ -14,7 +14,7 @@ export const brandChanges = pgTable(
       .references(() => workspaces.id, { onDelete: 'cascade' }),
     brandId: text('brand_id').notNull(),
     eventType: text('event_type').notNull(),
-    severity: text('severity').notNull().default('info'),
+    severity: text('severity').notNull().default('info').$type<'info' | 'warning' | 'critical'>(),
     title: text('title').notNull(),
     description: text('description'),
     metadata: jsonb('metadata').notNull().default(sql`'{}'::jsonb`),
@@ -26,7 +26,7 @@ export const brandChanges = pgTable(
       .default(sql`now()`),
   },
   (t) => [
-    index('idx_brand_changes_ws_brand').on(t.workspaceId, t.brandId, t.occurredAt.desc()),
+    index('ix_brand_changes_ws_brand').on(t.workspaceId, t.brandId, t.occurredAt.desc()),
   ],
 );
 
