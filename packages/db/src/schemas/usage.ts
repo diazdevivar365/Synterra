@@ -11,8 +11,8 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-import { users } from './users.js';
-import { workspaces } from './workspaces.js';
+import { users } from './users';
+import { workspaces } from './workspaces';
 
 // Partitioned append-only usage ledger. PARTITION BY RANGE(created_at) is in
 // migration 0007 — Drizzle ORM uses this definition for type inference only.

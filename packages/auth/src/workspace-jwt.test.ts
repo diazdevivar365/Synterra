@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { signWorkspaceJwt, verifyWorkspaceJwt, type WorkspaceJwtPayload } from './workspace-jwt.js';
+import { signWorkspaceJwt, verifyWorkspaceJwt, type WorkspaceJwtPayload } from './workspace-jwt';
 
 const SECRET = 'test-secret-at-least-32-bytes-long!!';
 const PAYLOAD: WorkspaceJwtPayload = {

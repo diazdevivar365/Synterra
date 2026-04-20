@@ -10,8 +10,8 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-import { users } from './users.js';
-import { workspaces } from './workspaces.js';
+import { users } from './users';
+import { workspaces } from './workspaces';
 
 export const notificationSubscriptions = pgTable(
   'notification_subscriptions',

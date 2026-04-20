@@ -5,9 +5,9 @@ import { eq } from 'drizzle-orm';
 import { createWorkOSClient, createWorkOSOrganization, getAdminPortalLink } from '@synterra/auth';
 import { ssoConnections } from '@synterra/db';
 
-import { db } from '../lib/db.js';
-import { toActionError } from '../lib/errors.js';
-import { assertCan, type WorkspaceRole } from '../lib/rbac.js';
+import { db } from '../lib/db';
+import { toActionError } from '../lib/errors';
+import { assertCan, type WorkspaceRole } from '../lib/rbac';
 
 export type ActionResult<T = void> =
   | { ok: true; data: T }

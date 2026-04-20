@@ -6,7 +6,7 @@ import { magicLink } from 'better-auth/plugins/magic-link';
 
 import { baAccounts, baSessions, baVerifications, users, type Database } from '@synterra/db';
 
-import type { AuthEnv } from './env.js';
+import type { AuthEnv } from './env';
 
 export interface BetterAuthConfig {
   db: Database;

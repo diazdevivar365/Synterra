@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseAuthEnv } from './env.js';
+import { parseAuthEnv } from './env';
 
 const validEnv = {
   BETTER_AUTH_SECRET: 'a'.repeat(32),

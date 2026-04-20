@@ -1,5 +1,5 @@
 // Stub replaced when W1-1 (better-auth) lands.
-import { ForbiddenError } from './errors.js';
+import { ForbiddenError } from './errors';
 
 export interface RequestSession {
   userId: string;

@@ -5,9 +5,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@synterra/shared": ["../../packages/shared/src/index.ts"],
-      "drizzle-orm": ["./node_modules/@synterra/db/node_modules/drizzle-orm/index.d.ts"],
-      "drizzle-orm/*": ["./node_modules/@synterra/db/node_modules/drizzle-orm/*"]
+      "@synterra/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": [

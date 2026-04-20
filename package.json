@@ -60,6 +60,9 @@
       "lefthook",
       "unrs-resolver"
     ],
+    "overrides": {
+      "drizzle-orm": "0.45.2"
+    },
     "peerDependencyRules": {
       "allowedVersions": {
         "react": "19",

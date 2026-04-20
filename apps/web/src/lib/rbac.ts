@@ -1,4 +1,4 @@
-import { ForbiddenError } from './errors.js';
+import { ForbiddenError } from './errors';
 
 export type WorkspaceRole = 'owner' | 'admin' | 'manager' | 'editor' | 'viewer' | 'guest';
 

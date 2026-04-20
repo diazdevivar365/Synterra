@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { boolean, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
-import { workspaces } from './workspaces.js';
+import { workspaces } from './workspaces';
 
 export const webhookEndpoints = pgTable('webhook_endpoints', {
   id: uuid('id')

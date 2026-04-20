@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createDb, timestamps } from './index.js';
+import { createDb, timestamps } from './index';
 
 describe('@synterra/db public surface', () => {
   it('exposes createDb as a function', () => {

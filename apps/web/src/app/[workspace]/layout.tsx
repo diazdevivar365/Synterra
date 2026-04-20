@@ -5,7 +5,7 @@ import { workspaceMembers, workspaces } from '@synterra/db';
 
 import { NavLink } from '@/components/nav-link';
 import { WorkspaceSwitcher } from '@/components/workspace-switcher';
-import { db } from '@/lib/db.js';
+import { db } from '@/lib/db';
 import { getWorkspaceContext } from '@/lib/workspace-context';
 
 import type { ReactNode } from 'react';
@@ -30,12 +30,7 @@ export default async function WorkspaceLayout({
     })
     .from(workspaceMembers)
     .innerJoin(workspaces, eq(workspaces.id, workspaceMembers.workspaceId))
-    .where(
-      and(
-        eq(workspaceMembers.userId, ctx.userId),
-        eq(workspaceMembers.isDisabled, false),
-      ),
-    );
+    .where(and(eq(workspaceMembers.userId, ctx.userId), eq(workspaceMembers.isDisabled, false)));
 
   const current = rows.find((r) => r.id === ctx.workspaceId) ?? {
     id: ctx.workspaceId,

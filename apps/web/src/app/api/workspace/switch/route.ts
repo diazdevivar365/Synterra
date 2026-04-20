@@ -5,9 +5,9 @@ import { NextResponse } from 'next/server';
 import { signWorkspaceJwt } from '@synterra/auth';
 import { workspaceMembers, workspaces } from '@synterra/db';
 
-import { db } from '@/lib/db.js';
-import { ForbiddenError } from '@/lib/errors.js';
-import { getSessionOrThrow } from '@/lib/session.js';
+import { db } from '@/lib/db';
+import { ForbiddenError } from '@/lib/errors';
+import { getSessionOrThrow } from '@/lib/session';
 
 const WORKSPACE_COOKIE = 'synterra_wjwt';
 const COOKIE_MAX_AGE = 8 * 60 * 60; // 8 hours
@@ -66,10 +66,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
   }
 
-  const token = await signWorkspaceJwt(
-    { workspaceId, userId: session.userId, role, slug },
-    secret,
-  );
+  const token = await signWorkspaceJwt({ workspaceId, userId: session.userId, role, slug }, secret);
 
   const cookieStore = await cookies();
   cookieStore.set(WORKSPACE_COOKIE, token, {

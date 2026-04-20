@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { boolean, integer, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 
-import { workspaces } from './workspaces.js';
+import { workspaces } from './workspaces';
 
 export const workspaceQuotas = pgTable('workspace_quotas', {
   workspaceId: uuid('workspace_id')

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { initTelemetry, shutdownTelemetry } from './index.js';
+import { initTelemetry, shutdownTelemetry } from './index';
 
 describe('@synterra/telemetry', () => {
   it('returns a no-op handle when disabled', async () => {

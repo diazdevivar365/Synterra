@@ -51,9 +51,6 @@ catalogs:
     drizzle-kit:
       specifier: ^0.31.4
       version: 0.31.10
-    drizzle-orm:
-      specifier: ^0.45.2
-      version: 0.45.2
     hono:
       specifier: ^4.6.0
       version: 4.12.14
@@ -108,6 +105,9 @@ catalogs:
     zod:
       specifier: ^3.24.0
       version: 3.25.76
+
+overrides:
+  drizzle-orm: 0.45.2
 
 importers:
 
@@ -244,7 +244,7 @@ importers:
         specifier: 'catalog:'
         version: 5.74.1
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: 0.45.2
         version: 0.45.2(@opentelemetry/api@1.9.1)(kysely@0.28.16)(postgres@3.4.9)
       ioredis:
         specifier: 'catalog:'
@@ -338,7 +338,7 @@ importers:
         specifier: 'catalog:'
         version: 5.74.1
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: 0.45.2
         version: 0.45.2(@opentelemetry/api@1.9.1)(kysely@0.28.16)(postgres@3.4.9)
       ioredis:
         specifier: 'catalog:'
@@ -452,7 +452,7 @@ importers:
         specifier: 'catalog:'
         version: 22.19.17
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: 0.45.2
         version: 0.45.2(@opentelemetry/api@1.9.1)(kysely@0.28.16)(postgres@3.4.9)
       eslint:
         specifier: ^9.17.0
@@ -491,7 +491,7 @@ importers:
   packages/db:
     dependencies:
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: 0.45.2
         version: 0.45.2(@opentelemetry/api@1.9.1)(kysely@0.28.16)(postgres@3.4.9)
       postgres:
         specifier: 'catalog:'
@@ -731,7 +731,7 @@ packages:
     peerDependencies:
       '@better-auth/core': ^1.6.5
       '@better-auth/utils': 0.4.0
-      drizzle-orm: ^0.45.2
+      drizzle-orm: 0.45.2
     peerDependenciesMeta:
       drizzle-orm:
         optional: true
@@ -2930,7 +2930,7 @@ packages:
       '@tanstack/solid-start': ^1.0.0
       better-sqlite3: ^12.0.0
       drizzle-kit: '>=0.31.4'
-      drizzle-orm: ^0.45.2
+      drizzle-orm: 0.45.2
       mongodb: ^6.0.0 || ^7.0.0
       mysql2: ^3.0.0
       next: ^14.0.0 || ^15.0.0 || ^16.0.0

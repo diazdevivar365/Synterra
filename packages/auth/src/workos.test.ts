@@ -6,7 +6,7 @@ import {
   exchangeSsoCode,
   getAdminPortalLink,
   getSsoAuthorizationUrl,
-} from './workos.js';
+} from './workos';
 
 vi.mock('server-only', () => ({}));
 vi.mock('@workos-inc/node');

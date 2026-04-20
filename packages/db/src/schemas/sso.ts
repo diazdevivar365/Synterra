@@ -9,7 +9,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-import { workspaces } from './workspaces.js';
+import { workspaces } from './workspaces';
 
 export const ssoConnections = pgTable(
   'sso_connections',

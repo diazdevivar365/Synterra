@@ -31,6 +31,14 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/packages/auth/node_modules ./packages/auth/node_modules
+COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
+COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
+COPY --from=deps /app/packages/emails/node_modules ./packages/emails/node_modules
+COPY --from=deps /app/packages/billing/node_modules ./packages/billing/node_modules
+COPY --from=deps /app/packages/aquila-client/node_modules ./packages/aquila-client/node_modules
+COPY --from=deps /app/packages/telemetry/node_modules ./packages/telemetry/node_modules
 COPY . .
 
 # Build shared packages first
@@ -40,8 +48,12 @@ RUN pnpm --filter='@synterra/ui' build 2>/dev/null || true
 RUN pnpm --filter='@synterra/emails' build 2>/dev/null || true
 
 # Build Next.js with standalone output
+# Dummy env vars satisfy zod validation at build time — replaced at runtime via docker-compose env
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV DATABASE_URL=postgresql://build:build@localhost:5432/build
+ENV BETTER_AUTH_SECRET=build-time-placeholder-secret-32chars!!
+ENV BETTER_AUTH_URL=https://build.placeholder.invalid
 RUN pnpm --filter='@synterra/web' build
 
 # ── Runner stage ─────────────────────────────────────────────────────────────

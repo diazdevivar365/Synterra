@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import { createWorkOSClient, getSsoAuthorizationUrl } from '@synterra/auth';
 import { ssoConnections, workspaces } from '@synterra/db';
 
-import { db } from '@/lib/db.js';
+import { db } from '@/lib/db';
 
 export async function GET(req: Request): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);

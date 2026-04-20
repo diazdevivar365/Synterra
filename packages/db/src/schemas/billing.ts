@@ -10,7 +10,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-import { workspaces } from './workspaces.js';
+import { workspaces } from './workspaces';
 
 export const plans = pgTable('plans', {
   id: varchar('id', { length: 40 }).primaryKey(),

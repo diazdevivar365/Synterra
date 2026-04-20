@@ -1,9 +1,9 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
-import { workspaceRole } from './memberships.js';
-import { users } from './users.js';
-import { workspaces } from './workspaces.js';
+import { workspaceRole } from './memberships';
+import { users } from './users';
+import { workspaces } from './workspaces';
 
 export const invites = pgTable('invites', {
   id: uuid('id')

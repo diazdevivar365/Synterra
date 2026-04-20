@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import { constructScimEvent, createWorkOSClient } from '@synterra/auth';
 import { ssoConnections, users, workspaceMembers } from '@synterra/db';
 
-import { db } from '@/lib/db.js';
+import { db } from '@/lib/db';
 
 export async function POST(req: Request): Promise<NextResponse> {
   const secret = process.env['WORKOS_WEBHOOK_SECRET'];

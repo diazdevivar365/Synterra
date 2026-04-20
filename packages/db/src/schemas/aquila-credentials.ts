@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { customType, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
-import { workspaces } from './workspaces.js';
+import { workspaces } from './workspaces';
 
 // BYTEA custom type for the envelope-encrypted API key secret.
 const bytea = customType<{ data: Buffer; notNull: true; default: false }>({

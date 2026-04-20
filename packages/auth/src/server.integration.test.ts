@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { createDb } from '@synterra/db';
 
-import { createBetterAuth, type BetterAuthInstance } from './server.js';
+import { createBetterAuth, type BetterAuthInstance } from './server';
 
 let container: Awaited<ReturnType<PostgreSqlContainer['start']>>;
 let authInstance: BetterAuthInstance;

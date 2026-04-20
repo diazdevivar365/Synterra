@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
 import { boolean, index, pgEnum, pgTable, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
 
-import { users } from './users.js';
-import { workspaces } from './workspaces.js';
+import { users } from './users';
+import { workspaces } from './workspaces';
 
 export const workspaceRole = pgEnum('workspace_role', [
   'owner',

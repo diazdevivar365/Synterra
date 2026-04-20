@@ -5,11 +5,11 @@ import { eq } from 'drizzle-orm';
 import { createDb, withWorkspaceContext, workspaces, workspaceMembers } from '@synterra/db';
 import { WorkspaceSlugSchema } from '@synterra/shared';
 
-import { logAudit } from '../lib/audit.js';
-import { ConflictError, toActionError } from '../lib/errors.js';
-import { getProvisionQueue } from '../lib/queue.js';
-import { assertCan, type WorkspaceRole } from '../lib/rbac.js';
-import { getSessionOrThrow } from '../lib/session.js';
+import { logAudit } from '../lib/audit';
+import { ConflictError, toActionError } from '../lib/errors';
+import { getProvisionQueue } from '../lib/queue';
+import { assertCan, type WorkspaceRole } from '../lib/rbac';
+import { getSessionOrThrow } from '../lib/session';
 
 const db = createDb(process.env['DATABASE_URL'] ?? '');
 

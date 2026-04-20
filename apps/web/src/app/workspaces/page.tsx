@@ -3,11 +3,11 @@ import { redirect } from 'next/navigation';
 
 import { workspaceMembers, workspaces } from '@synterra/db';
 
-import { db } from '@/lib/db.js';
-import { ForbiddenError } from '@/lib/errors.js';
-import { getSessionOrThrow } from '@/lib/session.js';
+import { db } from '@/lib/db';
+import { ForbiddenError } from '@/lib/errors';
+import { getSessionOrThrow } from '@/lib/session';
 
-import { WorkspaceList } from './workspace-list.js';
+import { WorkspaceList } from './workspace-list';
 
 export default async function WorkspacesPage() {
   let session;
@@ -28,10 +28,7 @@ export default async function WorkspacesPage() {
     .from(workspaceMembers)
     .innerJoin(workspaces, eq(workspaces.id, workspaceMembers.workspaceId))
     .where(
-      and(
-        eq(workspaceMembers.userId, session.userId),
-        eq(workspaceMembers.isDisabled, false),
-      ),
+      and(eq(workspaceMembers.userId, session.userId), eq(workspaceMembers.isDisabled, false)),
     );
 
   return (

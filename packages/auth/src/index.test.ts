@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseAuthEnv } from './index.js';
+import { parseAuthEnv } from './index';
 
 describe('@synterra/auth public exports', () => {
   it('exports parseAuthEnv', () => {

@@ -19,10 +19,10 @@ vi.mock('next/headers', () => ({
   cookies: vi.fn().mockResolvedValue({ set: vi.fn() }),
 }));
 
-import { ForbiddenError } from '@/lib/errors.js';
-import { getSessionOrThrow } from '@/lib/session.js';
+import { ForbiddenError } from '@/lib/errors';
+import { getSessionOrThrow } from '@/lib/session';
 
-import { POST } from './route.js';
+import { POST } from './route';
 
 function makeRequest(body: unknown) {
   return new Request('http://localhost/api/workspace/switch', {

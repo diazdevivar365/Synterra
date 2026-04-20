@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { PLANS } from './index.js';
+import { PLANS } from './index';
 
 describe('@synterra/billing public surface', () => {
   it('exposes PLANS as a (possibly empty) array', () => {

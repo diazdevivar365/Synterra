@@ -4,7 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { workspaces } from '@synterra/db';
 
 import { GeneralSettingsForm } from '@/components/general-settings-form';
-import { db } from '@/lib/db.js';
+import { db } from '@/lib/db';
 import { getWorkspaceContext } from '@/lib/workspace-context';
 
 export default async function GeneralSettingsPage() {

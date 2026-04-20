@@ -6,12 +6,12 @@ import { and, eq } from 'drizzle-orm';
 
 import { createDb, invites, withWorkspaceContext, workspaceMembers } from '@synterra/db';
 
-import { logAudit } from '../lib/audit.js';
-import { ForbiddenError, NotFoundError, toActionError } from '../lib/errors.js';
-import { assertCan, ROLE_HIERARCHY, type WorkspaceRole } from '../lib/rbac.js';
-import { getSessionOrThrow } from '../lib/session.js';
+import { logAudit } from '../lib/audit';
+import { ForbiddenError, NotFoundError, toActionError } from '../lib/errors';
+import { assertCan, ROLE_HIERARCHY, type WorkspaceRole } from '../lib/rbac';
+import { getSessionOrThrow } from '../lib/session';
 
-import type { ActionResult } from './workspace.js';
+import type { ActionResult } from './workspace';
 
 const db = createDb(process.env['DATABASE_URL'] ?? '');
 

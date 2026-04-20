@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { renderWelcome } from './index.js';
+import { renderWelcome } from './index';
 
 describe('<Welcome> email', () => {
   it('renders workspace name and sign-in URL into the HTML', async () => {

@@ -1,14 +1,14 @@
-export { createBetterAuth } from './server.js';
-export type { BetterAuthConfig, BetterAuthInstance } from './server.js';
-export { parseAuthEnv } from './env.js';
-export type { AuthEnv } from './env.js';
+export { createBetterAuth } from './server';
+export type { BetterAuthConfig, BetterAuthInstance } from './server';
+export { parseAuthEnv } from './env';
+export type { AuthEnv } from './env';
 
 export {
   signWorkspaceJwt,
   verifyWorkspaceJwt,
   type WorkspaceJwtPayload,
   type WorkspaceRole,
-} from './workspace-jwt.js';
+} from './workspace-jwt';
 
 export {
   createWorkOSClient,
@@ -21,4 +21,4 @@ export {
   type ScimUser,
   type ScimEvent,
   type ScimEventType,
-} from './workos.js';
+} from './workos';

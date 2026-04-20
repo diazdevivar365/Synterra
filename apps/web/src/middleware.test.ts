@@ -6,7 +6,7 @@ vi.mock('server-only', () => ({}));
 
 import { signWorkspaceJwt } from '@synterra/auth';
 
-import { middleware, resolveMiddlewareAction } from './middleware.js';
+import { middleware, resolveMiddlewareAction } from './middleware';
 
 const WORKSPACE_JWT_SECRET = 'test-secret-at-least-32-bytes-long!!';
 

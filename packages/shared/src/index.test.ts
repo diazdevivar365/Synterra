@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { EmailSchema, WorkspaceSlugSchema } from './index.js';
+import { EmailSchema, WorkspaceSlugSchema } from './index';
 
 describe('@synterra/shared schemas', () => {
   it('accepts a valid kebab-case workspace slug', () => {

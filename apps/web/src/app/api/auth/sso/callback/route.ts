@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 import { createWorkOSClient, exchangeSsoCode, signWorkspaceJwt } from '@synterra/auth';
 import { baAccounts, baSessions, users, workspaceMembers, workspaces } from '@synterra/db';
 
-import { db } from '@/lib/db.js';
+import { db } from '@/lib/db';
 
 const SESSION_COOKIE = 'better-auth.session_token';
 const WORKSPACE_COOKIE = 'synterra_wjwt';
