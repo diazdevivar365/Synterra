@@ -26,9 +26,9 @@ export interface ChangeEventRow {
 const VALID_SEVERITIES = new Set<string>(['info', 'warning', 'critical']);
 const MAX_LIMIT = 500;
 
-function toSeverity(v: string): ChangeEventSeverity {
-  if (!VALID_SEVERITIES.has(v)) return 'info';
-  return v as ChangeEventSeverity;
+export function toSeverity(v: string | null | undefined): ChangeEventSeverity {
+  if (v && VALID_SEVERITIES.has(v)) return v as ChangeEventSeverity;
+  return 'info';
 }
 
 function rowToEvent(row: BrandChange): ChangeEventRow {

@@ -2,12 +2,9 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 
 import { NextResponse } from 'next/server';
 
-import type { ChangeEventSeverity } from '@/lib/brand-changes';
-import { insertBrandChange } from '@/lib/brand-changes';
+import { insertBrandChange, toSeverity } from '@/lib/brand-changes';
 
 export const dynamic = 'force-dynamic';
-
-const VALID_SEVERITIES = new Set<string>(['info', 'warning', 'critical']);
 
 interface AquilaWebhookPayload {
   event_type: string;
@@ -30,11 +27,6 @@ function isValidPayload(v: unknown): v is AquilaWebhookPayload {
     typeof p['title'] === 'string' &&
     typeof p['occurred_at'] === 'string'
   );
-}
-
-function toSeverity(v: string | null | undefined): ChangeEventSeverity {
-  if (v && VALID_SEVERITIES.has(v)) return v as ChangeEventSeverity;
-  return 'info';
 }
 
 function verifySignature(rawBody: string, header: string, secret: string): boolean {
@@ -92,16 +84,20 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  await insertBrandChange({
-    workspaceId: payload.workspace_id,
-    brandId: payload.brand_id,
-    eventType: payload.event_type,
-    severity: toSeverity(payload.severity),
-    title: payload.title,
-    description: payload.description ?? null,
-    metadata: payload.metadata ?? {},
-    occurredAt,
-  });
+  try {
+    await insertBrandChange({
+      workspaceId: payload.workspace_id,
+      brandId: payload.brand_id,
+      eventType: payload.event_type,
+      severity: toSeverity(payload.severity),
+      title: payload.title,
+      description: payload.description ?? null,
+      metadata: payload.metadata ?? {},
+      occurredAt,
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true }, { status: 200 });
 }

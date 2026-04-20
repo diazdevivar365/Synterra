@@ -1,10 +1,14 @@
 import { createHmac } from 'node:crypto';
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/lib/brand-changes', () => ({
-  insertBrandChange: vi.fn(),
-}));
+vi.mock('@/lib/brand-changes', () => {
+  const VALID = new Set(['info', 'warning', 'critical']);
+  return {
+    insertBrandChange: vi.fn(),
+    toSeverity: (v: string | null | undefined) => (v && VALID.has(v) ? v : 'info'),
+  };
+});
 
 import * as brandChanges from '@/lib/brand-changes';
 
@@ -49,9 +53,6 @@ function makeRequest(body: string, signature: string | null): Request {
 describe('POST /api/webhooks/aquila', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-  });
-
-  afterEach(() => {
     delete process.env['AQUILA_WEBHOOK_SECRET'];
   });
 
@@ -149,6 +150,52 @@ describe('POST /api/webhooks/aquila', () => {
 
       expect(res.status).toBe(400);
     });
+
+    it('returns 400 when required field brand_id is missing', async () => {
+      const body = JSON.stringify({
+        event_type: 'positioning_change',
+        workspace_id: '00000000-0000-0000-0000-000000000001',
+        severity: 'info',
+        title: 'Test',
+        occurred_at: '2026-04-20T10:00:00Z',
+      });
+      const req = makeRequest(body, null);
+
+      const res = await POST(req);
+
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 when required field title is missing', async () => {
+      const body = JSON.stringify({
+        event_type: 'positioning_change',
+        workspace_id: '00000000-0000-0000-0000-000000000001',
+        brand_id: 'brand-abc',
+        severity: 'info',
+        occurred_at: '2026-04-20T10:00:00Z',
+      });
+      const req = makeRequest(body, null);
+
+      const res = await POST(req);
+
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 when occurred_at is not a valid date', async () => {
+      const body = JSON.stringify({
+        event_type: 'positioning_change',
+        workspace_id: '00000000-0000-0000-0000-000000000001',
+        brand_id: 'brand-abc',
+        severity: 'info',
+        title: 'Test',
+        occurred_at: 'not-a-date',
+      });
+      const req = makeRequest(body, null);
+
+      const res = await POST(req);
+
+      expect(res.status).toBe(400);
+    });
   });
 
   describe('DB insertion', () => {
@@ -190,9 +237,9 @@ describe('POST /api/webhooks/aquila', () => {
         workspaceId: '00000000-0000-0000-0000-000000000001',
         brandId: 'brand-abc',
         eventType: 'positioning_change',
-        severity: 'info',
-        title: 'Test',
-        description: null,
+        severity: 'warning',
+        title: 'MarketLeader moved up 5 positions',
+        description: 'Organic search visibility increased 12% this week.',
         metadata: {},
         occurredAt: new Date('2026-04-20T10:00:00Z'),
         createdAt: new Date('2026-04-20T10:00:00Z'),
