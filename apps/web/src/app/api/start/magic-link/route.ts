@@ -33,7 +33,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       ? { email: body.email, sessionId: body.sessionId }
       : { email: null, sessionId: null };
 
-  if (!email || !email.includes('@')) {
+  if (!email?.includes('@')) {
     return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
   }
   if (!sessionId) {

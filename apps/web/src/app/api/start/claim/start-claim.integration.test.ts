@@ -25,6 +25,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 // runner (Node, not Next.js) can import the auth package without bailing.
 vi.mock('server-only', () => ({}));
 
+import { signWorkspaceJwt, verifyWorkspaceJwt } from '@synterra/auth';
 import {
   createDb,
   inflightBootstrap,
@@ -32,7 +33,6 @@ import {
   workspaces,
   type Database,
 } from '@synterra/db';
-import { signWorkspaceJwt, verifyWorkspaceJwt } from '@synterra/auth';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = join(__dirname, '../../../../../../../packages/db/migrations');
@@ -159,10 +159,7 @@ describe('start/claim — DB-layer integration', { timeout: 120_000 }, () => {
       .select({ role: workspaceMembers.role })
       .from(workspaceMembers)
       .where(
-        and(
-          eq(workspaceMembers.workspaceId, workspaceId),
-          eq(workspaceMembers.userId, userId),
-        ),
+        and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)),
       );
 
     expect(member?.role).toBe('owner');

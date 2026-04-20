@@ -60,12 +60,14 @@ export async function POST(request: Request): Promise<NextResponse> {
     if (!verifySignature(rawBody, sigHeader, secret)) {
       return NextResponse.json({ error: 'Signature verification failed' }, { status: 401 });
     }
-  } else if (process.env['NODE_ENV'] === 'production') {
+  } else if (process.env.NODE_ENV === 'production') {
     // Missing secret in production is a misconfiguration — reject rather than accept blindly.
     console.error('[aquila-webhook] AQUILA_WEBHOOK_SECRET is not set in production');
     return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
   } else {
-    console.warn('[aquila-webhook] AQUILA_WEBHOOK_SECRET not set — skipping signature validation (dev mode)');
+    console.warn(
+      '[aquila-webhook] AQUILA_WEBHOOK_SECRET not set — skipping signature validation (dev mode)',
+    );
   }
 
   let payload: unknown;

@@ -62,7 +62,6 @@ vi.mock('drizzle-orm', () => ({
   eq: vi.fn((col: unknown, val: unknown) => ({ col, val })),
 }));
 
-// eslint-disable-next-line import/order
 import { GET } from './route';
 
 // ---------------------------------------------------------------------------
@@ -75,7 +74,7 @@ function makeReq(search = ''): NextRequest {
   });
 }
 
-type BootstrapRow = {
+interface BootstrapRow {
   id?: string;
   sessionId?: string;
   status: string;
@@ -88,7 +87,7 @@ type BootstrapRow = {
   result?: unknown;
   expiresAt?: Date;
   createdAt?: Date;
-};
+}
 
 // Sets up the first mockSelect call — used for the inflightBootstrap lookup.
 function setupBootstrapSelectChain(rows: BootstrapRow[]) {
@@ -101,7 +100,7 @@ function setupBootstrapSelectChain(rows: BootstrapRow[]) {
 
 // Sets up a subsequent mockSelect call — used for the workspaceMembers join
 // inside switchToWorkspace.
-function setupMemberSelectChain(rows: Array<{ role: string; slug: string }>) {
+function setupMemberSelectChain(rows: { role: string; slug: string }[]) {
   const limitMock = vi.fn().mockResolvedValue(rows);
   const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
   const innerJoinMock = vi.fn().mockReturnValue({ where: whereMock });

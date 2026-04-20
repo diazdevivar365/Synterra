@@ -39,7 +39,7 @@ function rowToEvent(row: BrandChange): ChangeEventRow {
     severity: toSeverity(row.severity),
     title: row.title,
     description: row.description ?? null,
-    metadata: (row.metadata as Record<string, unknown>) ?? {},
+    metadata: (row.metadata ?? {}) as Record<string, unknown>,
     occurredAt: row.occurredAt,
   };
 }

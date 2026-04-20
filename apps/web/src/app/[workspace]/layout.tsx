@@ -1,7 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { BarChart2, ChevronDown, FlaskConical, Settings, Sparkles } from 'lucide-react';
 import { redirect } from 'next/navigation';
-import type { ReactNode } from 'react';
 
 import { users, workspaceMembers, workspaces } from '@synterra/db';
 
@@ -9,6 +8,8 @@ import { NavLink } from '@/components/nav-link';
 import { WorkspaceSwitcher } from '@/components/workspace-switcher';
 import { db } from '@/lib/db';
 import { getWorkspaceContext } from '@/lib/workspace-context';
+
+import type { ReactNode } from 'react';
 
 export default async function WorkspaceLayout({
   children,

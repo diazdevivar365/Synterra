@@ -42,7 +42,6 @@ vi.mock('@synterra/aquila-client', () => ({
   SUPPORTED_CONTRACT_VERSION: '2024-01-01',
 }));
 
-// eslint-disable-next-line import/order
 import { POST } from './route';
 
 // ---------------------------------------------------------------------------
@@ -199,9 +198,7 @@ describe('POST /api/start/bootstrap', () => {
       await POST(makeReq({ url: 'https://example.com' }));
 
       expect(mockUpdate).toHaveBeenCalledTimes(1);
-      expect(setMock).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'running' }),
-      );
+      expect(setMock).toHaveBeenCalledWith(expect.objectContaining({ status: 'running' }));
     });
 
     it('reads IP from cf-connecting-ip header when present (preferred over x-forwarded-for)', async () => {
@@ -225,9 +222,7 @@ describe('POST /api/start/bootstrap', () => {
 
       await POST(req);
 
-      expect(vMock).toHaveBeenCalledWith(
-        expect.objectContaining({ ip: '5.6.7.8' }),
-      );
+      expect(vMock).toHaveBeenCalledWith(expect.objectContaining({ ip: '5.6.7.8' }));
     });
 
     it('returns 500 when the insert returns an empty array', async () => {
@@ -266,9 +261,7 @@ describe('POST /api/start/bootstrap', () => {
 
       const res = await POST(req);
       expect(res.status).toBe(201);
-      expect(valuesMock).toHaveBeenCalledWith(
-        expect.objectContaining({ ip: 'unknown' }),
-      );
+      expect(valuesMock).toHaveBeenCalledWith(expect.objectContaining({ ip: 'unknown' }));
     });
 
     it('normalises url to origin only (strips path)', async () => {
@@ -280,9 +273,7 @@ describe('POST /api/start/bootstrap', () => {
 
       await POST(makeReq({ url: 'https://acme.com/some/deep/path?foo=bar' }));
 
-      expect(valuesMock).toHaveBeenCalledWith(
-        expect.objectContaining({ url: 'https://acme.com' }),
-      );
+      expect(valuesMock).toHaveBeenCalledWith(expect.objectContaining({ url: 'https://acme.com' }));
     });
   });
 });

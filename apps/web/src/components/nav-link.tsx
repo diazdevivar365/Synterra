@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
 
 import { cn } from '@synterra/ui';
+
+import type { ReactNode } from 'react';
 
 interface NavLinkProps {
   href: string;

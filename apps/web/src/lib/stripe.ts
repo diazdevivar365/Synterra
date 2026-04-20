@@ -1,8 +1,8 @@
 import 'server-only';
 
-import type Stripe from 'stripe';
-
 import { createStripeClient } from '@synterra/billing';
+
+import type Stripe from 'stripe';
 
 let _instance: Stripe | undefined;
 

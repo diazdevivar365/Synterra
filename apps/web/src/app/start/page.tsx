@@ -35,18 +35,20 @@ export default function StartPage() {
   useEffect(() => {
     if (phase !== 'waiting' || !sessionId) return;
 
-    pollRef.current = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/start/${sessionId}/status`);
-        if (!res.ok) return;
-        const data = (await res.json()) as { status: string };
-        if (data.status === 'ready' || data.status === 'claimed') {
-          setResearchReady(true);
-          if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = setInterval(() => {
+      void (async () => {
+        try {
+          const res = await fetch(`/api/start/${sessionId}/status`);
+          if (!res.ok) return;
+          const data = (await res.json()) as { status: string };
+          if (data.status === 'ready' || data.status === 'claimed') {
+            setResearchReady(true);
+            if (pollRef.current) clearInterval(pollRef.current);
+          }
+        } catch {
+          // ignore transient poll errors
         }
-      } catch {
-        // ignore transient poll errors
-      }
+      })();
     }, POLL_INTERVAL_MS);
 
     return () => {
@@ -118,7 +120,7 @@ export default function StartPage() {
   }
 
   if (phase === 'waiting') {
-    const currentStep = STEPS[stepIndex] ?? STEPS[STEPS.length - 1]!;
+    const currentStep = STEPS[stepIndex] ?? STEPS[STEPS.length - 1] ?? STEPS[0];
     return (
       <main className="flex min-h-dvh flex-col items-center justify-center gap-8 p-8">
         <div className="flex w-full max-w-sm flex-col gap-6">

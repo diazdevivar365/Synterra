@@ -34,7 +34,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   const { planSlug, successUrl, cancelUrl } = parsed.data;
 
   const plan = getPlanBySlug(planSlug);
-  if (!plan || plan.stripePriceIdMonthlyEnvVar === null) {
+  if (!plan?.stripePriceIdMonthlyEnvVar) {
     return NextResponse.json(
       { error: `Plan '${planSlug}' is not available for self-serve checkout` },
       { status: 400 },
@@ -95,7 +95,7 @@ export async function POST(req: Request): Promise<NextResponse> {
 }
 
 // Expose visible plan list for the pricing page.
-export async function GET(): Promise<NextResponse> {
+export function GET(): NextResponse {
   const visible = PLANS.filter((p) => p.slug !== 'trial' && p.slug !== 'enterprise').map((p) => ({
     slug: p.slug,
     name: p.name,

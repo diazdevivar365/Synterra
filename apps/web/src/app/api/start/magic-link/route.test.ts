@@ -36,7 +36,6 @@ vi.mock('drizzle-orm', () => ({
   eq: vi.fn((col: unknown, val: unknown) => ({ col, val })),
 }));
 
-// eslint-disable-next-line import/order
 import { POST } from './route';
 
 // ---------------------------------------------------------------------------
@@ -58,7 +57,7 @@ function makeInvalidJsonReq(): NextRequest {
   });
 }
 
-function setupSelectChain(rows: Array<{ id: string; status: string }>) {
+function setupSelectChain(rows: { id: string; status: string }[]) {
   const limitMock = vi.fn().mockResolvedValue(rows);
   const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
   const fromMock = vi.fn().mockReturnValue({ where: whereMock });
@@ -248,9 +247,7 @@ describe('POST /api/start/magic-link', () => {
       setupUpdateChain();
       mockSignInMagicLink.mockResolvedValueOnce(undefined);
 
-      const res = await POST(
-        makeReq({ email: 'user+tag@sub.example.com', sessionId: 'sess-ok' }),
-      );
+      const res = await POST(makeReq({ email: 'user+tag@sub.example.com', sessionId: 'sess-ok' }));
       expect(res.status).toBe(200);
     });
   });

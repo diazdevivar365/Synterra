@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { version } from '@/lib/version';
 
 import type { ReactNode } from 'react';
@@ -100,12 +102,12 @@ export default function HomePage() {
             >
               Docs
             </a>
-            <a
+            <Link
               href="/sign-in"
               className="border-border bg-surface text-fg hover:border-brand-500 focus-visible:border-brand-500 rounded-md border px-3 py-1.5 transition-colors focus-visible:outline-none"
             >
               Sign in
-            </a>
+            </Link>
           </nav>
         </header>
 

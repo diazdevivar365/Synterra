@@ -15,6 +15,7 @@ export const QUEUE_NAMES = {
   PROVISION: 'synterra-workspace-provision',
   STRIPE_EVENTS: 'synterra-stripe-events',
   USAGE_AGGREGATOR: 'synterra-usage-aggregator',
+  NOTIFICATIONS: 'synterra-notifications',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -37,4 +38,14 @@ export interface StripeEventJobData {
   livemode: boolean;
   created: number;
   [key: string]: unknown;
+}
+
+export interface NotifyBrandChangeJobData {
+  workspaceId: string;
+  brandId: string;
+  changeId: string;
+  eventType: string;
+  severity: string;
+  title: string;
+  description: string | null;
 }

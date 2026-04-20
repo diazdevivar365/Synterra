@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import {
   brandInitials,
   getHealthColor,
@@ -24,9 +25,15 @@ describe('getHealthColor', () => {
 });
 
 describe('getHealthLabel', () => {
-  it('returns Strong for >= 70', () => { expect(getHealthLabel(70)).toBe('Strong'); });
-  it('returns At risk for < 40', () => { expect(getHealthLabel(39)).toBe('At risk'); });
-  it('returns Developing for 40–69', () => { expect(getHealthLabel(55)).toBe('Developing'); });
+  it('returns Strong for >= 70', () => {
+    expect(getHealthLabel(70)).toBe('Strong');
+  });
+  it('returns At risk for < 40', () => {
+    expect(getHealthLabel(39)).toBe('At risk');
+  });
+  it('returns Developing for 40–69', () => {
+    expect(getHealthLabel(55)).toBe('Developing');
+  });
 });
 
 describe('polarToCartesian', () => {
