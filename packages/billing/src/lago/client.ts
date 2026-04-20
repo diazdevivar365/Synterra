@@ -4,7 +4,7 @@ import type {
   LagoCustomerUsageResponse,
   LagoEventInput,
   LagoEventResponse,
-} from './types.js';
+} from './types';
 
 export class LagoClientError extends Error {
   readonly status: number;
@@ -77,4 +77,4 @@ export function createLagoClient(config: LagoClientConfig): LagoClient {
   };
 }
 
-export type { LagoClient, LagoClientConfig } from './types.js';
+export type { LagoClient, LagoClientConfig } from './types';

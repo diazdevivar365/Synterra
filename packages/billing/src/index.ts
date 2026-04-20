@@ -143,7 +143,7 @@ export function getPlanBySlug(slug: string): BillingPlan | undefined {
 // Lago client
 // ---------------------------------------------------------------------------
 
-export { createLagoClient, LagoClientError } from './lago/client.js';
+export { createLagoClient, LagoClientError } from './lago/client';
 export type {
   LagoClient,
   LagoClientConfig,
@@ -151,11 +151,11 @@ export type {
   LagoEventResponse,
   LagoCustomerUsageResponse,
   LagoUsageCharge,
-} from './lago/types.js';
+} from './lago/types';
 
 // ---------------------------------------------------------------------------
 // Quota helpers
 // ---------------------------------------------------------------------------
 
-export { consumeCredits, seedWorkspaceQuota } from './quota.js';
-export type { ConsumeCreditsEvent, ConsumeCreditsResult } from './quota.js';
+export { consumeCredits, seedWorkspaceQuota } from './quota';
+export type { ConsumeCreditsEvent, ConsumeCreditsResult } from './quota';
