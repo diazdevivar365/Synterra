@@ -431,3 +431,36 @@ Nothing. The moment the user confirms the origin push (P7), W0-2 (Drizzle scaffo
 - `pnpm typecheck` — 11/11 workspaces clean
 - `pnpm test` — 71 tests passing (49 web + 22 auth, includes 8 new WorkOS unit tests)
 - WorkOS SDK non-exported enums handled via `as unknown as` casts (established pattern from `server.ts`)
+
+---
+
+# W2-3 — URL-first onboarding (90-second wow) ✅ COMPLETE (2026-04-20)
+
+**Workstream:** Synterra/PLAN.md → W2-3
+**Definition of done:** Unauthenticated visitor pastes a URL on `/start`, sees live SSE progress, workspace provisioned in Aquila, redirected to dashboard within 90 seconds.
+
+## Deliverables ✅
+
+- [x] `apps/web/src/app/start/page.tsx` — `/start` landing page with URL input form
+- [x] `apps/web/src/app/start/_components/StartForm.tsx` — client component: URL input + Turnstile widget + submit
+- [x] `apps/web/src/app/start/[id]/page.tsx` — onboarding progress page (SSE consumer)
+- [x] `apps/web/src/app/start/[id]/_components/ProgressView.tsx` — live SSE progress UI component
+- [x] `apps/web/src/app/api/onboarding/[id]/stream/route.ts` — SSE Route Handler (native ReadableStream, no Supabase Realtime)
+- [x] `apps/web/src/actions/onboarding.ts` — `startOnboarding` Server Action (Turnstile verify + rate-limit + enqueue bootstrap job)
+- [x] `apps/web/src/lib/turnstile.ts` — `verifyTurnstile(token, ip)` helper (Cloudflare Turnstile secret-key verify)
+- [x] `apps/web/src/lib/rate-limit.ts` — `checkRateLimit(ip)` helper (Redis sliding-window, hashed IP)
+- [x] `apps/web/src/lib/queue.ts` — BullMQ queue singleton (`synterra-bootstrap`) for web → workers dispatch
+- [x] `apps/workers/src/bootstrap-worker.ts` — BullMQ Worker: dequeues bootstrap jobs, calls Aquila anon-org provisioner, updates DB status
+- [x] `apps/workers/src/provisioner.ts` — `provisionAnonWorkspace(url)` — Aquila client call to create anon org + issue API key
+- [x] `apps/workers/src/queues.ts` — updated: `QUEUE_NAMES.BOOTSTRAP` added (kebab-case)
+- [x] `apps/workers/src/config.ts` — `AQUILA_ANON_API_KEY`, `AQUILA_ANON_ORG_SLUG`, `AQUILA_ANON_ORG_ID` env vars
+- [x] `packages/db/src/schemas/inflight.ts` — `onboarding_sessions` table schema (Drizzle)
+- [x] Unit tests: `turnstile.test.ts` (2), `rate-limit.test.ts` (2), `onboarding.test.ts` (4), `stream/route.test.ts` (2), `bootstrap-worker.test.ts` (1), `provisioner.test.ts` (5), `inflight.test.ts` (4)
+- [x] `apps/web/.env.example` — W2-3 env vars documented (Turnstile keys + IP_HASH_SALT)
+- [x] `apps/workers/.env.example` — W2-3 env vars documented (AQUILA*ANON*\* keys)
+
+## Verification ✅ (2026-04-20)
+
+- `pnpm typecheck` — web, workers, aquila-client all clean
+- `pnpm test` (direct vitest run): web 62/62, workers 13/13, aquila-client 12/12, db 7/7
+- `PlanTracking.md` W2-3 → `hecha ✅`

@@ -195,4 +195,14 @@ Entries sorted newest-first.
 
 ---
 
+## W2-3 — Lessons learned (2026-04-20)
+
+- **Subagents must use `git -C <worktree-path>` for all git commands.** Without this, commits land on the main working tree's current branch instead of the feature branch, requiring cherry-pick + revert cleanup.
+- **service_role conditional in migrations**: The `service_role` Postgres role only exists in Supabase. Vanilla Postgres (used by Testcontainers) doesn't have it. Always wrap `CREATE POLICY ... TO service_role` in `DO $$ IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'service_role')` to avoid Testcontainer integration test breakage.
+- **ESLint import/order in this repo**: Local value imports sort BEFORE external type imports in the same group (opposite of common convention). Run `pnpm eslint --fix` after adding imports.
+- **tsc false positives on `.js` imports**: `Cannot find module './foo.js'` in IDE diagnostics is a false positive for ESM `.ts` source files. `tsc --noEmit` passes; ignore IDE warnings.
+- **SSE vs Supabase Realtime**: Supabase Realtime is not in this stack. Native ReadableStream SSE in Next.js Route Handlers achieves identical real-time UX with zero new infrastructure.
+
+---
+
 _(New lessons land here — newest first.)_
