@@ -14,7 +14,7 @@ export function WorkspaceList({ workspaces }: { workspaces: WorkspaceOption[] })
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
 
-  async function handleSelect(workspaceId: string, slug: string) {
+  async function handleSelect(workspaceId: string) {
     setLoading(workspaceId);
     try {
       const res = await fetch('/api/workspace/switch', {
@@ -23,7 +23,7 @@ export function WorkspaceList({ workspaces }: { workspaces: WorkspaceOption[] })
         body: JSON.stringify({ workspaceId }),
       });
       if (!res.ok) throw new Error('Failed to switch workspace');
-      router.push(`/${slug}/dashboard`);
+      router.push('/dashboard');
     } finally {
       setLoading(null);
     }
@@ -40,7 +40,7 @@ export function WorkspaceList({ workspaces }: { workspaces: WorkspaceOption[] })
           <button
             type="button"
             disabled={loading === ws.id}
-            onClick={() => void handleSelect(ws.id, ws.slug)}
+            onClick={() => void handleSelect(ws.id)}
             className="border-border bg-surface hover:bg-surface-elevated flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors disabled:opacity-50"
           >
             <span>
