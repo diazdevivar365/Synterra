@@ -12,7 +12,7 @@ describe('<Button>', () => {
   it('applies variant-specific classes', () => {
     render(<Button variant="destructive">Delete</Button>);
     const btn = screen.getByRole('button', { name: 'Delete' });
-    expect(btn.className).toMatch(/bg-destructive/);
+    expect(btn.className).toMatch(/bg-danger/);
   });
 
   it('merges a custom className through cn()', () => {
