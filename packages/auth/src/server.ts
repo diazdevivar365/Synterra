@@ -25,8 +25,13 @@ export function createBetterAuth({ db, env }: BetterAuthConfig): Auth {
     secret: env.BETTER_AUTH_SECRET,
 
     advanced: {
-      // @ts-expect-error — generateId exists at runtime in better-auth v1.6.5 but missing from BetterAuthAdvancedOptions types
-      generateId: () => crypto.randomUUID(),
+      database: {
+        // better-auth's factory reads options.advanced.database.generateId (not options.advanced.generateId).
+        // With provider:'pg', supportsUUIDs=true, so the "uuid" string skips generation (relies on DB defaults).
+        // A function here bypasses that and generates UUIDs at the application layer — required because
+        // ba_session, ba_account, ba_verification use text PKs with no DB default.
+        generateId: () => crypto.randomUUID(),
+      },
     },
 
     database: drizzleAdapter(db, {
