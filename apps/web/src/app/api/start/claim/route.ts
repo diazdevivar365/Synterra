@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
-import { cookies, headers } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
 
 import { signWorkspaceJwt } from '@synterra/auth';
 import { inflightBootstrap, workspaceMembers, workspaces } from '@synterra/db';
@@ -74,18 +74,24 @@ function slugFromUrl(rawUrl: string): string {
   }
 }
 
-interface Props {
-  searchParams: Promise<{ session?: string }>;
+function makeRedirect(req: NextRequest, path: string): NextResponse {
+  const url = req.nextUrl.clone();
+  url.pathname = path;
+  url.search = '';
+  return NextResponse.redirect(url);
 }
 
-export default async function ClaimPage({ searchParams }: Props) {
-  const { session: sessionId } = await searchParams;
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  const sessionId = req.nextUrl.searchParams.get('session');
+  if (!sessionId) return makeRedirect(req, '/start');
 
-  if (!sessionId) redirect('/start');
-
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await auth.api.getSession({ headers: req.headers });
   if (!session) {
-    redirect(`/sign-in?next=${encodeURIComponent(`/start/claim?session=${sessionId}`)}`);
+    const next = encodeURIComponent(`/api/start/claim?session=${sessionId}`);
+    const url = req.nextUrl.clone();
+    url.pathname = '/sign-in';
+    url.search = `?next=${next}`;
+    return NextResponse.redirect(url);
   }
 
   const [row] = await db
@@ -94,12 +100,11 @@ export default async function ClaimPage({ searchParams }: Props) {
     .where(eq(inflightBootstrap.sessionId, sessionId))
     .limit(1);
 
-  if (!row || row.status === 'expired') redirect('/start');
+  if (!row || row.status === 'expired') return makeRedirect(req, '/start');
 
-  // Already claimed — just switch to the existing workspace.
   if (row.status === 'claimed' && row.workspaceId) {
     await switchToWorkspace(session.user.id, row.workspaceId);
-    redirect('/dashboard');
+    return makeRedirect(req, '/dashboard');
   }
 
   const name = workspaceNameFromUrl(row.url);
@@ -111,7 +116,7 @@ export default async function ClaimPage({ searchParams }: Props) {
   if (!result.ok) {
     const suffix = Math.random().toString(36).slice(2, 6);
     const retry = await createWorkspace({ name, slug: `${slug}-${suffix}` });
-    if (!retry.ok) redirect('/workspaces');
+    if (!retry.ok) return makeRedirect(req, '/workspaces');
     workspaceId = retry.data.workspaceId;
   } else {
     workspaceId = result.data.workspaceId;
@@ -124,5 +129,5 @@ export default async function ClaimPage({ searchParams }: Props) {
 
   await switchToWorkspace(session.user.id, workspaceId);
 
-  redirect('/dashboard');
+  return makeRedirect(req, '/dashboard');
 }

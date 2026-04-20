@@ -55,7 +55,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     .set({ email })
     .where(eq(inflightBootstrap.sessionId, sessionId));
 
-  const callbackURL = `/start/claim?session=${encodeURIComponent(sessionId)}`;
+  const callbackURL = `/api/start/claim?session=${encodeURIComponent(sessionId)}`;
 
   try {
     await (auth.api as unknown as MagicLinkApi).signInMagicLink({
