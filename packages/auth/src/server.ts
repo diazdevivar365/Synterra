@@ -24,6 +24,11 @@ export function createBetterAuth({ db, env }: BetterAuthConfig): Auth {
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
 
+    advanced: {
+      // @ts-expect-error — generateId exists at runtime in better-auth v1.6.5 but missing from BetterAuthAdvancedOptions types
+      generateId: () => crypto.randomUUID(),
+    },
+
     database: drizzleAdapter(db, {
       provider: 'pg',
       schema: {
