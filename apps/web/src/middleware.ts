@@ -8,7 +8,8 @@ function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
-const SESSION_COOKIE = 'better-auth.session_token';
+// better-auth prefixes session cookies with __Secure- on HTTPS in production
+const SESSION_COOKIES = ['better-auth.session_token', '__Secure-better-auth.session_token'];
 const WORKSPACE_COOKIE = 'synterra_wjwt';
 
 // Exported for unit testing — returns a string action instead of NextResponse
@@ -20,7 +21,7 @@ export async function resolveMiddlewareAction(
 
   if (isPublic(pathname)) return 'next';
 
-  const session = req.cookies.get(SESSION_COOKIE);
+  const session = SESSION_COOKIES.some((name) => req.cookies.has(name));
   if (!session) return 'redirect:/sign-in';
 
   const workspaceToken = req.cookies.get(WORKSPACE_COOKIE);
@@ -73,7 +74,5 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 };
