@@ -11,7 +11,7 @@ import { eq } from 'drizzle-orm';
 import type { Database } from '@synterra/db';
 import { usageEvents, workspaceQuotas } from '@synterra/db';
 
-import { getPlanBySlug } from './index';
+import { getPlanBySlug } from '@synterra/billing';
 
 const SOFT_LIMIT_RATIO = 0.8;
 

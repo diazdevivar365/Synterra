@@ -153,9 +153,3 @@ export type {
   LagoUsageCharge,
 } from './lago/types';
 
-// ---------------------------------------------------------------------------
-// Quota helpers
-// ---------------------------------------------------------------------------
-
-export { consumeCredits, seedWorkspaceQuota } from './quota';
-export type { ConsumeCreditsEvent, ConsumeCreditsResult } from './quota';

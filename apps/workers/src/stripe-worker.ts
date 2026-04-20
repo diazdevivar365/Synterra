@@ -8,7 +8,8 @@
 import { eq } from 'drizzle-orm';
 import { Worker, type Job } from 'bullmq';
 
-import { createStripeClient, seedWorkspaceQuota } from '@synterra/billing';
+import { createStripeClient } from '@synterra/billing';
+import { seedWorkspaceQuota } from './quota.js';
 import { createDb, serviceRoleQuery, subscriptions } from '@synterra/db';
 
 import { env } from './config.js';
