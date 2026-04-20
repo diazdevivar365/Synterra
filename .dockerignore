@@ -7,3 +7,7 @@
 .git
 .env*
 !.env.example
+# Local dev data dirs (owned by postgres/redis uid — Docker build context read fails)
+infra/.local-data/
+# Git worktrees (full repo copies, not needed in image)
+.worktrees/
