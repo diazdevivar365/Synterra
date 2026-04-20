@@ -15,6 +15,12 @@ export async function sendMagicLink(formData: FormData): Promise<void> {
     throw new Error('A valid email address is required.');
   }
 
+  const inflight = formData.get('inflight');
+  const inflightParam =
+    typeof inflight === 'string' && inflight.length > 0 ? encodeURIComponent(inflight) : null;
+
+  const callbackURL = inflightParam ? `/dashboard?inflight=${inflightParam}` : '/dashboard';
+
   // auth.api omits plugin endpoints in its generated types; use a local
   // interface to reach the magic-link plugin surface without unsafe-any casts.
   interface MagicLinkApi {
@@ -24,11 +30,11 @@ export async function sendMagicLink(formData: FormData): Promise<void> {
     }): Promise<void>;
   }
   await (auth.api as unknown as MagicLinkApi).signInMagicLink({
-    body: { email, callbackURL: '/dashboard' },
+    body: { email, callbackURL },
     headers: await headers(),
   });
 
-  redirect('/sign-in?sent=1');
+  redirect(`/sign-in?sent=1${inflightParam ? `&inflight=${inflightParam}` : ''}`);
 }
 
 export async function initiateSso(formData: FormData): Promise<void> {

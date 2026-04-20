@@ -59,4 +59,38 @@ describe('sendMagicLink', () => {
 
     await expect(sendMagicLink(formData)).rejects.toThrow('valid email');
   });
+
+  it('sets callbackURL to /dashboard?inflight=<id> when inflight is provided', async () => {
+    const { sendMagicLink } = await import('./_actions.js');
+    const { auth } = await import('@/lib/auth');
+
+    const formData = new FormData();
+    formData.set('email', 'user@forgentic.io');
+    formData.set('inflight', 'abc-123');
+
+    await sendMagicLink(formData);
+
+    expect((auth.api as any).signInMagicLink).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ callbackURL: '/dashboard?inflight=abc-123' }),
+      }),
+    );
+  });
+
+  it('sets callbackURL to /dashboard when inflight is empty', async () => {
+    const { sendMagicLink } = await import('./_actions.js');
+    const { auth } = await import('@/lib/auth');
+
+    const formData = new FormData();
+    formData.set('email', 'user@forgentic.io');
+    formData.set('inflight', '');
+
+    await sendMagicLink(formData);
+
+    expect((auth.api as any).signInMagicLink).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ callbackURL: '/dashboard' }),
+      }),
+    );
+  });
 });

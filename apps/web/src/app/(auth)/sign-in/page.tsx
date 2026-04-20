@@ -6,14 +6,14 @@ import { auth } from '@/lib/auth';
 import { initiateSso, sendMagicLink } from './_actions';
 
 interface Props {
-  searchParams: Promise<{ sent?: string; error?: string; sso_error?: string }>;
+  searchParams: Promise<{ sent?: string; error?: string; sso_error?: string; inflight?: string }>;
 }
 
 export default async function SignInPage({ searchParams }: Props) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (session) redirect('/dashboard');
 
-  const { sent, error, sso_error } = await searchParams;
+  const { sent, error, sso_error, inflight } = await searchParams;
 
   return (
     <div className="space-y-6">
@@ -41,6 +41,7 @@ export default async function SignInPage({ searchParams }: Props) {
 
       {!sent && (
         <form action={sendMagicLink} className="space-y-4">
+          <input type="hidden" name="inflight" value={inflight ?? ''} />
           <div className="space-y-1.5">
             <label htmlFor="email" className="text-fg block text-sm font-medium">
               Work email
