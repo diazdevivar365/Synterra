@@ -73,6 +73,12 @@ temp/
 # ─── Claude Code ───────────────────────────────────────────────────────────────
 .claude/settings.local.json
 
+# ─── Planning / laptop-only docs ───────────────────────────────────────────────
+PLAN.md
+PlanTracking.md
+tasks/
+docs/
+
 # ─── Drizzle ───────────────────────────────────────────────────────────────────
 drizzle/
 !packages/db/drizzle/
