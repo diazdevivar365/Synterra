@@ -115,14 +115,13 @@ cd "$REPO_DIR"
 pnpm install --frozen-lockfile
 
 # ── Build apps ───────────────────────────────────────────────────────────────
-# Re-source .env with set -a so every variable is exported to child processes
-# (the validation loop above uses `export "$line"` which can silently fail for
-# values containing shell metacharacters; set -a + source is more reliable).
+# Dummy build-time env vars prevent Next.js module-level zod validation from
+# failing during `next build` page-data collection (same values the Dockerfile
+# uses — real secrets come from docker-compose --env-file at runtime).
 echo "→ Building apps..."
-set -a
-# shellcheck disable=SC1090,SC1091
-source "$REPO_DIR/.env"
-set +a
+DATABASE_URL="postgresql://build:build@localhost:5432/build" \
+BETTER_AUTH_SECRET="build-time-placeholder-secret-32chars!!" \
+BETTER_AUTH_URL="https://build.placeholder.invalid" \
 pnpm build --filter='@synterra/web' --filter='@synterra/api' --filter='@synterra/workers'
 
 # ── Rebuild + recreate containers ────────────────────────────────────────────
