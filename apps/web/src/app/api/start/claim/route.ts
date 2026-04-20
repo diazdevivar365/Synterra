@@ -75,10 +75,10 @@ function slugFromUrl(rawUrl: string): string {
 }
 
 function makeRedirect(req: NextRequest, path: string): NextResponse {
-  const url = req.nextUrl.clone();
-  url.pathname = path;
-  url.search = '';
-  return NextResponse.redirect(url);
+  const base =
+    process.env['NEXT_PUBLIC_APP_URL'] ??
+    `${req.nextUrl.protocol}//${req.headers.get('host') ?? req.nextUrl.host}`;
+  return NextResponse.redirect(new URL(path, base));
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -88,10 +88,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const session = await auth.api.getSession({ headers: req.headers });
   if (!session) {
     const next = encodeURIComponent(`/api/start/claim?session=${sessionId}`);
-    const url = req.nextUrl.clone();
-    url.pathname = '/sign-in';
-    url.search = `?next=${next}`;
-    return NextResponse.redirect(url);
+    return makeRedirect(req, `/sign-in?next=${next}`);
   }
 
   const [row] = await db
