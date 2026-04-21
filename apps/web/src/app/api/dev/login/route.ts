@@ -7,12 +7,8 @@ import { serviceRoleQuery, workspaceMembers, workspaces } from '@synterra/db';
 import { db } from '@/lib/db';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const loginSecret = process.env['DEV_AUTO_LOGIN_SECRET'];
-  if (!loginSecret) {
+  if (!process.env['DEV_AUTO_LOGIN_SECRET']) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
-  }
-  if (req.nextUrl.searchParams.get('secret') !== loginSecret) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }
 
   const secret = process.env['WORKSPACE_JWT_SECRET'];
