@@ -18,6 +18,9 @@ import { loggerMiddleware } from './middleware/logger.js';
 import { requestIdMiddleware, type RequestIdVariables } from './middleware/request-id.js';
 import { secureHeadersMiddleware } from './middleware/secure-headers.js';
 import { createHealthRouter } from './routes/health.js';
+import { createBrandsRouter } from './routes/v1/brands.js';
+import { createChangesRouter } from './routes/v1/changes.js';
+import { createGdprRouter } from './routes/v1/gdpr.js';
 
 export interface AppEnv {
   Variables: RequestIdVariables;
@@ -31,6 +34,9 @@ export function buildApp(): Hono<AppEnv> {
   app.use('*', secureHeadersMiddleware());
 
   app.route('/v1/health', createHealthRouter());
+  app.route('/v1/brands', createBrandsRouter());
+  app.route('/v1/changes', createChangesRouter());
+  app.route('/v1', createGdprRouter());
 
   app.notFound((c) => {
     return c.json({ error: 'not_found' }, 404);

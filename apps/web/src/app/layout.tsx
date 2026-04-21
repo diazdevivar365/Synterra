@@ -1,5 +1,7 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 
+import { CookieBanner } from '@/components/cookie-banner';
+
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
@@ -71,12 +73,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`${geist.variable} ${geistMono.variable}`}
-      suppressHydrationWarning
-    >
-      <body>{children}</body>
+    <html lang="en" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <body>
+        {children}
+        <CookieBanner />
+      </body>
     </html>
   );
 }

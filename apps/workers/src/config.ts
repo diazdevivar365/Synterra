@@ -30,6 +30,18 @@ const envSchema = z.object({
   LAGO_API_KEY: z.string().min(1),
   // Resend — transactional email
   RESEND_API_KEY: z.string().min(1),
+  // Public app URL — used to build links in transactional emails
+  APP_URL: z.string().url().default('https://app.forgentic.io'),
+  // Slack — AES-256 key for decrypting stored bot tokens (optional; workers skip Slack if absent)
+  SLACK_TOKEN_ENCRYPT_KEY: z
+    .string()
+    .regex(/^[0-9a-fA-F]{64}$/, 'must be 64 hex chars (32-byte AES-256 key)')
+    .optional(),
+  // Webhooks — AES-256 key for decrypting stored webhook secrets (optional; workers skip webhook delivery if absent)
+  WEBHOOK_SECRET_ENCRYPT_KEY: z
+    .string()
+    .regex(/^[0-9a-fA-F]{64}$/, 'must be 64 hex chars (32-byte AES-256 key)')
+    .optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -44,6 +44,27 @@ export default async function SettingsLayout({
           <NavLink href={`${base}/notifications`} exact>
             Notifications
           </NavLink>
+          {(ctx.role === 'owner' || ctx.role === 'admin') && (
+            <NavLink href={`${base}/api-keys`} exact>
+              API Keys
+            </NavLink>
+          )}
+          {(ctx.role === 'owner' || ctx.role === 'admin') && (
+            <NavLink href={`${base}/slack`} exact>
+              Slack
+            </NavLink>
+          )}
+          {(ctx.role === 'owner' || ctx.role === 'admin') && (
+            <NavLink href={`${base}/webhooks`} exact>
+              Webhooks
+            </NavLink>
+          )}
+          <NavLink href={`${base}/audit`} exact>
+            Audit log
+          </NavLink>
+          <NavLink href={`${base}/data`} exact>
+            Data &amp; Privacy
+          </NavLink>
         </nav>
       </aside>
 

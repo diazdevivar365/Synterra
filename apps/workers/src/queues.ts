@@ -16,6 +16,8 @@ export const QUEUE_NAMES = {
   STRIPE_EVENTS: 'synterra-stripe-events',
   USAGE_AGGREGATOR: 'synterra-usage-aggregator',
   NOTIFICATIONS: 'synterra-notifications',
+  WEEKLY_DIGEST: 'synterra-weekly-digest',
+  WEBHOOK_DISPATCH: 'synterra-webhook-dispatch',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -40,6 +42,8 @@ export interface StripeEventJobData {
   [key: string]: unknown;
 }
 
+export type WeeklyDigestJobData = Record<string, never>;
+
 export interface NotifyBrandChangeJobData {
   workspaceId: string;
   brandId: string;
@@ -48,4 +52,11 @@ export interface NotifyBrandChangeJobData {
   severity: string;
   title: string;
   description: string | null;
+}
+
+export interface WebhookDispatchJobData {
+  workspaceId: string;
+  endpointId: string;
+  eventType: string;
+  payload: Record<string, unknown>;
 }

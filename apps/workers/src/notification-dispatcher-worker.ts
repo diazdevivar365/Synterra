@@ -1,3 +1,5 @@
+import { createDecipheriv } from 'node:crypto';
+
 import { Worker, type Job } from 'bullmq';
 import { and, eq } from 'drizzle-orm';
 import { Resend } from 'resend';
@@ -8,7 +10,10 @@ import {
   notificationSubscriptions,
   serviceRoleQuery,
   users,
+  workspaces,
+  slackConnections,
 } from '@synterra/db';
+import { renderChangeAlert } from '@synterra/emails';
 
 import { env } from './config.js';
 import logger from './logger.js';
@@ -62,6 +67,8 @@ async function dispatchEmail(
   resend: Resend,
   sub: { workspaceId: string; userId: string },
   data: NotifyBrandChangeJobData,
+  workspaceName: string,
+  workspaceSlug: string,
 ): Promise<void> {
   const userRow = await serviceRoleQuery(db, (tx) =>
     tx
@@ -76,13 +83,15 @@ async function dispatchEmail(
     return;
   }
 
-  const html = [
-    `<h2 style="font-family:monospace;color:#1a1a1a">${data.title}</h2>`,
-    data.description ? `<p style="font-family:sans-serif;color:#555">${data.description}</p>` : '',
-    `<p style="font-family:monospace;font-size:12px;color:#999">`,
-    `Severity: ${data.severity} · Brand: ${data.brandId}`,
-    `</p>`,
-  ].join('');
+  const changeUrl = `${env.APP_URL}/${workspaceSlug}/changes/${data.changeId}`;
+  const html = await renderChangeAlert({
+    workspaceName,
+    brandName: data.brandId,
+    title: data.title,
+    description: data.description,
+    severity: data.severity as 'info' | 'warning' | 'critical',
+    changeUrl,
+  });
 
   const { error } = await resend.emails.send({
     from: 'Forgentic <notifications@forgentic.io>',
@@ -115,6 +124,88 @@ async function dispatchEmail(
   }
 }
 
+function decryptToken(encrypted: string, hexKey: string): string {
+  const buf = Buffer.from(encrypted, 'base64');
+  const iv = buf.subarray(0, 12);
+  const authTag = buf.subarray(12, 28);
+  const ciphertext = buf.subarray(28);
+  const decipher = createDecipheriv('aes-256-gcm', Buffer.from(hexKey, 'hex'), iv);
+  decipher.setAuthTag(authTag);
+  return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8');
+}
+
+async function dispatchSlack(
+  db: ReturnType<typeof createDb>,
+  sub: { workspaceId: string; userId: string },
+  data: NotifyBrandChangeJobData,
+): Promise<void> {
+  const encryptKey = env.SLACK_TOKEN_ENCRYPT_KEY;
+  if (!encryptKey) {
+    logger.debug({ event: 'notif.slack.no_key' }, 'SLACK_TOKEN_ENCRYPT_KEY not set, skipping');
+    return;
+  }
+
+  const conn = await serviceRoleQuery(db, (tx) =>
+    tx
+      .select({
+        encryptedBotToken: slackConnections.encryptedBotToken,
+        defaultChannelId: slackConnections.defaultChannelId,
+        isEnabled: slackConnections.isEnabled,
+      })
+      .from(slackConnections)
+      .where(eq(slackConnections.workspaceId, sub.workspaceId))
+      .then((r) => r[0] ?? null),
+  );
+
+  if (!conn?.isEnabled) {
+    logger.debug(
+      { event: 'notif.slack.no_connection', workspaceId: sub.workspaceId },
+      'no active slack connection',
+    );
+    return;
+  }
+
+  const botToken = decryptToken(conn.encryptedBotToken, encryptKey);
+  const text = `*${data.title}*${data.description ? `\n${data.description}` : ''}\n_Severity: ${data.severity}_`;
+
+  const res = await fetch('https://slack.com/api/chat.postMessage', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${botToken}`,
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+    body: JSON.stringify({ channel: conn.defaultChannelId, text }),
+  });
+
+  const body = (await res.json()) as { ok: boolean; error?: string };
+  const status = body.ok ? 'sent' : 'failed';
+
+  await serviceRoleQuery(db, (tx) =>
+    tx.insert(notificationDeliveries).values({
+      workspaceId: sub.workspaceId,
+      userId: sub.userId,
+      eventType: data.eventType,
+      channel: 'slack',
+      status,
+      payload: data as unknown as Record<string, unknown>,
+      error: body.ok ? null : (body.error ?? 'unknown'),
+      sentAt: body.ok ? new Date() : null,
+    }),
+  );
+
+  if (!body.ok) {
+    logger.error(
+      { event: 'notif.slack.failed', error: body.error, workspaceId: sub.workspaceId },
+      'slack dispatch failed',
+    );
+  } else {
+    logger.info(
+      { event: 'notif.slack.sent', workspaceId: sub.workspaceId },
+      'slack notification dispatched',
+    );
+  }
+}
+
 export function createNotificationDispatcherWorker(
   connection: Redis,
 ): Worker<NotifyBrandChangeJobData> {
@@ -129,6 +220,22 @@ export function createNotificationDispatcherWorker(
         { event: 'notif.dispatch.start', workspaceId: data.workspaceId, brandId: data.brandId },
         'dispatching brand change notifications',
       );
+
+      const workspace = await serviceRoleQuery(db, (tx) =>
+        tx
+          .select({ name: workspaces.name, slug: workspaces.slug })
+          .from(workspaces)
+          .where(eq(workspaces.id, data.workspaceId))
+          .then((r: { name: string; slug: string }[]) => r[0] ?? null),
+      );
+
+      if (!workspace) {
+        logger.error(
+          { event: 'notif.dispatch.no_workspace', workspaceId: data.workspaceId },
+          'workspace not found, skipping notifications',
+        );
+        return;
+      }
 
       const subs = await serviceRoleQuery(db, (tx) =>
         tx
@@ -148,7 +255,9 @@ export function createNotificationDispatcherWorker(
       await Promise.allSettled(
         subs.map((sub: { id: string; workspaceId: string; userId: string; channel: string }) => {
           if (sub.channel === 'in_app') return dispatchInApp(db, connection, sub, data);
-          if (sub.channel === 'email') return dispatchEmail(db, resend, sub, data);
+          if (sub.channel === 'email')
+            return dispatchEmail(db, resend, sub, data, workspace.name, workspace.slug);
+          if (sub.channel === 'slack') return dispatchSlack(db, sub, data);
           return Promise.resolve();
         }),
       );

@@ -10,6 +10,7 @@ import { initTelemetry, shutdownTelemetry } from '@synterra/telemetry';
 
 import { env } from './config.js';
 import { createRedisConnection } from './connection.js';
+import { createDigestWorker, registerDigestRepeatable } from './digest-worker.js';
 import { createHealthServer } from './health-server.js';
 import logger from './logger.js';
 import { createProvisionerWorker } from './provisioner.js';
@@ -18,6 +19,7 @@ import {
   createUsageAggregatorWorker,
   registerUsageAggregatorRepeatable,
 } from './usage-aggregator.js';
+import { createWebhookDispatcherWorker } from './webhook-dispatcher-worker.js';
 import { createDefaultWorker } from './worker.js';
 
 async function main(): Promise<void> {
@@ -44,6 +46,13 @@ async function main(): Promise<void> {
   const usageAggregator = createUsageAggregatorWorker(connection);
   await usageAggregator.waitUntilReady();
   const usageAggregatorQueue = await registerUsageAggregatorRepeatable(connection);
+
+  const digestWorker = createDigestWorker(connection);
+  await digestWorker.waitUntilReady();
+  const digestQueue = await registerDigestRepeatable(connection);
+
+  const webhookDispatcher = createWebhookDispatcherWorker(connection);
+  await webhookDispatcher.waitUntilReady();
 
   const healthServer = createHealthServer({
     port: env.HEALTH_PORT,
@@ -79,6 +88,9 @@ async function main(): Promise<void> {
       await stripeWorker.close();
       await usageAggregator.close();
       await usageAggregatorQueue.close();
+      await digestWorker.close();
+      await digestQueue.close();
+      await webhookDispatcher.close();
       await new Promise<void>((resolve, reject) => {
         healthServer.close((err) => (err ? reject(err) : resolve()));
       });

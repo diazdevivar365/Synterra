@@ -95,13 +95,12 @@ export default function HomePage() {
             >
               Product
             </a>
-            <a
-              href="#"
+            <Link
+              href="/changelog"
               className="hover:text-fg focus-visible:text-fg transition-colors focus-visible:outline-none"
-              /* Routed in a later milestone alongside the docs site. */
             >
-              Docs
-            </a>
+              Changelog
+            </Link>
             <Link
               href="/sign-in"
               className="border-border bg-surface text-fg hover:border-brand-500 focus-visible:border-brand-500 rounded-md border px-3 py-1.5 transition-colors focus-visible:outline-none"
@@ -174,28 +173,28 @@ export default function HomePage() {
           <ul className="flex items-center gap-6">
             {/* Destinations below are routed in a follow-up milestone. */}
             <li>
-              <a
-                href="#"
+              <Link
+                href="/privacy"
                 className="hover:text-fg focus-visible:text-fg transition-colors focus-visible:outline-none"
               >
                 Privacy
-              </a>
+              </Link>
             </li>
             <li>
-              <a
-                href="#"
+              <Link
+                href="/terms"
                 className="hover:text-fg focus-visible:text-fg transition-colors focus-visible:outline-none"
               >
-                Security
-              </a>
+                Terms
+              </Link>
             </li>
             <li>
-              <a
-                href="#"
+              <Link
+                href="/pricing"
                 className="hover:text-fg focus-visible:text-fg transition-colors focus-visible:outline-none"
               >
-                Docs
-              </a>
+                Pricing
+              </Link>
             </li>
           </ul>
         </footer>

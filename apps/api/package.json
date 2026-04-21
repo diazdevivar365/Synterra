@@ -21,6 +21,9 @@
     "hono": "catalog:",
     "@hono/node-server": "catalog:",
     "@synterra/telemetry": "workspace:*",
+    "@synterra/db": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "postgres": "catalog:",
     "pino": "catalog:",
     "zod": "catalog:"
   },

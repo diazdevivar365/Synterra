@@ -33,6 +33,11 @@ const PUBLIC_PREFIXES = [
   '/favicon',
   '/workspaces',
   '/start',
+  '/admin',
+  '/privacy',
+  '/terms',
+  '/pricing',
+  '/changelog',
 ];
 
 function isPublic(pathname: string): boolean {
