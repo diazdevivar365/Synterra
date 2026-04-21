@@ -1,11 +1,7 @@
 import { redirect } from 'next/navigation';
 
-import {
-  getSubscriptions,
-  NOTIFICATION_CHANNELS,
-  NOTIFICATION_EVENT_TYPES,
-  upsertSubscription,
-} from '@/actions/notifications';
+import { getSubscriptions, upsertSubscription } from '@/actions/notifications';
+import { NOTIFICATION_CHANNELS, NOTIFICATION_EVENT_TYPES } from '@/lib/notifications';
 import { getWorkspaceContext } from '@/lib/workspace-context';
 
 const EVENT_LABELS: Record<string, string> = {
