@@ -18,5 +18,7 @@ export default defineConfig({
   noExternal: [/@synterra\/.*/],
   // @opentelemetry/* packages are CJS and use dynamic require() internally;
   // bundling them into ESM breaks at runtime. Keep them as node_modules externals.
-  external: [/^node:/, /^@opentelemetry\//, /^prom-client/],
+  // react + @react-email/* live in packages/emails/node_modules (isolated linker);
+  // the Dockerfile copies that tree into the runner image so they resolve at runtime.
+  external: [/^node:/, /^@opentelemetry\//, /^prom-client/, /^react/, /^@react-email\//],
 });

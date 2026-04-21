@@ -34,6 +34,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV HEALTH_PORT=3002
+# react and @react-email/* live in packages/emails/node_modules (pnpm isolated linker).
+# NODE_PATH lets Node.js resolve them when the workers bundle requires them at runtime.
+ENV NODE_PATH=/app/packages/emails/node_modules
 
 RUN addgroup --system --gid 1001 forgentic && \
     adduser --system --uid 1001 --ingroup forgentic forgentic
@@ -43,6 +46,7 @@ COPY --from=builder --chown=forgentic:forgentic /app/apps/workers/dist ./apps/wo
 COPY --from=builder --chown=forgentic:forgentic /app/apps/workers/package.json ./apps/workers/package.json
 COPY --from=deps --chown=forgentic:forgentic /app/node_modules ./node_modules
 COPY --from=deps --chown=forgentic:forgentic /app/apps/workers/node_modules ./apps/workers/node_modules
+COPY --from=deps --chown=forgentic:forgentic /app/packages/emails/node_modules ./packages/emails/node_modules
 
 USER forgentic
 EXPOSE 3002
