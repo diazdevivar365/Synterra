@@ -22,7 +22,7 @@
 | W4-2  | Competitor monitoring + change feed             | hecha ✅     | W4-1                |
 | W4-3  | Research run UI (live + history)                | pendiente ⏳ | W4-1, AQ-2          |
 | W4-4  | AI generation surface                           | pendiente ⏳ | W4-1                |
-| W5-1  | Notification engine                             | pendiente ⏳ | W3-1, W4-1          |
+| W5-1  | Notification engine                             | hecha ✅     | W3-1, W4-1          |
 | W5-2  | Email templates (React Email + Resend)          | pendiente ⏳ | W1-1                |
 | W5-3  | Weekly Brand Pulse digest                       | pendiente ⏳ | W5-1, W5-2          |
 | W5-4  | Slack integration (Growth+)                     | pendiente ⏳ | W5-1                |

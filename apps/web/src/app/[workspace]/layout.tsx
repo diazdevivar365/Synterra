@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { users, workspaceMembers, workspaces } from '@synterra/db';
 
 import { NavLink } from '@/components/nav-link';
+import { NotificationInbox } from '@/components/notification-inbox';
 import { WorkspaceSwitcher } from '@/components/workspace-switcher';
 import { db } from '@/lib/db';
 import { getWorkspaceContext } from '@/lib/workspace-context';
@@ -87,6 +88,7 @@ export default async function WorkspaceLayout({
             <WorkspaceSwitcher current={current} options={rows} />
           </div>
           <ChevronDown className="text-muted-fg h-3.5 w-3.5 shrink-0" />
+          <NotificationInbox />
         </div>
 
         {/* Navigation */}

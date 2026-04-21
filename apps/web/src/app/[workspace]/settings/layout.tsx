@@ -41,6 +41,9 @@ export default async function SettingsLayout({
               SSO
             </NavLink>
           )}
+          <NavLink href={`${base}/notifications`} exact>
+            Notifications
+          </NavLink>
         </nav>
       </aside>
 
