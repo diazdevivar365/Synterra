@@ -38,6 +38,7 @@ const PUBLIC_PREFIXES = [
   '/terms',
   '/pricing',
   '/changelog',
+  '/dev',
 ];
 
 function isPublic(pathname: string): boolean {
