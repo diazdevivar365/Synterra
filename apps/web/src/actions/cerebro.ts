@@ -9,17 +9,19 @@ import { aquilaFetch } from '@/lib/aquila-server';
 import { db } from '@/lib/db';
 import { getWorkspaceContext } from '@/lib/workspace-context';
 
-import type { StrategyBrief } from '@/lib/cerebro';
+import type { SignalCounts, StrategyBrief } from '@/lib/cerebro';
 
 interface AnalyzeResponse {
   brief_id: string;
   brief: StrategyBrief;
+  signal_counts: SignalCounts;
 }
 
 export interface AnalyzeResult {
   ok: boolean;
   briefId?: string;
   brief?: StrategyBrief;
+  signalCounts?: SignalCounts;
   error?: string;
 }
 
@@ -62,5 +64,10 @@ export async function analyzeBrandAction(formData: FormData): Promise<AnalyzeRes
   }
 
   revalidatePath(`/${slug}/cerebro`);
-  return { ok: true, briefId: data.brief_id, brief: data.brief };
+  return {
+    ok: true,
+    briefId: data.brief_id,
+    brief: data.brief,
+    signalCounts: data.signal_counts,
+  };
 }

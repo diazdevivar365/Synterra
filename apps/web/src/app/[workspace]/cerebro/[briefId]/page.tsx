@@ -4,11 +4,35 @@ import { notFound, redirect } from 'next/navigation';
 import { workspaceMembers, workspaces } from '@synterra/db';
 
 import { brandNameFromId } from '@/lib/brands';
-import { getBrief } from '@/lib/cerebro';
+import { getBrief, type SignalCounts } from '@/lib/cerebro';
 import { db } from '@/lib/db';
 import { getWorkspaceContext } from '@/lib/workspace-context';
 
 import { BriefCard } from '../_form';
+
+interface SignalsSnapshot {
+  brand?: unknown;
+  battlecards?: unknown[];
+  pulse_items?: unknown[];
+  recent_alerts?: unknown[];
+  recent_runs?: unknown[];
+  snapshot_deltas?: unknown[];
+  prior_cases?: unknown[];
+}
+
+function countsFromSnapshot(snap: unknown): SignalCounts {
+  const s = (snap ?? {}) as SignalsSnapshot;
+  const asLen = (x: unknown) => (Array.isArray(x) ? x.length : 0);
+  return {
+    brand: s.brand ? 1 : 0,
+    battlecards: asLen(s.battlecards),
+    pulse_items: asLen(s.pulse_items),
+    recent_alerts: asLen(s.recent_alerts),
+    recent_runs: asLen(s.recent_runs),
+    snapshot_deltas: asLen(s.snapshot_deltas),
+    prior_cases: asLen(s.prior_cases),
+  };
+}
 
 interface Props {
   params: Promise<{ workspace: string; briefId: string }>;
@@ -50,7 +74,11 @@ export default async function BriefDetailPage({ params }: Props) {
         )}
       </div>
 
-      <BriefCard brief={row.brief} />
+      <BriefCard
+        brief={row.brief}
+        signalCounts={countsFromSnapshot(row.signals_snapshot)}
+        workspace={slug}
+      />
 
       <div className="mt-8">
         <a

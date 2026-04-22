@@ -27,12 +27,24 @@ export interface StrategyBrief {
   confidence: number;
 }
 
+export interface SignalCounts {
+  brand: number;
+  battlecards: number;
+  pulse_items: number;
+  recent_alerts: number;
+  recent_runs: number;
+  snapshot_deltas: number;
+  prior_cases: number;
+}
+
 export interface BriefListItem {
   id: string;
   brand_id: string;
   intent: string;
   query: string | null;
   brief: StrategyBrief;
+  /** Present on GET /brain/briefs/{id} (full row). Omitted on list endpoint. */
+  signals_snapshot?: Record<string, unknown>;
   confidence: number | null;
   created_by: string | null;
   created_at: string;

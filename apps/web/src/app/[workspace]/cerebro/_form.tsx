@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 
 import { analyzeBrandAction, type AnalyzeResult } from '@/actions/cerebro';
 
-import type { StrategyBrief } from '@/lib/cerebro';
+import type { SignalCounts, StrategyBrief } from '@/lib/cerebro';
 
 interface BrandOption {
   id: string;
@@ -142,12 +142,20 @@ export function CerebroForm({ workspace, brands, defaultBrandId }: Props) {
         </div>
       )}
 
-      {result?.ok && result.brief && <BriefCard brief={result.brief} />}
+      {result?.ok && result.brief && (
+        <BriefCard brief={result.brief} signalCounts={result.signalCounts} workspace={workspace} />
+      )}
     </div>
   );
 }
 
-export function BriefCard({ brief }: { brief: StrategyBrief }) {
+interface BriefCardProps {
+  brief: StrategyBrief;
+  signalCounts?: SignalCounts | undefined;
+  workspace?: string | undefined;
+}
+
+export function BriefCard({ brief, signalCounts, workspace }: BriefCardProps) {
   const confidencePct = Math.round(brief.confidence * 100);
   const confidenceColor =
     confidencePct >= 70
@@ -158,6 +166,8 @@ export function BriefCard({ brief }: { brief: StrategyBrief }) {
 
   return (
     <div className="space-y-6">
+      {signalCounts && <SignalsSourceBar counts={signalCounts} />}
+
       <div className="border-border bg-surface rounded-[8px] border p-6">
         <div className="mb-3 flex items-start justify-between gap-4">
           <div>
@@ -213,12 +223,7 @@ export function BriefCard({ brief }: { brief: StrategyBrief }) {
               {rec.references.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {rec.references.map((r, i) => (
-                    <span
-                      key={i}
-                      className="bg-surface text-muted-fg rounded px-1.5 py-0.5 font-mono text-[9px]"
-                    >
-                      {r}
-                    </span>
+                    <ReferenceChip key={i} reference={r} workspace={workspace} size="sm" />
                   ))}
                 </div>
               )}
@@ -230,22 +235,128 @@ export function BriefCard({ brief }: { brief: StrategyBrief }) {
       {brief.references.length > 0 && (
         <div className="border-border bg-surface rounded-[8px] border p-4">
           <div className="text-muted-fg mb-2 font-mono text-[10px] uppercase tracking-wider">
-            Fuentes
+            Referencias citadas
           </div>
           <div className="flex flex-wrap gap-1.5">
             {brief.references.map((r, i) => (
-              <span
-                key={i}
-                className="border-border bg-surface-elevated text-fg rounded-[4px] border px-2 py-0.5 font-mono text-[10px]"
-              >
-                {r}
-              </span>
+              <ReferenceChip key={i} reference={r} workspace={workspace} />
             ))}
           </div>
         </div>
       )}
     </div>
   );
+}
+
+function SignalsSourceBar({ counts }: { counts: SignalCounts }) {
+  const items: { label: string; count: number }[] = [
+    { label: 'Perfil marca', count: counts.brand },
+    { label: 'Battlecards', count: counts.battlecards },
+    { label: 'Market pulse', count: counts.pulse_items },
+    { label: 'Alertas', count: counts.recent_alerts },
+    { label: 'Research runs', count: counts.recent_runs },
+    { label: 'Snapshots', count: counts.snapshot_deltas },
+    { label: 'Casos previos', count: counts.prior_cases },
+  ].filter((x) => x.count > 0);
+
+  const total = items.reduce((sum, x) => sum + x.count, 0);
+
+  return (
+    <div className="border-accent/40 bg-accent/5 rounded-[8px] border p-4">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="text-muted-fg font-mono text-[10px] uppercase tracking-wider">
+          Basado en señales reales
+        </div>
+        <span className="text-muted-fg font-mono text-[10px]">
+          {total} {total === 1 ? 'fuente' : 'fuentes'}
+        </span>
+      </div>
+      {total === 0 ? (
+        <p className="font-mono text-xs text-amber-400">
+          Sin señales disponibles — confianza limitada, el cerebro lo refleja.
+        </p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {items.map((x) => (
+            <span
+              key={x.label}
+              className="border-accent/30 bg-surface text-fg inline-flex items-center gap-1.5 rounded-[4px] border px-2 py-1 text-xs"
+            >
+              <span className="font-mono text-[11px] font-semibold">{x.count}</span>
+              <span className="text-muted-fg text-[10px]">{x.label}</span>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReferenceChip({
+  reference,
+  workspace,
+  size = 'md',
+}: {
+  reference: string;
+  workspace?: string | undefined;
+  size?: 'sm' | 'md';
+}) {
+  const parsed = parseReference(reference);
+  const href = workspace && parsed ? refHref(workspace, parsed) : null;
+  const padding = size === 'sm' ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-0.5 text-[10px]';
+  const base = `font-mono rounded ${padding}`;
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        className={`${base} border-accent/40 bg-accent/10 text-accent hover:bg-accent/20 border transition-colors`}
+      >
+        {reference}
+      </a>
+    );
+  }
+  return (
+    <span className={`${base} border-border bg-surface-elevated text-muted-fg border`}>
+      {reference}
+    </span>
+  );
+}
+
+interface ParsedRef {
+  kind: string;
+  id: string;
+}
+
+function parseReference(raw: string): ParsedRef | null {
+  const m = /^([a-z_]+):(.+)$/i.exec(raw.trim());
+  if (!m) return null;
+  const kind = m[1];
+  const id = m[2];
+  if (!kind || !id) return null;
+  return { kind: kind.toLowerCase(), id: id.trim() };
+}
+
+function refHref(workspace: string, ref: ParsedRef): string | null {
+  switch (ref.kind) {
+    case 'brand':
+      return `/${workspace}/brands/${encodeURIComponent(ref.id)}`;
+    case 'battlecard':
+      return `/${workspace}/battlecards`;
+    case 'pulse':
+    case 'pulse_item':
+      return `/${workspace}/pulse`;
+    case 'alert':
+    case 'alerting_fire':
+      return `/${workspace}/alerts`;
+    case 'run':
+    case 'research_run':
+      return `/${workspace}/research`;
+    case 'snapshot':
+      return `/${workspace}/brands/${encodeURIComponent(ref.id)}`;
+    default:
+      return null;
+  }
 }
 
 const TONE_STYLES: Record<string, string> = {
