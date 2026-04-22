@@ -4,7 +4,17 @@
 // short-lived JWT obtained from /auth/issue-provisioner-token. Org-level calls
 // (createResearchRun, listResearchRuns) use the per-org apiKey directly.
 
-import type { ApiKey, BrandDna, DnaTwin, Organization, Paginated, ResearchRun } from './types.js';
+import type {
+  ApiKey,
+  BrandDna,
+  DnaTwin,
+  OrgUsage,
+  Organization,
+  Paginated,
+  ResearchRun,
+  UsageLlm,
+  UsagePeriodLabel,
+} from './types.js';
 
 export type AquilaContractVersion = '2026-04';
 export const SUPPORTED_CONTRACT_VERSION: AquilaContractVersion = '2026-04';
@@ -58,6 +68,76 @@ export interface AquilaClient {
   getDnaTwins(brandId: string): Promise<Paginated<DnaTwin>>;
   /** Mark a DNA twin as excluded/irrelevant. */
   excludeDnaTwin(brandId: string, twinId: string): Promise<{ ok: boolean }>;
+
+  // -- AQ-3 · usage metering --
+  /** Aggregated usage counters for a given org + period. */
+  getOrgUsage(orgSlug: string, period?: UsagePeriodLabel): Promise<OrgUsage>;
+}
+
+interface AquilaUsageWire {
+  org_id: string;
+  plan: string;
+  period: { label: UsagePeriodLabel; start: string; end: string };
+  counters: {
+    brands_total: number;
+    brands_added: number;
+    research_runs: { total: number; succeeded: number; failed: number; running: number };
+    ig_scans: number;
+    battlecards: number;
+    scheduled_briefings_active: number;
+    briefings_sent: number;
+    alerts_fired: number;
+    users_active: number;
+  };
+  llm: {
+    total_calls: number;
+    tokens_in: number;
+    tokens_out: number;
+    cost_usd_est: number;
+    by_provider: Record<
+      string,
+      { calls: number; tokens_in: number; tokens_out: number; cost_usd: number }
+    >;
+    source: UsageLlm['source'];
+  };
+  generated_at: string;
+}
+
+function toOrgUsage(wire: AquilaUsageWire): OrgUsage {
+  const byProvider: Record<string, UsageLlm['byProvider'][string]> = {};
+  for (const [name, b] of Object.entries(wire.llm.by_provider)) {
+    byProvider[name] = {
+      calls: b.calls,
+      tokensIn: b.tokens_in,
+      tokensOut: b.tokens_out,
+      costUsd: b.cost_usd,
+    };
+  }
+  return {
+    orgId: wire.org_id,
+    plan: wire.plan,
+    period: wire.period,
+    counters: {
+      brandsTotal: wire.counters.brands_total,
+      brandsAdded: wire.counters.brands_added,
+      researchRuns: wire.counters.research_runs,
+      igScans: wire.counters.ig_scans,
+      battlecards: wire.counters.battlecards,
+      scheduledBriefingsActive: wire.counters.scheduled_briefings_active,
+      briefingsSent: wire.counters.briefings_sent,
+      alertsFired: wire.counters.alerts_fired,
+      usersActive: wire.counters.users_active,
+    },
+    llm: {
+      totalCalls: wire.llm.total_calls,
+      tokensIn: wire.llm.tokens_in,
+      tokensOut: wire.llm.tokens_out,
+      costUsdEst: wire.llm.cost_usd_est,
+      byProvider,
+      source: wire.llm.source,
+    },
+    generatedAt: wire.generated_at,
+  };
 }
 
 async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
@@ -210,6 +290,17 @@ export function createAquilaClient(config: AquilaClientConfig): AquilaClient {
         body: JSON.stringify({ twinId }),
       });
     },
+
+    async getOrgUsage(slug, period = 'current_month') {
+      const wire = await fetchJson<AquilaUsageWire>(
+        `${baseUrl}/orgs/${slug}/usage?period=${period}`,
+        {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${apiKey}`, 'X-Org-Slug': orgSlug },
+        },
+      );
+      return toOrgUsage(wire);
+    },
   };
 }
 
@@ -217,8 +308,15 @@ export type {
   ApiKey,
   BrandDna,
   DnaTwin,
+  OrgUsage,
   Organization,
   Paginated,
   ResearchRun,
   ResearchRunStatus,
+  UsageCounters,
+  UsageLlm,
+  UsageLlmProviderBreakdown,
+  UsagePeriod,
+  UsagePeriodLabel,
+  UsageResearchRuns,
 } from './types.js';

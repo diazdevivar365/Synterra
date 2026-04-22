@@ -61,3 +61,57 @@ export interface DnaTwin {
   positioningPreview: string;
   isExcluded: boolean;
 }
+
+// ─── AQ-3 · usage ──────────────────────────────────────────────────────────
+
+export type UsagePeriodLabel = 'current_month' | 'last_30d' | 'last_7d' | 'last_24h';
+
+export interface UsagePeriod {
+  label: UsagePeriodLabel;
+  start: string;
+  end: string;
+}
+
+export interface UsageResearchRuns {
+  total: number;
+  succeeded: number;
+  failed: number;
+  running: number;
+}
+
+export interface UsageCounters {
+  brandsTotal: number;
+  brandsAdded: number;
+  researchRuns: UsageResearchRuns;
+  igScans: number;
+  battlecards: number;
+  scheduledBriefingsActive: number;
+  briefingsSent: number;
+  alertsFired: number;
+  usersActive: number;
+}
+
+export interface UsageLlmProviderBreakdown {
+  calls: number;
+  tokensIn: number;
+  tokensOut: number;
+  costUsd: number;
+}
+
+export interface UsageLlm {
+  totalCalls: number;
+  tokensIn: number;
+  tokensOut: number;
+  costUsdEst: number;
+  byProvider: Readonly<Record<string, UsageLlmProviderBreakdown>>;
+  source: 'usage_events' | 'pending';
+}
+
+export interface OrgUsage {
+  orgId: string;
+  plan: string;
+  period: UsagePeriod;
+  counters: UsageCounters;
+  llm: UsageLlm;
+  generatedAt: string;
+}
