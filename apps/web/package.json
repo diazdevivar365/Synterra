@@ -34,6 +34,7 @@
     "lucide-react": "^0.469.0",
     "next": "catalog:",
     "postgres": "catalog:",
+    "prom-client": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "server-only": "^0.0.1",

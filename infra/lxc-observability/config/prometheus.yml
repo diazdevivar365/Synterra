@@ -43,14 +43,12 @@ scrape_configs:
         labels:
           service: api
 
-  # Web /metrics route not shipped yet — enable once the Next.js app
-  # exposes GET /api/metrics.
-  # - job_name: synterra-web
-  #   metrics_path: /api/metrics
-  #   static_configs:
-  #     - targets: ["192.168.10.52:3000"]
-  #       labels:
-  #         service: web
+  - job_name: synterra-web
+    metrics_path: /api/metrics
+    static_configs:
+      - targets: ["192.168.10.52:3000"]
+        labels:
+          service: web
 
   # DB LXC
   - job_name: postgres
