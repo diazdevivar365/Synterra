@@ -24,6 +24,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/workers/node_modules ./apps/workers/node_modules
+COPY --from=deps /app/packages/emails/node_modules ./packages/emails/node_modules
 COPY . .
 
 ENV NODE_ENV=production
