@@ -17,6 +17,14 @@ vi.mock('@/lib/db', () => ({
 vi.mock('@synterra/db', () => ({
   ssoConnections: {},
   workspaces: {},
+  users: {},
+  workspaceMembers: {},
+  baSessions: {},
+  serviceRoleQuery: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock('@synterra/auth', () => ({
+  signWorkspaceJwt: vi.fn().mockResolvedValue('mock-wjwt'),
 }));
 
 vi.mock('@/lib/auth', () => ({
