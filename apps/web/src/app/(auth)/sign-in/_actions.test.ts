@@ -35,6 +35,16 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
+vi.mock('@/lib/aquila-server', () => ({
+  hasAquilaCredentials: vi.fn().mockResolvedValue(true),
+}));
+
+vi.mock('@/lib/queue', () => ({
+  getProvisionQueue: vi.fn().mockReturnValue({
+    add: vi.fn().mockResolvedValue({ id: 'mock-job' }),
+  }),
+}));
+
 vi.mock('next/headers', () => ({
   headers: vi.fn().mockResolvedValue(new Headers()),
 }));

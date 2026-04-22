@@ -78,6 +78,15 @@ export async function aquilaFetchRaw(workspaceId: string, path: string): Promise
   }
 }
 
+export async function hasAquilaCredentials(workspaceId: string): Promise<boolean> {
+  const rows = await db
+    .select({ workspaceId: aquilaCredentials.workspaceId })
+    .from(aquilaCredentials)
+    .where(eq(aquilaCredentials.workspaceId, workspaceId))
+    .limit(1);
+  return rows.length > 0;
+}
+
 export async function aquilaFetch<T>(
   workspaceId: string,
   path: string,

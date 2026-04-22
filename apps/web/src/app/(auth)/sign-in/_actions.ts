@@ -16,8 +16,10 @@ import {
   serviceRoleQuery,
 } from '@synterra/db';
 
+import { hasAquilaCredentials } from '@/lib/aquila-server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { getProvisionQueue } from '@/lib/queue';
 
 // ── Demo / bypass login ──────────────────────────────────────────────────────
 // Provisions a demo user + reuses the first existing workspace (or bails if
@@ -49,7 +51,7 @@ export async function demoLoginAction(formData: FormData): Promise<void> {
 
   const [ws] = await serviceRoleQuery(db, (tx) =>
     tx
-      .select({ id: workspaces.id, slug: workspaces.slug })
+      .select({ id: workspaces.id, slug: workspaces.slug, name: workspaces.name })
       .from(workspaces)
       .where(isNull(workspaces.deletedAt))
       .limit(1),
@@ -58,6 +60,21 @@ export async function demoLoginAction(formData: FormData): Promise<void> {
     throw new Error(
       'No workspace exists yet — run provisioning or seed a workspace via /api/start/bootstrap',
     );
+  }
+
+  // Ensure the workspace has Aquila credentials provisioned — otherwise the
+  // UI falls back to SEED data. Fire-and-forget BullMQ job; the provisioner
+  // worker is idempotent so duplicate enqueues are safe.
+  if (!(await hasAquilaCredentials(ws.id))) {
+    try {
+      await getProvisionQueue().add(
+        'provision-workspace',
+        { workspaceId: ws.id, workspaceSlug: ws.slug, workspaceName: ws.name },
+        { jobId: `provision:${ws.id}`, removeOnComplete: true, removeOnFail: 100 },
+      );
+    } catch {
+      // Queue unavailable — demo still continues with seed fallback.
+    }
   }
 
   await serviceRoleQuery(db, (tx) =>
