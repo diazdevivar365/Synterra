@@ -148,7 +148,7 @@ export function OmiOverlay({ workspace }: Props) {
           <div className="flex items-center gap-2">
             <Brain className="text-accent h-4 w-4" />
             <div>
-              <div className="text-fg text-sm font-semibold">OMI</div>
+              <div className="text-fg text-sm font-semibold">Forgentic</div>
               <div className="text-muted-fg font-mono text-[10px]">
                 {ctxLabel ? `contexto: ${ctxLabel}` : 'asistente global'}
               </div>
