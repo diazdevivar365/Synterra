@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 interface WorkspaceOption {
@@ -16,7 +15,6 @@ interface Props {
 }
 
 export function WorkspaceSwitcher({ current, options }: Props) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -52,7 +50,9 @@ export function WorkspaceSwitcher({ current, options }: Props) {
         body: JSON.stringify({ workspaceId: ws.id }),
       });
       if (!res.ok) throw new Error('Switch failed');
-      router.push(`/${ws.slug}`);
+      // Full-page nav (not router.push) — the RSC router cache would otherwise
+      // reuse the prior workspace's content segments when the slug changes.
+      window.location.assign(`/${ws.slug}`);
     } finally {
       setLoading(null);
       setOpen(false);
@@ -102,7 +102,7 @@ export function WorkspaceSwitcher({ current, options }: Props) {
               type="button"
               onClick={() => {
                 setOpen(false);
-                router.push('/workspaces');
+                window.location.assign('/workspaces');
               }}
               className="text-muted-fg hover:text-fg hover:bg-surface-elevated w-full px-3 py-2 text-left text-xs transition-colors"
             >

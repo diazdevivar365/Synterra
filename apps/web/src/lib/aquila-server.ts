@@ -4,7 +4,7 @@ import { createDecipheriv } from 'node:crypto';
 
 import { eq } from 'drizzle-orm';
 
-import { aquilaCredentials } from '@synterra/db';
+import { aquilaCredentials, withWorkspaceContext } from '@synterra/db';
 
 import { db } from '@/lib/db';
 
@@ -49,11 +49,16 @@ async function getServiceToken(workspaceId: string, apiKey: string): Promise<str
 
 async function getCredentials(workspaceId: string): Promise<{ apiKey: string } | null> {
   if (!BASE || !ENCRYPT_HEX) return null;
-  const rows = await db
-    .select({ enc: aquilaCredentials.apiKeySecretEnc })
-    .from(aquilaCredentials)
-    .where(eq(aquilaCredentials.workspaceId, workspaceId))
-    .limit(1);
+  // RLS on aquila_credentials filters by `synterra.workspace_id` session var.
+  // Without the workspace context, the row is invisible — wrap in a tx that
+  // sets it before the SELECT.
+  const rows = await withWorkspaceContext(db, { workspaceId }, (tx) =>
+    tx
+      .select({ enc: aquilaCredentials.apiKeySecretEnc })
+      .from(aquilaCredentials)
+      .where(eq(aquilaCredentials.workspaceId, workspaceId))
+      .limit(1),
+  );
   if (!rows[0]) return null;
   try {
     return { apiKey: decryptApiKey(rows[0].enc) };
@@ -79,11 +84,13 @@ export async function aquilaFetchRaw(workspaceId: string, path: string): Promise
 }
 
 export async function hasAquilaCredentials(workspaceId: string): Promise<boolean> {
-  const rows = await db
-    .select({ workspaceId: aquilaCredentials.workspaceId })
-    .from(aquilaCredentials)
-    .where(eq(aquilaCredentials.workspaceId, workspaceId))
-    .limit(1);
+  const rows = await withWorkspaceContext(db, { workspaceId }, (tx) =>
+    tx
+      .select({ workspaceId: aquilaCredentials.workspaceId })
+      .from(aquilaCredentials)
+      .where(eq(aquilaCredentials.workspaceId, workspaceId))
+      .limit(1),
+  );
   return rows.length > 0;
 }
 
