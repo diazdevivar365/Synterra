@@ -319,7 +319,12 @@ function mapDetailToBrand(raw: AquilaBrandDetail): Brand {
 export async function getBrandsForWorkspace(
   workspaceId: string,
 ): Promise<{ brands: Brand[]; fromSeed: boolean }> {
-  const data = await aquilaFetch<AquilaBrandListResponse>(workspaceId, '/brands?limit=100');
+  // `source=all` includes both tracked customers and competitors discovered
+  // during research runs — agency workspaces care about the whole picture.
+  const data = await aquilaFetch<AquilaBrandListResponse>(
+    workspaceId,
+    '/brands?limit=100&source=all',
+  );
   if (data?.items.length) {
     return { brands: data.items.map(mapListItemToBrand), fromSeed: false };
   }
