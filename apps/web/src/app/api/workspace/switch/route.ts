@@ -8,25 +8,30 @@ import { workspaceMembers, workspaces } from '@synterra/db';
 import { db } from '@/lib/db';
 import { ForbiddenError } from '@/lib/errors';
 import { getSessionOrThrow } from '@/lib/session';
+import { getWorkspaceContext } from '@/lib/workspace-context';
 
 const WORKSPACE_COOKIE = 'synterra_wjwt';
 const COOKIE_MAX_AGE = 8 * 60 * 60; // 8 hours
 
 export async function POST(req: Request): Promise<NextResponse> {
-  let session;
+  // Primary: better-auth session. Fallback: workspace JWT (already verified by
+  // middleware, identity set via headers). The fallback covers the case where
+  // duplicate BA cookies (prefixed + unprefixed) confuse better-auth's cookie
+  // resolution — the wjwt is cryptographically verified upstream so it's safe
+  // as an auth source for switching within the same user's workspaces.
+  let userId: string | null = null;
   try {
-    session = await getSessionOrThrow();
+    const session = await getSessionOrThrow();
+    userId = session.userId;
   } catch (err) {
-    if (err instanceof ForbiddenError) {
-      const cookieHeader = req.headers.get('cookie') ?? '';
-      const names = cookieHeader
-        .split(';')
-        .map((c) => c.trim().split('=')[0])
-        .filter(Boolean);
-      console.warn('[switch] 401 no session. cookieNames=', names);
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!(err instanceof ForbiddenError)) throw err;
+    const ctx = await getWorkspaceContext();
+    if (ctx) {
+      userId = ctx.userId;
     }
-    throw err;
+  }
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   let body: unknown;
@@ -53,7 +58,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     .innerJoin(workspaces, eq(workspaces.id, workspaceMembers.workspaceId))
     .where(
       and(
-        eq(workspaceMembers.userId, session.userId),
+        eq(workspaceMembers.userId, userId),
         eq(workspaceMembers.workspaceId, workspaceId),
         eq(workspaceMembers.isDisabled, false),
       ),
@@ -72,7 +77,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
   }
 
-  const token = await signWorkspaceJwt({ workspaceId, userId: session.userId, role, slug }, secret);
+  const token = await signWorkspaceJwt({ workspaceId, userId, role, slug }, secret);
 
   const cookieStore = await cookies();
   cookieStore.set(WORKSPACE_COOKIE, token, {

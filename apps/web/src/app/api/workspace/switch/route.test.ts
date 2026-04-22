@@ -17,6 +17,7 @@ vi.mock('@/lib/db.js', () => ({
 }));
 vi.mock('next/headers', () => ({
   cookies: vi.fn().mockResolvedValue({ set: vi.fn() }),
+  headers: vi.fn().mockResolvedValue(new Headers()),
 }));
 
 import { ForbiddenError } from '@/lib/errors';
