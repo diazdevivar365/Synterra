@@ -1,0 +1,16 @@
+apiVersion: 1
+
+# Grafana auto-provisions every JSON dropped into /var/lib/grafana/dashboards
+# on boot. Edit JSON in the repo, redeploy, dashboards update in-place.
+providers:
+  - name: "Forgentic Synterra"
+    orgId: 1
+    folder: "Synterra"
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

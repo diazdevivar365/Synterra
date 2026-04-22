@@ -29,12 +29,28 @@ scrape_configs:
     static_configs:
       - targets: ["192.168.10.52:9100"]
 
-  - job_name: forgentic-workers
+  - job_name: synterra-workers
     metrics_path: /metrics
     static_configs:
       - targets: ["192.168.10.52:3002", "192.168.10.52:3003"]
         labels:
           service: workers
+
+  # Web + API targets pre-declared; they 404 today (no /metrics exposed).
+  # Instrument apps/web + apps/api with prom-client to populate dashboards.
+  # Remove these entries until ready to avoid InstanceDown alerts.
+  # - job_name: synterra-web
+  #   metrics_path: /api/metrics
+  #   static_configs:
+  #     - targets: ["192.168.10.52:3000"]
+  #       labels:
+  #         service: web
+  # - job_name: synterra-api
+  #   metrics_path: /metrics
+  #   static_configs:
+  #     - targets: ["192.168.10.52:3001"]
+  #       labels:
+  #         service: api
 
   # DB LXC
   - job_name: postgres

@@ -157,7 +157,10 @@ services:
       GF_UNIFIED_ALERTING_ENABLED: "false" # use Alertmanager instead
     volumes:
       - grafana-data:/var/lib/grafana
-      - ../../infra/grafana-dashboards:/etc/grafana/provisioning/dashboards:ro
+      # Provider YAML (tells grafana where to read dashboard JSON from)
+      - ../grafana-provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      # Dashboard JSON files (loaded by the provider above)
+      - ../grafana-dashboards:/var/lib/grafana/dashboards:ro
       - ./config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
     ports:
       - "3001:3000"
