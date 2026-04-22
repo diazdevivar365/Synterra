@@ -52,7 +52,7 @@ export function WorkspaceSwitcher({ current, options }: Props) {
         body: JSON.stringify({ workspaceId: ws.id }),
       });
       if (!res.ok) throw new Error('Switch failed');
-      router.push(`/${ws.slug}/dashboard`);
+      router.push(`/${ws.slug}`);
     } finally {
       setLoading(null);
       setOpen(false);
@@ -80,7 +80,7 @@ export function WorkspaceSwitcher({ current, options }: Props) {
       </button>
 
       {open && (
-        <div className="border-border bg-surface shadow-md absolute left-0 top-full z-50 mt-1 w-56 rounded-lg border py-1">
+        <div className="border-border bg-surface absolute left-0 top-full z-50 mt-1 w-56 rounded-lg border py-1 shadow-md">
           {options.map((ws) => (
             <button
               key={ws.id}
