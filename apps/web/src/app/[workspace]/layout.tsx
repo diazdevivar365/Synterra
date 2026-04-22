@@ -28,6 +28,7 @@ import { users, workspaceMembers, workspaces } from '@synterra/db';
 
 import { NavLink } from '@/components/nav-link';
 import { NotificationInbox } from '@/components/notification-inbox';
+import { OmiOverlay } from '@/components/omi-overlay';
 import { WorkspaceSwitcher } from '@/components/workspace-switcher';
 import { db } from '@/lib/db';
 import { getWorkspaceContext } from '@/lib/workspace-context';
@@ -240,6 +241,7 @@ export default async function WorkspaceLayout({
 
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
+      <OmiOverlay workspace={slug} />
     </>
   );
 }

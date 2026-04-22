@@ -21,7 +21,8 @@ export function WorkspaceSwitcher({ current, options }: Props) {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      // Shift+⌘/Ctrl+K — plain ⌘/Ctrl+K belongs to the OMI overlay now.
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setOpen((v) => !v);
       }
@@ -65,7 +66,7 @@ export function WorkspaceSwitcher({ current, options }: Props) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="text-fg hover:bg-surface-elevated flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold transition-colors"
-        title="Switch workspace (⌘K)"
+        title="Switch workspace (⇧⌘K)"
       >
         <span className="max-w-36 truncate">{current.name}</span>
         <svg
