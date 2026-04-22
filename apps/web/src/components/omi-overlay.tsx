@@ -4,11 +4,29 @@ import { Brain, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import {
+  analyzeFromCommandAction,
+  compareFromCommandAction,
+  investigateFromCommandAction,
+  newsFromCommandAction,
+  twinsFromCommandAction,
+  type ToolResult,
+} from '@/actions/omi-tools';
+import { INTENT_LABELS, parseOmiCommand, type OmiIntent } from '@/lib/omi-commands';
+
 type Role = 'user' | 'assistant';
+
+interface ToolAttachment {
+  intent: OmiIntent;
+  link?: string | undefined;
+  summary: string;
+  detail?: string | undefined;
+}
 
 interface Message {
   role: Role;
   content: string;
+  tool?: ToolAttachment;
 }
 
 interface Props {
@@ -16,9 +34,10 @@ interface Props {
 }
 
 const QUICK_ACTIONS: { label: string; prompt: string }[] = [
-  { label: 'Resumí lo que veo', prompt: 'Hacé un resumen de lo que estoy viendo en esta página.' },
-  { label: 'Riesgos hoy', prompt: '¿Qué riesgos o alertas deberían preocuparme hoy?' },
-  { label: 'Próxima acción', prompt: '¿Cuál sería la próxima acción concreta en esta pantalla?' },
+  { label: 'Analizá la última marca', prompt: 'analizá nike' },
+  { label: 'Comparar dos', prompt: 'compará chanel vs dior' },
+  { label: 'Novedades hoy', prompt: 'novedades' },
+  { label: 'Resumí esta pantalla', prompt: 'Hacé un resumen de lo que estoy viendo.' },
 ];
 
 /**
@@ -92,6 +111,29 @@ export function OmiOverlay({ workspace }: Props) {
     setMessages((m) => [...m, userMsg]);
     setInput('');
     setLoading(true);
+
+    // Intent parsing first — if the user said "analizá X", skip the LLM and
+    // run the tool. Fallback to chat only when the regex doesn't match.
+    const parsed = parseOmiCommand(trimmed);
+    if (parsed) {
+      try {
+        const msg = await runTool(parsed.intent, parsed.args, workspace);
+        setMessages((m) => [...m, msg]);
+        return;
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : 'error';
+        setMessages((m) => [
+          ...m,
+          {
+            role: 'assistant',
+            content: `No pude ejecutar el comando: ${detail}.`,
+          },
+        ]);
+        return;
+      } finally {
+        setLoading(false);
+      }
+    }
 
     try {
       const res = await fetch(`/api/${workspace}/omi/chat`, {
@@ -195,7 +237,29 @@ export function OmiOverlay({ workspace }: Props) {
                     : 'border-border bg-surface-elevated text-fg max-w-[85%] whitespace-pre-wrap rounded-[8px] border px-3 py-2 text-sm leading-relaxed'
                 }
               >
+                {m.tool && (
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span
+                      className={`rounded-[4px] border px-1.5 py-0.5 font-mono text-[10px] ${intentBadgeClass(m.tool.intent)}`}
+                    >
+                      {m.tool.summary}
+                    </span>
+                    {m.tool.link && (
+                      <a
+                        href={m.tool.link}
+                        className="text-accent font-mono text-[10px] hover:underline"
+                      >
+                        abrir ↗
+                      </a>
+                    )}
+                  </div>
+                )}
                 {m.content}
+                {m.tool?.detail && (
+                  <div className="text-muted-fg mt-2 border-t border-[#3a4452] pt-2 font-mono text-[10px]">
+                    {m.tool.detail}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -278,6 +342,171 @@ function routeLabel(pathname: string, workspace: string): string {
   const label = map[seg] ?? seg;
   const tail = rest.slice(seg.length).replace(/^\/+/, '');
   return tail ? `${label} · ${tail}` : label;
+}
+
+function intentBadgeClass(intent: OmiIntent): string {
+  switch (intent) {
+    case 'analyze':
+      return 'border-accent/40 bg-accent/10 text-accent';
+    case 'compare':
+      return 'border-purple-500/30 bg-purple-500/10 text-purple-400';
+    case 'investigate':
+      return 'border-sky-500/30 bg-sky-500/10 text-sky-400';
+    case 'twins':
+      return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400';
+    case 'news':
+      return 'border-amber-500/30 bg-amber-500/10 text-amber-400';
+  }
+}
+
+async function runTool(
+  intent: OmiIntent,
+  args: Record<string, string>,
+  workspace: string,
+): Promise<Message> {
+  const label = INTENT_LABELS[intent];
+  let result: ToolResult;
+  switch (intent) {
+    case 'analyze': {
+      result = await analyzeFromCommandAction({
+        workspaceSlug: workspace,
+        rawTarget: args['target'] ?? '',
+      });
+      return result.ok
+        ? assistantTool(
+            label,
+            intent,
+            result.link,
+            `Brief generado para "${args['target']}". Confianza ${confidenceOf(result)}.`,
+            briefSummary(result),
+          )
+        : assistantError(label, result.error);
+    }
+    case 'compare': {
+      result = await compareFromCommandAction({
+        workspaceSlug: workspace,
+        rawA: args['a'] ?? '',
+        rawB: args['b'] ?? '',
+      });
+      return result.ok
+        ? assistantTool(
+            label,
+            intent,
+            result.link,
+            `Clash: ${args['a']} vs ${args['b']}.`,
+            compareSummary(result),
+          )
+        : assistantError(label, result.error);
+    }
+    case 'investigate': {
+      result = await investigateFromCommandAction({
+        workspaceSlug: workspace,
+        rawTarget: args['target'] ?? '',
+      });
+      return result.ok
+        ? assistantTool(
+            label,
+            intent,
+            result.link,
+            `Research disparado para "${args['target']}". Seguí el progreso en el link.`,
+          )
+        : assistantError(label, result.error);
+    }
+    case 'twins': {
+      result = await twinsFromCommandAction({
+        workspaceSlug: workspace,
+        rawTarget: args['target'] ?? '',
+      });
+      return result.ok
+        ? assistantTool(
+            label,
+            intent,
+            result.link,
+            `DNA twins de "${args['target']}".`,
+            twinsSummary(result),
+          )
+        : assistantError(label, result.error);
+    }
+    case 'news': {
+      result = await newsFromCommandAction({
+        workspaceSlug: workspace,
+        rawTarget: args['target'],
+      });
+      return result.ok
+        ? assistantTool(
+            label,
+            intent,
+            result.link,
+            args['target']
+              ? `Novedades de "${args['target']}".`
+              : 'Novedades recientes del portfolio.',
+            newsSummary(result),
+          )
+        : assistantError(label, result.error);
+    }
+  }
+}
+
+function assistantTool(
+  label: string,
+  intent: OmiIntent,
+  link: string | undefined,
+  summary: string,
+  detail?: string,
+): Message {
+  return {
+    role: 'assistant',
+    content: summary,
+    tool: { intent, link, summary: label, detail },
+  };
+}
+
+function assistantError(label: string, err?: string): Message {
+  return {
+    role: 'assistant',
+    content: `${label}: ${err ?? 'sin detalles'}`,
+  };
+}
+
+function confidenceOf(r: ToolResult): string {
+  const data = r.data as { brief?: { confidence?: number } } | undefined;
+  const c = data?.brief?.confidence;
+  return typeof c === 'number' ? `${Math.round(c * 100)}%` : '—';
+}
+
+function briefSummary(r: ToolResult): string {
+  const data = r.data as { brief?: { situation_summary?: string } } | undefined;
+  return data?.brief?.situation_summary ?? '';
+}
+
+function compareSummary(r: ToolResult): string {
+  const data = r.data as { verdict?: string; summary?: string; winner?: string } | undefined;
+  if (!data) return '';
+  return data.verdict ?? data.summary ?? (data.winner ? `Ganador: ${data.winner}` : '');
+}
+
+function twinsSummary(r: ToolResult): string {
+  const data = r.data as
+    | {
+        items?: { brand_id: string; name?: string; similarity?: number }[];
+        twins?: { brand_id: string; name?: string; similarity?: number }[];
+      }
+    | undefined;
+  const arr = data?.items ?? data?.twins ?? [];
+  if (arr.length === 0) return 'Sin twins encontrados.';
+  return arr
+    .slice(0, 5)
+    .map(
+      (t) =>
+        `${t.name ?? t.brand_id}${t.similarity != null ? ` (${Math.round(t.similarity * 100)}%)` : ''}`,
+    )
+    .join(' · ');
+}
+
+function newsSummary(r: ToolResult): string {
+  const data = r.data as { items?: unknown[] } | undefined;
+  const count = data?.items?.length ?? 0;
+  return count > 0 ? `${count} cambios recientes.` : 'Sin novedades recientes.';
 }
 
 function contextFromPath(pathname: string, workspace: string) {
