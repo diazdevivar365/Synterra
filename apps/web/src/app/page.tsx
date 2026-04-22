@@ -20,7 +20,7 @@ const features: readonly Feature[] = [
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
         className="h-6 w-6"
@@ -39,7 +39,7 @@ const features: readonly Feature[] = [
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
         className="h-6 w-6"
@@ -58,7 +58,7 @@ const features: readonly Feature[] = [
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
         className="h-6 w-6"
@@ -71,129 +71,115 @@ const features: readonly Feature[] = [
 
 export default function HomePage() {
   return (
-    <main className="relative min-h-dvh overflow-hidden">
-      {/* Decorative background layers — order matters. */}
-      <div
-        aria-hidden="true"
-        className="bg-grid-pattern pointer-events-none absolute inset-0 opacity-40"
-      />
-      <div
-        aria-hidden="true"
-        className="bg-hero-glow pointer-events-none absolute inset-x-0 top-0 h-[60vh]"
-      />
+    <main className="relative min-h-dvh overflow-hidden bg-[#000000] font-sans text-[#ffffff]">
+      {/* Premium Background Effects */}
+      <div className="pointer-events-none absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20 [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+      <div className="pointer-events-none absolute left-1/2 top-[-20%] h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-[#cb3500]/20 blur-[120px]" />
 
-      <div className="relative mx-auto flex min-h-dvh max-w-6xl flex-col px-6 py-10 sm:px-8 lg:px-12">
-        <header className="flex items-center justify-between">
+      <div className="relative mx-auto flex min-h-dvh max-w-[1200px] flex-col px-6 py-10 sm:px-8 lg:px-12">
+        <header className="z-10 flex items-center justify-between">
           <Wordmark />
           <nav
             aria-label="Primary"
-            className="text-muted-fg hidden items-center gap-6 text-sm sm:flex"
+            className="hidden items-center gap-8 text-[14px] font-medium text-[#dadada] sm:flex"
           >
-            <a
-              href="#features"
-              className="hover:text-fg focus-visible:text-fg transition-colors focus-visible:outline-none"
-            >
-              Product
+            <a href="#features" className="transition-colors hover:text-[#ffffff]">
+              Platform
             </a>
-            <Link
-              href="/changelog"
-              className="hover:text-fg focus-visible:text-fg transition-colors focus-visible:outline-none"
-            >
-              Changelog
+            <Link href="/changelog" className="transition-colors hover:text-[#ffffff]">
+              Intelligence
             </Link>
             <Link
               href="/sign-in"
-              className="border-border bg-surface text-fg hover:border-brand-500 focus-visible:border-brand-500 rounded-md border px-3 py-1.5 transition-colors focus-visible:outline-none"
+              className="rounded-[.25rem] border border-[#535353] bg-transparent px-[16px] py-[8px] text-[#ffffff] transition-all hover:border-[#cb3500] hover:text-[#cb3500] hover:shadow-[0_0_15px_rgba(203,53,0,0.3)]"
             >
               Sign in
             </Link>
           </nav>
         </header>
 
-        <section className="flex flex-1 flex-col items-center justify-center py-24 text-center">
-          <span className="border-border bg-surface/60 text-muted-fg mb-6 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs backdrop-blur">
-            <span className="bg-brand-400 h-1.5 w-1.5 rounded-full" aria-hidden="true" />
-            Now in private preview
-          </span>
+        <section className="animate-fade-in-up z-10 flex flex-1 flex-col items-center justify-center py-32 text-center">
+          <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-[#535353] bg-[#111111]/80 px-4 py-1.5 font-mono text-[12px] text-[#dadada] shadow-[0_0_20px_rgba(203,53,0,0.1)] backdrop-blur-md">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-[#cb3500]" aria-hidden="true" />
+            FORGENTIC ENGINE ONLINE
+          </div>
 
-          <h1 className="from-fg via-fg to-brand-300 max-w-3xl text-balance bg-gradient-to-br bg-clip-text text-5xl font-semibold leading-tight tracking-tight text-transparent sm:text-6xl lg:text-7xl">
-            Brand intelligence, on autopilot.
+          <h1 className="mb-8 max-w-[900px] bg-gradient-to-b from-[#ffffff] to-[#888888] bg-clip-text text-6xl font-bold leading-[1.1] tracking-tight text-transparent sm:text-7xl lg:text-[88px]">
+            Brand intelligence,
+            <br />
+            <span className="bg-gradient-to-r from-[#cb3500] to-[#ed6d40] bg-clip-text text-transparent">
+              on autopilot.
+            </span>
           </h1>
 
-          <p className="text-muted-fg mt-6 max-w-2xl text-balance text-lg sm:text-xl">
+          <p className="mb-12 max-w-2xl text-[18px] leading-relaxed text-[#888888] sm:text-[20px]">
             Forgentic watches the market, interprets what matters, and takes action — so your brand
             team can focus on the work that only humans can do.
           </p>
 
-          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
             <a
               href="#"
-              className="bg-brand-500 text-fg shadow-brand-900/30 hover:bg-brand-400 focus-visible:bg-brand-400 inline-flex h-11 items-center justify-center rounded-lg px-6 text-sm font-medium shadow-lg transition-colors focus-visible:outline-none"
-              /* CTA destination pinned once marketing ships the request-access form. */
+              className="inline-flex h-12 transform items-center justify-center rounded-[.25rem] bg-[#cb3500] px-8 text-[15px] font-bold text-[#ffffff] shadow-[0_0_30px_rgba(203,53,0,0.4)] transition-all hover:scale-105 hover:bg-[#ed6d40]"
             >
-              Request access
+              Initialize Workspace
             </a>
             <a
               href="#features"
-              className="border-border bg-surface text-fg hover:border-brand-500 focus-visible:border-brand-500 inline-flex h-11 items-center justify-center rounded-lg border px-6 text-sm font-medium transition-colors focus-visible:outline-none"
+              className="inline-flex h-12 items-center justify-center rounded-[.25rem] border border-[#535353] bg-[#111111] px-8 text-[15px] font-medium text-[#ffffff] transition-colors hover:border-[#dadada]"
             >
-              How it works
+              Explore capabilities
             </a>
           </div>
         </section>
 
-        <section id="features" aria-labelledby="features-heading" className="pb-24">
+        <section id="features" aria-labelledby="features-heading" className="z-10 pb-32">
           <h2 id="features-heading" className="sr-only">
             Platform capabilities
           </h2>
-          <ul className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {features.map((feature) => (
               <li
                 key={feature.title}
-                className="border-border bg-surface/60 hover:border-brand-500 group relative flex flex-col rounded-xl border p-6 backdrop-blur transition-colors"
+                className="group relative flex flex-col rounded-[.75rem] border border-[#535353] bg-[#111111]/60 p-8 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#cb3500] hover:bg-[#1b1b1b] hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
               >
-                <div className="bg-brand-500/15 text-brand-300 ring-brand-500/30 mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg ring-1 ring-inset">
+                <div className="mb-6 text-[#cb3500] transition-transform duration-300 group-hover:scale-110">
                   {feature.icon}
                 </div>
-                <h3 className="text-fg text-lg font-semibold tracking-tight">{feature.title}</h3>
-                <p className="text-muted-fg mt-2 text-sm leading-relaxed">{feature.body}</p>
+                <h3 className="mb-3 text-[20px] font-bold tracking-tight text-[#ffffff]">
+                  {feature.title}
+                </h3>
+                <p className="text-[15px] leading-relaxed text-[#888888]">{feature.body}</p>
               </li>
             ))}
           </ul>
         </section>
 
-        <footer className="border-border text-muted-fg mt-auto flex flex-col items-start justify-between gap-4 border-t pt-8 text-xs sm:flex-row sm:items-center">
-          <div className="flex items-center gap-3">
+        <footer className="z-10 mt-auto flex flex-col items-start justify-between gap-4 border-t border-[#535353] py-8 font-mono text-[13px] text-[#888888] sm:flex-row sm:items-center">
+          <div className="flex items-center gap-4">
             <Wordmark compact />
-            <span aria-hidden="true" className="bg-border h-1 w-1 rounded-full" />
+            <span aria-hidden="true" className="h-1 w-1 rounded-full bg-[#535353]" />
             <span>
-              v{version} · &copy; {new Date().getUTCFullYear()} Forgentic. All rights reserved.
+              v{version} · &copy; {new Date().getUTCFullYear()} Forgentic Core.
             </span>
           </div>
-          <ul className="flex items-center gap-6">
-            {/* Destinations below are routed in a follow-up milestone. */}
+          <ul className="flex items-center gap-8">
             <li>
-              <Link
-                href="/privacy"
-                className="hover:text-fg focus-visible:text-fg transition-colors focus-visible:outline-none"
-              >
+              <Link href="/privacy" className="transition-colors hover:text-[#ffffff]">
                 Privacy
               </Link>
             </li>
             <li>
-              <Link
-                href="/terms"
-                className="hover:text-fg focus-visible:text-fg transition-colors focus-visible:outline-none"
-              >
+              <Link href="/terms" className="transition-colors hover:text-[#ffffff]">
                 Terms
               </Link>
             </li>
             <li>
               <Link
-                href="/pricing"
-                className="hover:text-fg focus-visible:text-fg transition-colors focus-visible:outline-none"
+                href="/status"
+                className="flex items-center gap-2 transition-colors hover:text-[#cb3500]"
               >
-                Pricing
+                <span className="h-2 w-2 rounded-full bg-[#59a993]"></span>System Status
               </Link>
             </li>
           </ul>
@@ -205,25 +191,21 @@ export default function HomePage() {
 
 function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <svg
         aria-hidden="true"
         viewBox="0 0 32 32"
-        className="h-7 w-7"
+        className="h-8 w-8"
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinejoin="round"
       >
-        <path d="M16 3 3 10v12l13 7 13-7V10L16 3Z" className="text-brand-500" />
-        <path d="M12 12h8M12 16h6" className="text-fg" strokeLinecap="round" />
+        <path d="M16 3 3 10v12l13 7 13-7V10L16 3Z" className="text-[#cb3500]" />
+        <path d="M12 12h8M12 16h6" className="text-[#ffffff]" strokeLinecap="round" />
       </svg>
       <span
-        className={
-          compact
-            ? 'text-fg text-sm font-semibold tracking-tight'
-            : 'text-fg text-base font-semibold tracking-tight'
-        }
+        className={`font-bold tracking-tight text-[#ffffff] ${compact ? 'text-[16px]' : 'text-[22px]'}`}
       >
         Forgentic
       </span>
