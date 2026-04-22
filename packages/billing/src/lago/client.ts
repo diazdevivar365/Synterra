@@ -1,9 +1,11 @@
 import type {
   LagoClient,
   LagoClientConfig,
+  LagoCustomerResponse,
   LagoCustomerUsageResponse,
   LagoEventInput,
   LagoEventResponse,
+  LagoUpsertCustomerInput,
 } from './types';
 
 export class LagoClientError extends Error {
@@ -36,10 +38,11 @@ async function lagoFetch<T>(
 
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    throw new LagoClientError(
-      `lago: ${(restInit.method as string | undefined) ?? 'GET'} ${url} -> HTTP ${res.status}`,
-      { status: res.status, body: body.slice(0, 512), url },
-    );
+    throw new LagoClientError(`lago: ${restInit.method ?? 'GET'} ${url} -> HTTP ${res.status}`, {
+      status: res.status,
+      body: body.slice(0, 512),
+      url,
+    });
   }
   return (await res.json()) as T;
 }
@@ -73,6 +76,31 @@ export function createLagoClient(config: LagoClientConfig): LagoClient {
         apiKey,
         { method: 'GET' },
       );
+    },
+
+    async upsertCustomer(input: LagoUpsertCustomerInput): Promise<LagoCustomerResponse> {
+      // Lago POST /api/v1/customers is an upsert by external_id.
+      // See https://doc.getlago.com/api-reference/customers/create
+      return lagoFetch<LagoCustomerResponse>(`${base}/api/v1/customers`, apiKey, {
+        method: 'POST',
+        body: {
+          customer: {
+            external_id: input.externalCustomerId,
+            ...(input.name ? { name: input.name } : {}),
+            ...(input.email ? { email: input.email } : {}),
+            ...(input.currency ? { currency: input.currency } : {}),
+            ...(input.metadata
+              ? {
+                  metadata: Object.entries(input.metadata).map(([key, value]) => ({
+                    key,
+                    value,
+                    display_in_invoice: false,
+                  })),
+                }
+              : {}),
+          },
+        },
+      });
     },
   };
 }

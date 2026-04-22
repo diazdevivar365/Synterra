@@ -14,6 +14,7 @@ import { Worker, type Job } from 'bullmq';
 import { eq } from 'drizzle-orm';
 
 import { createAquilaClient, SUPPORTED_CONTRACT_VERSION } from '@synterra/aquila-client';
+import { createLagoClient, LagoClientError } from '@synterra/billing';
 import { aquilaCredentials, createDb } from '@synterra/db';
 
 import { env } from './config.js';
@@ -42,6 +43,7 @@ export function createProvisionerWorker(connection: Redis): Worker<ProvisionWork
   });
 
   const db = createDb(env.DATABASE_URL);
+  const lago = createLagoClient({ apiUrl: env.LAGO_API_URL, apiKey: env.LAGO_API_KEY });
 
   return new Worker<ProvisionWorkspaceJobData>(
     QUEUE_NAMES.PROVISION,
@@ -85,6 +87,34 @@ export function createProvisionerWorker(connection: Redis): Worker<ProvisionWork
         apiKeyPrefix: prefix,
         apiKeySecretEnc: encryptedSecret,
       });
+
+      // Lago customer upsert — idempotent. Lago's POST /customers is actually
+      // an upsert by external_id so we can call it every provision without
+      // worrying about retries. Failure here is non-fatal: usage metering
+      // flakes but workspace is still usable.
+      try {
+        await lago.upsertCustomer({
+          externalCustomerId: workspaceSlug,
+          name: workspaceName,
+          currency: 'USD',
+          metadata: { synterra_workspace_id: workspaceId },
+        });
+        logger.info(
+          { event: 'provisioner.lago_ok', workspaceId, workspaceSlug },
+          'Lago customer upserted',
+        );
+      } catch (err) {
+        logger.warn(
+          {
+            event: 'provisioner.lago_failed',
+            workspaceId,
+            workspaceSlug,
+            status: err instanceof LagoClientError ? err.status : undefined,
+            err,
+          },
+          'Lago customer upsert failed — will keep workspace but metering may lag',
+        );
+      }
 
       logger.info(
         { event: 'provisioner.done', workspaceId, orgSlug: org.slug, keyId: apiKey.id },

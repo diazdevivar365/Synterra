@@ -40,7 +40,27 @@ export interface LagoClientConfig {
   apiKey: string;
 }
 
+export interface LagoUpsertCustomerInput {
+  externalCustomerId: string;
+  name?: string;
+  email?: string;
+  currency?: string;
+  metadata?: Readonly<Record<string, string>>;
+}
+
+export interface LagoCustomerResponse {
+  customer: {
+    lagoId: string;
+    externalId: string;
+    name: string | null;
+    email: string | null;
+    currency: string | null;
+    createdAt: string;
+  };
+}
+
 export interface LagoClient {
   ingestEvent(input: LagoEventInput): Promise<LagoEventResponse>;
   getCustomerUsage(externalCustomerId: string): Promise<LagoCustomerUsageResponse>;
+  upsertCustomer(input: LagoUpsertCustomerInput): Promise<LagoCustomerResponse>;
 }

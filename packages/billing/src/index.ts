@@ -147,9 +147,10 @@ export { createLagoClient, LagoClientError } from './lago/client';
 export type {
   LagoClient,
   LagoClientConfig,
+  LagoCustomerResponse,
+  LagoCustomerUsageResponse,
   LagoEventInput,
   LagoEventResponse,
-  LagoCustomerUsageResponse,
+  LagoUpsertCustomerInput,
   LagoUsageCharge,
 } from './lago/types';
-

@@ -47,6 +47,7 @@ export function createUsageAggregatorWorker(connection: Redis): Worker<UsageAggr
 
       let reconciled = 0;
       let errored = 0;
+      let selfHealed = 0;
 
       for (const ws of active) {
         try {
@@ -61,6 +62,40 @@ export function createUsageAggregatorWorker(connection: Redis): Worker<UsageAggr
             'lago usage reconciled',
           );
         } catch (err) {
+          const is404 = err instanceof LagoClientError && err.status === 404;
+          if (is404) {
+            // Self-heal: the workspace exists in Synterra but not in Lago.
+            // Fixes the provisioning gap for workspaces created before the
+            // upsert hook existed.
+            try {
+              await lago.upsertCustomer({
+                externalCustomerId: ws.slug,
+                currency: 'USD',
+                metadata: { synterra_workspace_id: ws.workspaceId },
+              });
+              selfHealed += 1;
+              logger.info(
+                {
+                  event: 'usage_aggregator.self_healed',
+                  workspaceId: ws.workspaceId,
+                  slug: ws.slug,
+                },
+                'Lago customer upserted after 404 — will reconcile next tick',
+              );
+              // Don't retry getCustomerUsage now: a just-created customer
+              // may have no usage data yet. Next tick will pick it up clean.
+              continue;
+            } catch (upsertErr) {
+              logger.warn(
+                {
+                  event: 'usage_aggregator.self_heal_failed',
+                  workspaceId: ws.workspaceId,
+                  err: { message: (upsertErr as Error).message },
+                },
+                'Lago self-heal upsert failed',
+              );
+            }
+          }
           errored += 1;
           logger.warn(
             {
@@ -80,6 +115,7 @@ export function createUsageAggregatorWorker(connection: Redis): Worker<UsageAggr
           active: active.length,
           reconciled,
           errored,
+          selfHealed,
           durationMs: Date.now() - startedAt,
         },
         'usage aggregator tick done',
