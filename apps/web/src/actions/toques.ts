@@ -77,3 +77,28 @@ export async function deleteToqueAction(formData: FormData): Promise<ActionResul
   revalidatePath(`/${slug}/toques`);
   return { ok: true };
 }
+
+export async function reextractToqueAction(formData: FormData): Promise<ActionResult> {
+  const slug = formData.get('workspace') as string;
+  const id = formData.get('toque_id') as string;
+  if (!id) return { ok: false, error: 'toque_id requerido' };
+
+  const ws = await resolveWorkspace(slug);
+  if (!ws) return { ok: false, error: 'workspace no encontrado' };
+
+  await aquilaFetch<unknown>(ws.id, `/toques/${id}/extract`, { method: 'POST' });
+  return { ok: true };
+}
+
+export async function refetchToqueAction(formData: FormData): Promise<ActionResult> {
+  const slug = formData.get('workspace') as string;
+  const id = formData.get('toque_id') as string;
+  if (!id) return { ok: false, error: 'toque_id requerido' };
+
+  const ws = await resolveWorkspace(slug);
+  if (!ws) return { ok: false, error: 'workspace no encontrado' };
+
+  const fresh = await aquilaFetch<Toque>(ws.id, `/toques/${id}`);
+  if (!fresh) return { ok: false, error: 'toque no encontrado' };
+  return { ok: true, toque: fresh };
+}

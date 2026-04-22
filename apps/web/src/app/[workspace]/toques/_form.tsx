@@ -1,8 +1,13 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 
-import { createToqueAction, deleteToqueAction } from '@/actions/toques';
+import {
+  createToqueAction,
+  deleteToqueAction,
+  reextractToqueAction,
+  refetchToqueAction,
+} from '@/actions/toques';
 import { TOQUE_KINDS, type Toque, type ToqueKind } from '@/lib/toques';
 
 const KIND_EMOJI: Record<ToqueKind, string> = {
@@ -69,6 +74,63 @@ export function ToquesClient({
       setToques((prev) => prev.filter((t) => t.id !== id));
     });
   }
+
+  function onReextract(id: string) {
+    const fd = new FormData();
+    fd.set('workspace', workspace);
+    fd.set('toque_id', id);
+    startTransition(async () => {
+      const res = await reextractToqueAction(fd);
+      if (!res.ok) setError(res.error ?? 'error al re-extraer');
+      // Background task — auto-polling below picks up the updated row.
+    });
+  }
+
+  // Auto-poll toques missing extracted_flags so the Art Director's output
+  // appears live. Stops as soon as every toque has flags.
+  useEffect(() => {
+    const pending = toques.filter((t) => t.extracted_flags == null);
+    if (pending.length === 0) return;
+
+    const state: { cancelled: boolean } = { cancelled: false };
+    let attempt = 0;
+    const tick = async () => {
+      if (state.cancelled) return;
+      attempt += 1;
+      // Exponential-ish backoff capped at 10 attempts (~2.5min total).
+      if (attempt > 10) return;
+      const updates = await Promise.all(
+        pending.map(async (t) => {
+          const fd = new FormData();
+          fd.set('workspace', workspace);
+          fd.set('toque_id', t.id);
+          const res = await refetchToqueAction(fd);
+          return res.ok ? res.toque : null;
+        }),
+      );
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (state.cancelled) return;
+      setToques((prev) =>
+        prev.map((t) => {
+          const match = updates.find((u) => u?.id === t.id);
+          return match ?? t;
+        }),
+      );
+      setTimeout(
+        () => {
+          void tick();
+        },
+        Math.min(3000 + attempt * 2000, 20000),
+      );
+    };
+    const timer = setTimeout(() => {
+      void tick();
+    }, 3000);
+    return () => {
+      state.cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [toques, workspace]);
 
   const currentHint = TOQUE_KINDS.find((k) => k.value === kind)?.hint ?? '';
 
@@ -167,7 +229,13 @@ export function ToquesClient({
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {toques.map((t) => (
-            <ToqueCard key={t.id} toque={t} onDelete={() => onDelete(t.id)} disabled={isPending} />
+            <ToqueCard
+              key={t.id}
+              toque={t}
+              onDelete={() => onDelete(t.id)}
+              onReextract={() => onReextract(t.id)}
+              disabled={isPending}
+            />
           ))}
         </div>
       )}
@@ -178,10 +246,12 @@ export function ToquesClient({
 function ToqueCard({
   toque,
   onDelete,
+  onReextract,
   disabled,
 }: {
   toque: Toque;
   onDelete: () => void;
+  onReextract: () => void;
   disabled: boolean;
 }) {
   const kind = toque.kind;
@@ -217,15 +287,33 @@ function ToqueCard({
       )}
 
       {!toque.extracted_flags ? (
-        <div className="text-muted-fg border-border border-t pt-2 font-mono text-[10px]">
-          flags pendientes de extracción
+        <div className="border-border flex items-center justify-between gap-2 border-t pt-2">
+          <div className="text-muted-fg font-mono text-[10px]">Art Director extrayendo flags…</div>
+          <button
+            type="button"
+            onClick={onReextract}
+            disabled={disabled}
+            className="text-muted-fg hover:text-fg font-mono text-[10px] transition-colors disabled:opacity-40"
+          >
+            re-extraer
+          </button>
         </div>
       ) : (
         <div className="border-border border-t pt-2">
-          <div className="text-muted-fg mb-1 font-mono text-[10px] uppercase tracking-wider">
-            Flags
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <div className="text-muted-fg font-mono text-[10px] uppercase tracking-wider">
+              Flags
+            </div>
+            <button
+              type="button"
+              onClick={onReextract}
+              disabled={disabled}
+              className="text-muted-fg hover:text-fg font-mono text-[10px] transition-colors disabled:opacity-40"
+            >
+              re-extraer
+            </button>
           </div>
-          <pre className="text-muted-fg max-h-24 overflow-auto font-mono text-[10px] leading-tight">
+          <pre className="text-muted-fg max-h-40 overflow-auto font-mono text-[10px] leading-tight">
             {JSON.stringify(toque.extracted_flags, null, 2)}
           </pre>
         </div>
