@@ -25,6 +25,7 @@
     "drizzle-orm": "catalog:",
     "postgres": "catalog:",
     "pino": "catalog:",
+    "prom-client": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -15,6 +15,7 @@ import { Hono } from 'hono';
 import { env } from './config.js';
 import logger from './logger.js';
 import { loggerMiddleware } from './middleware/logger.js';
+import { metricsHandler, metricsMiddleware } from './middleware/metrics.js';
 import { requestIdMiddleware, type RequestIdVariables } from './middleware/request-id.js';
 import { secureHeadersMiddleware } from './middleware/secure-headers.js';
 import { createHealthRouter } from './routes/health.js';
@@ -32,6 +33,11 @@ export function buildApp(): Hono<AppEnv> {
   app.use('*', requestIdMiddleware);
   app.use('*', loggerMiddleware);
   app.use('*', secureHeadersMiddleware());
+  app.use('*', metricsMiddleware);
+
+  // Prometheus scrape endpoint. No auth — intended for intra-VPC scraping
+  // only; expose via Traefik / ALB ACL, never on a public route.
+  app.get('/metrics', metricsHandler);
 
   app.route('/v1/health', createHealthRouter());
   app.route('/v1/brands', createBrandsRouter());
