@@ -40,6 +40,10 @@ volumes:
       type: none
       o: bind
       device: /opt/observability/grafana/data
+  # Shared volume: alertmanager-init writes rendered alertmanager.yml here;
+  # alertmanager mounts it read-only.
+  alertmanager-config:
+    driver: local
 
 services:
   prometheus:
@@ -62,15 +66,47 @@ services:
     networks:
       - observability
 
+  # Renders alertmanager.yml.tpl → alertmanager.yml via envsubst using the
+  # env vars injected by Infisical at deploy time. Runs once, then exits;
+  # alertmanager waits for it via depends_on condition=service_completed_successfully.
+  alertmanager-init:
+    image: alpine:3.20
+    container_name: alertmanager-init
+    restart: "no"
+    environment:
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+    volumes:
+      - ./config/alertmanager.yml.tpl:/in/alertmanager.yml.tpl:ro
+      - alertmanager-config:/out
+    command: >-
+      sh -eu -c "
+      apk add --no-cache gettext >/dev/null;
+      : \${SLACK_WEBHOOK_URL:?SLACK_WEBHOOK_URL is required};
+      : \${SMTP_HOST:?SMTP_HOST is required};
+      : \${SMTP_USER:?SMTP_USER is required};
+      : \${SMTP_PASSWORD:?SMTP_PASSWORD is required};
+      envsubst '\${SLACK_WEBHOOK_URL} \${SMTP_HOST} \${SMTP_USER} \${SMTP_PASSWORD}' < /in/alertmanager.yml.tpl > /out/alertmanager.yml;
+      echo 'alertmanager config rendered';
+      "
+    networks:
+      - observability
+
   alertmanager:
     image: prom/alertmanager:v0.28.1
     container_name: alertmanager
     restart: unless-stopped
+    depends_on:
+      alertmanager-init:
+        condition: service_completed_successfully
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
       - --storage.path=/alertmanager
+      - --cluster.listen-address=
     volumes:
-      - ./config/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-config:/etc/alertmanager:ro
     ports:
       - "9093:9093"
     networks:

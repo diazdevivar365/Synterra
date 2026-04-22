@@ -1,0 +1,95 @@
+groups:
+  - name: forgentic-core
+    interval: 30s
+    rules:
+      # Target down: prometheus can't scrape for 2 min. Critical — something
+      # essential is not observable.
+      - alert: InstanceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Scrape target {{ $labels.job }} / {{ $labels.instance }} down"
+          description: "Prometheus has been unable to scrape {{ $labels.instance }} (job={{ $labels.job }}) for 2+ minutes."
+
+      # Postgres down: postgres-exporter reports pg_up=0
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Postgres is DOWN on {{ $labels.instance }}"
+          description: "postgres-exporter reports pg_up=0 for 1+ minute. Customer traffic will fail."
+
+      # Redis down: redis-exporter reports redis_up=0
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is DOWN on {{ $labels.instance }}"
+          description: "BullMQ queues and cache will fail. Check container + network."
+
+      # Node disk >85% full — warning (digest)
+      - alert: DiskSpaceLow
+        expr: |
+          (1 - (node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay"}
+          / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overlay"})) > 0.85
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk >85% full on {{ $labels.instance }}"
+          description: "Root filesystem is at {{ $value | humanizePercentage }}. Plan cleanup."
+
+      # Node disk >95% full — critical (page-now)
+      - alert: DiskSpaceCritical
+        expr: |
+          (1 - (node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay"}
+          / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overlay"})) > 0.95
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk >95% full on {{ $labels.instance }}"
+          description: "Root filesystem is at {{ $value | humanizePercentage }}. Will fail writes soon."
+
+      # Node memory available <10% for 15 min — warning
+      - alert: MemoryLow
+        expr: |
+          node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Available memory <10% on {{ $labels.instance }}"
+          description: "MemAvailable at {{ $value | humanizePercentage }}. OOM risk."
+
+  - name: forgentic-apps
+    interval: 30s
+    rules:
+      # HTTP 5xx rate >5% over 10m — warning (digest)
+      # Applies when a /metrics endpoint exports http_requests_total with status.
+      - alert: HighHttp5xxRate
+        expr: |
+          sum by (job) (rate(http_requests_total{status=~"5.."}[5m]))
+          / sum by (job) (rate(http_requests_total[5m])) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.job }} HTTP 5xx rate >5%"
+          description: "5xx rate at {{ $value | humanizePercentage }} over last 5 min. Investigate before it escalates."
+
+      # BullMQ queue backlog >1000 for 10 min — warning
+      - alert: BullMqBacklogHigh
+        expr: bullmq_waiting_jobs > 1000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "BullMQ queue {{ $labels.queue }} has {{ $value }} waiting jobs"
+          description: "Worker throughput is likely not keeping up with producers."
