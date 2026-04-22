@@ -22,3 +22,4 @@ export * from './schemas/sso';
 export * from './schemas/inflight-bootstrap';
 export * from './schemas/brand-changes';
 export * from './schemas/slack';
+export * from './schemas/brand-pins';
