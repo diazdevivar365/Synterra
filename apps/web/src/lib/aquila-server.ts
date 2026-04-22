@@ -96,13 +96,17 @@ export async function aquilaFetch<T>(
   if (!creds) return null;
   try {
     const token = await getServiceToken(workspaceId, creds.apiKey);
+    // `cache: 'no-store'` — different workspaces hit the same Aquila URL
+    // but with different Bearer tokens; Next.js's default fetch cache keys
+    // on URL + method, not headers, so caching would serve one workspace's
+    // data to another. Bypass the cache entirely for tenant-scoped reads.
     const res = await fetch(`${BASE}${path}`, {
       ...init,
       headers: {
         Authorization: `Bearer ${token}`,
         ...(init?.headers as Record<string, string> | undefined),
       },
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
     if (!res.ok) return null;
     return (await res.json()) as T;
