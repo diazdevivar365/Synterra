@@ -8,6 +8,7 @@ import {
   Brain,
   CalendarClock,
   Gauge,
+  Bot,
   ChevronDown,
   CreditCard,
   FlaskConical,
@@ -122,6 +123,11 @@ export default async function WorkspaceLayout({
       href: `${base}/toques`,
       label: 'Toque personal',
       icon: <Sparkle className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/agents`,
+      label: 'Agentes',
+      icon: <Bot className="h-4 w-4 shrink-0" />,
     },
     {
       href: `${base}/pulse`,
