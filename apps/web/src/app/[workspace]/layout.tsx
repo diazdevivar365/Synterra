@@ -1,5 +1,25 @@
 import { and, eq } from 'drizzle-orm';
-import { BarChart2, ChevronDown, CreditCard, FlaskConical, Settings, Sparkles } from 'lucide-react';
+import {
+  Activity,
+  ArrowDownToLine,
+  BarChart2,
+  BellRing,
+  BookOpen,
+  CalendarClock,
+  ChevronDown,
+  CreditCard,
+  FlaskConical,
+  LineChart,
+  Map,
+  MessageCircle,
+  Pin,
+  Plus,
+  Settings,
+  Sparkles,
+  Sword,
+  Swords,
+  Zap,
+} from 'lucide-react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -70,14 +90,79 @@ export default async function WorkspaceLayout({
   const nav = [
     { href: `${base}/brands`, label: 'Brands', icon: <BarChart2 className="h-4 w-4 shrink-0" /> },
     {
+      href: `${base}/discovery`,
+      label: 'Discovery',
+      icon: <Plus className="h-4 w-4 shrink-0" />,
+    },
+    {
       href: `${base}/research`,
       label: 'Research',
       icon: <FlaskConical className="h-4 w-4 shrink-0" />,
     },
     {
+      href: `${base}/insights`,
+      label: 'Insights',
+      icon: <LineChart className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/pulse`,
+      label: 'Pulse',
+      icon: <Activity className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/heatmap`,
+      label: 'Heatmap',
+      icon: <Map className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/export`,
+      label: 'Export',
+      icon: <ArrowDownToLine className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/alerts`,
+      label: 'Alerts',
+      icon: <BellRing className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/schedules`,
+      label: 'Schedules',
+      icon: <CalendarClock className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/activity`,
+      label: 'Activity',
+      icon: <Zap className="h-4 w-4 shrink-0" />,
+    },
+    {
       href: `${base}/generate`,
       label: 'Generate',
       icon: <Sparkles className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/battlecards`,
+      label: 'Battlecards',
+      icon: <Sword className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/clash`,
+      label: 'Clash',
+      icon: <Swords className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/chat`,
+      label: 'Chat',
+      icon: <MessageCircle className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/glossary`,
+      label: 'Glossary',
+      icon: <BookOpen className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/pins`,
+      label: 'Pins',
+      icon: <Pin className="h-4 w-4 shrink-0" />,
     },
     {
       href: `${base}/billing`,

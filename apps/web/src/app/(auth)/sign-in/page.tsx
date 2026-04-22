@@ -3,17 +3,17 @@ import { redirect } from 'next/navigation';
 
 import { auth } from '@/lib/auth';
 
-import { initiateSso, sendMagicLink } from './_actions';
+import { initiateSso, sendMagicLink, bypassLoginAction } from './_actions';
 
 interface Props {
-  searchParams: Promise<{ sent?: string; error?: string; sso_error?: string }>;
+  searchParams: Promise<{ sent?: string; error?: string; sso_error?: string; demo?: string }>;
 }
 
 export default async function SignInPage({ searchParams }: Props) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (session) redirect('/dashboard');
 
-  const { sent, error, sso_error } = await searchParams;
+  const { sent, error, sso_error, demo } = await searchParams;
 
   return (
     <div className="space-y-6">
@@ -40,7 +40,7 @@ export default async function SignInPage({ searchParams }: Props) {
       )}
 
       {!sent && (
-        <form action={sendMagicLink} className="space-y-4">
+        <form className="space-y-4">
           <div className="space-y-1.5">
             <label htmlFor="email" className="text-fg block text-sm font-medium">
               Work email
@@ -56,11 +56,20 @@ export default async function SignInPage({ searchParams }: Props) {
             />
           </div>
           <button
-            type="submit"
+            formAction={sendMagicLink}
             className="bg-brand-500 hover:bg-brand-400 text-fg w-full rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
           >
             Send magic link →
           </button>
+          {(process.env.NODE_ENV === 'development' || demo === '1') && (
+            <button
+              formAction={bypassLoginAction}
+              formNoValidate
+              className="w-full rounded-lg border border-[#535353] bg-[#111111] px-4 py-2.5 text-sm font-medium text-[#dadada] transition-colors hover:border-[#cb3500] hover:text-[#cb3500]"
+            >
+              Demo Auto-Login (Bypass)
+            </button>
+          )}
         </form>
       )}
 

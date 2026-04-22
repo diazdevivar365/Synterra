@@ -1,15 +1,18 @@
 import { and, eq } from 'drizzle-orm';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Download, Pin } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
-import { workspaceMembers, workspaces } from '@synterra/db';
+import { brandPins, workspaceMembers, workspaces } from '@synterra/db';
 
+import { togglePin } from '@/actions/pins';
 import { ActivityFeed } from '@/components/activity-feed';
+import { BrandDnaPanel } from '@/components/brand-dna';
 import { DnaRadar } from '@/components/dna-radar';
+import { DnaTwinsPanel } from '@/components/dna-twins';
 import { StatCard } from '@/components/stat-card';
 import { brandInitials, getHealthColor, getHealthLabel } from '@/lib/brand-utils';
-import { getBrandById } from '@/lib/brands';
+import { getBrandById, getBrandDnaTwins, getBrandQuality, getFullBrandDna } from '@/lib/brands';
 import { db } from '@/lib/db';
 import { getWorkspaceContext } from '@/lib/workspace-context';
 
@@ -63,7 +66,26 @@ export default async function BrandDetailPage({ params }: Props) {
     .then((r) => r[0] ?? null);
   if (!ws) redirect('/workspaces');
 
-  const result = await getBrandById(ws.id, id);
+  const [result, fullDna, twins, quality, pinRow] = await Promise.all([
+    getBrandById(ws.id, id),
+    getFullBrandDna(ws.id, id),
+    getBrandDnaTwins(ws.id, id),
+    getBrandQuality(ws.id, id),
+    db
+      .select({ id: brandPins.id })
+      .from(brandPins)
+      .where(
+        and(
+          eq(brandPins.workspaceId, ws.id),
+          eq(brandPins.userId, ctx.userId),
+          eq(brandPins.brandId, id),
+        ),
+      )
+      .limit(1)
+      .then((r) => r[0] ?? null),
+  ]);
+
+  const pinned = pinRow !== null;
   if (!result) notFound();
 
   const { brand, fromSeed } = result;
@@ -89,14 +111,101 @@ export default async function BrandDetailPage({ params }: Props) {
           <ArrowLeft className="h-3 w-3" />
           Brands
         </Link>
-        <div className="flex items-center gap-4">
-          <div className="bg-surface-elevated text-accent flex h-12 w-12 shrink-0 items-center justify-center rounded-[8px] text-base font-bold">
-            {brandInitials(brand.name)}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="bg-surface-elevated text-accent flex h-12 w-12 shrink-0 items-center justify-center rounded-[8px] text-base font-bold">
+              {brandInitials(brand.name)}
+            </div>
+            <div>
+              <h1 className="text-fg text-2xl font-bold">{brand.name}</h1>
+              <p className="text-muted-fg font-mono text-xs">{brand.domain}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-fg text-2xl font-bold">{brand.name}</h1>
-            <p className="text-muted-fg font-mono text-xs">{brand.domain}</p>
-          </div>
+          <nav className="flex items-center gap-3">
+            <Link
+              href={`/${slug}/brands/${id}/timeline`}
+              className="text-muted-fg hover:text-fg font-mono text-xs transition-colors duration-150"
+            >
+              Timeline
+            </Link>
+            <Link
+              href={`/${slug}/brands/${id}/instagram`}
+              className="text-muted-fg hover:text-fg font-mono text-xs transition-colors duration-150"
+            >
+              Instagram
+            </Link>
+            <Link
+              href={`/${slug}/brands/${id}/graph`}
+              className="text-muted-fg hover:text-fg font-mono text-xs transition-colors duration-150"
+            >
+              Graph
+            </Link>
+            <Link
+              href={`/${slug}/brands/${id}/changes`}
+              className="text-muted-fg hover:text-fg font-mono text-xs transition-colors duration-150"
+            >
+              Changes
+            </Link>
+            <Link
+              href={`/${slug}/brands/${id}/pricing`}
+              className="text-muted-fg hover:text-fg font-mono text-xs transition-colors duration-150"
+            >
+              Pricing
+            </Link>
+            <Link
+              href={`/${slug}/brands/${id}/ads`}
+              className="text-muted-fg hover:text-fg font-mono text-xs transition-colors duration-150"
+            >
+              Ads
+            </Link>
+            <Link
+              href={`/${slug}/brands/${id}/geo`}
+              className="text-muted-fg hover:text-fg font-mono text-xs transition-colors duration-150"
+            >
+              Geo
+            </Link>
+            <Link
+              href={`/${slug}/brands/${id}/comments`}
+              className="text-muted-fg hover:text-fg font-mono text-xs transition-colors duration-150"
+            >
+              Comments
+            </Link>
+            <form action={togglePin}>
+              <input type="hidden" name="workspace" value={slug} />
+              <input type="hidden" name="brand_id" value={id} />
+              <input type="hidden" name="pinned" value={String(pinned)} />
+              <button
+                type="submit"
+                className={`bg-surface-elevated border-border hover:border-accent/60 inline-flex items-center gap-1.5 rounded border px-2.5 py-1 font-mono text-xs transition-colors duration-150 ${
+                  pinned ? 'text-accent' : 'text-muted-fg'
+                }`}
+                title={pinned ? 'Unpin' : 'Pin'}
+              >
+                <Pin className={`h-3 w-3 ${pinned ? 'fill-current' : ''}`} />
+                {pinned ? 'Pinned' : 'Pin'}
+              </button>
+            </form>
+            <a
+              href={`/api/${slug}/brands/${id}/briefing`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-surface-elevated border-border hover:border-accent/60 inline-flex items-center gap-1.5 rounded border px-2.5 py-1 font-mono text-xs transition-colors duration-150"
+              title="Download briefing PDF"
+            >
+              <Download className="h-3 w-3" />
+              Briefing
+            </a>
+            <a
+              href={`/api/${slug}/brands/${id}/moodboard`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-surface-elevated border-border hover:border-accent/60 inline-flex items-center gap-1.5 rounded border px-2.5 py-1 font-mono text-xs transition-colors duration-150"
+              title="Download moodboard PDF"
+            >
+              <Download className="h-3 w-3" />
+              Moodboard
+            </a>
+          </nav>
         </div>
       </div>
 
@@ -106,7 +215,7 @@ export default async function BrandDetailPage({ params }: Props) {
         <div className="space-y-4">
           <div className="border-border bg-surface rounded-[8px] border p-6">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-fg text-base font-semibold">Brand DNA</h2>
+              <h2 className="text-fg text-base font-semibold">Brand Dimension Radar</h2>
               {brand.lastScannedAt && (
                 <span className="text-muted-fg font-mono text-[10px]">
                   Analyzed {Math.round((Date.now() - brand.lastScannedAt.getTime()) / 3_600_000)}h
@@ -118,6 +227,8 @@ export default async function BrandDetailPage({ params }: Props) {
               <DnaRadar scores={brand.dna} />
             </div>
           </div>
+
+          <BrandDnaPanel dna={fullDna} />
 
           {/* Dimension breakdown */}
           <div className="space-y-2">
@@ -196,6 +307,42 @@ export default async function BrandDetailPage({ params }: Props) {
               </div>
             </div>
           )}
+
+          {/* Quality audit */}
+          {quality && Object.keys(quality).length > 0 && (
+            <div className="border-border bg-surface rounded-[8px] border p-4">
+              <h3 className="text-muted-fg mb-3 font-mono text-[10px] uppercase tracking-wider">
+                Quality Audit
+              </h3>
+              <div className="space-y-2">
+                {Object.entries(quality).map(([field, q]) => {
+                  const dot =
+                    q.status === 'ok'
+                      ? 'bg-accent'
+                      : q.status === 'issue'
+                        ? 'bg-danger'
+                        : 'bg-surface-elevated border-border border';
+                  return (
+                    <div key={field} className="flex items-start gap-2.5">
+                      <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${dot}`} />
+                      <div className="min-w-0">
+                        <p className="text-fg text-xs font-medium capitalize">{field}</p>
+                        {q.reason && (
+                          <p className="text-muted-fg line-clamp-2 text-[10px]">{q.reason}</p>
+                        )}
+                      </div>
+                      <span className="text-muted-fg ml-auto shrink-0 font-mono text-[10px] uppercase">
+                        {q.status}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* DNA Twins */}
+          {twins !== null && <DnaTwinsPanel twins={twins} workspaceId={ws.id} parentBrandId={id} />}
 
           {/* Activity */}
           <div className="border-border bg-surface rounded-[8px] border p-4">

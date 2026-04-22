@@ -1,13 +1,51 @@
 'use server';
 
+import crypto from 'crypto';
+
 import { eq } from 'drizzle-orm';
-import { headers } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { ssoConnections, workspaces } from '@synterra/db';
+import { ssoConnections, workspaces, users, baSessions } from '@synterra/db';
 
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
+
+export async function bypassLoginAction(): Promise<void> {
+  const user = await db
+    .select({ id: users.id })
+    .from(users)
+    .limit(1)
+    .then((r) => r[0]);
+  if (!user) throw new Error('No users found in database to bypass login');
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7);
+
+  await db.insert(baSessions).values({
+    id: crypto.randomUUID(),
+    token,
+    expiresAt,
+    userId: user.id,
+    ipAddress: '127.0.0.1',
+    userAgent: 'Demo Bypass',
+  });
+
+  const cookieStore = await cookies();
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    expires: expiresAt,
+  };
+  cookieStore.set('better-auth.session_token', token, cookieOptions);
+  if (process.env.NODE_ENV === 'production') {
+    cookieStore.set('__Secure-better-auth.session_token', token, cookieOptions);
+  }
+
+  redirect('/workspaces');
+}
 
 export async function sendMagicLink(formData: FormData): Promise<void> {
   const email = formData.get('email');

@@ -31,6 +31,7 @@ const PUBLIC_PREFIXES = [
   '/api/',
   '/_next/',
   '/favicon',
+  '/fonts/',
   '/workspaces',
   '/start',
   '/admin',
@@ -41,7 +42,10 @@ const PUBLIC_PREFIXES = [
   '/dev',
 ];
 
+const PUBLIC_EXACT = ['/'];
+
 function isPublic(pathname: string): boolean {
+  if (PUBLIC_EXACT.includes(pathname)) return true;
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 

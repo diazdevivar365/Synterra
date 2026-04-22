@@ -1,3 +1,4 @@
+import { Pin } from 'lucide-react';
 import Link from 'next/link';
 
 import { brandInitials, getHealthColor } from '@/lib/brand-utils';
@@ -9,6 +10,7 @@ interface Props {
   healthScore: number;
   lastScannedAt: Date | null;
   workspaceSlug: string;
+  pinned?: boolean;
 }
 
 function formatRelativeTime(date: Date): string {
@@ -20,7 +22,13 @@ function formatRelativeTime(date: Date): string {
 }
 
 export function BrandCard({
-  id, name, domain, healthScore, lastScannedAt, workspaceSlug,
+  id,
+  name,
+  domain,
+  healthScore,
+  lastScannedAt,
+  workspaceSlug,
+  pinned,
 }: Props) {
   const initials = brandInitials(name);
   const colorClass = getHealthColor(healthScore);
@@ -28,38 +36,41 @@ export function BrandCard({
   return (
     <Link
       href={`/${workspaceSlug}/brands/${id}`}
-      className="group flex flex-col gap-3 rounded-[8px] border border-border bg-surface p-4 transition-colors duration-150 hover:border-accent hover:shadow-[0_0_0_1px_#cb3500]"
+      className="border-border bg-surface hover:border-accent group relative flex flex-col gap-3 rounded-[8px] border p-4 transition-colors duration-150 hover:shadow-[0_0_0_1px_#cb3500]"
     >
+      {pinned && (
+        <Pin
+          className="text-accent absolute right-3 top-3 h-3.5 w-3.5 fill-current"
+          aria-label="Pinned"
+        />
+      )}
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-surface-elevated text-sm font-bold text-accent">
+        <div className="bg-surface-elevated text-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-sm font-bold">
           {initials}
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-fg">{name}</p>
-          <p className="truncate font-mono text-xs text-muted-fg">{domain}</p>
+          <p className="text-fg truncate text-sm font-semibold">{name}</p>
+          <p className="text-muted-fg truncate font-mono text-xs">{domain}</p>
         </div>
       </div>
 
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] uppercase tracking-wide text-muted-fg">
+          <span className="text-muted-fg font-mono text-[10px] uppercase tracking-wide">
             DNA Health
           </span>
-          <span className={`font-mono text-xs font-medium ${colorClass}`}>
-            {healthScore}%
-          </span>
+          <span className={`font-mono text-xs font-medium ${colorClass}`}>{healthScore}%</span>
         </div>
-        <div className="h-1 w-full overflow-hidden rounded-full bg-surface-elevated">
+        <div className="bg-surface-elevated h-1 w-full overflow-hidden rounded-full">
           <div
-            className="h-full rounded-full bg-accent transition-all duration-500"
+            className="bg-accent h-full rounded-full transition-all duration-500"
             style={{ width: `${healthScore}%` }}
           />
         </div>
       </div>
 
-      <p className="font-mono text-[10px] text-muted-fg">
-        Last scan{' '}
-        {lastScannedAt ? formatRelativeTime(lastScannedAt) : 'never'}
+      <p className="text-muted-fg font-mono text-[10px]">
+        Last scan {lastScannedAt ? formatRelativeTime(lastScannedAt) : 'never'}
       </p>
     </Link>
   );
