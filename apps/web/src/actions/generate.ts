@@ -26,7 +26,7 @@ export async function brandVoiceAction(
   if (!text) return { ok: false, code: 'VALIDATION', message: 'Text is required' };
   if (!brandId) return { ok: false, code: 'VALIDATION', message: 'Brand is required' };
 
-  const result = await rewriteBrandVoice(text, brandId);
+  const result = await rewriteBrandVoice(ctx.workspaceId, text, brandId);
   if (!result) {
     return {
       ok: false,
@@ -51,7 +51,7 @@ export async function battlecardAction(
   if (!brandId) return { ok: false, code: 'VALIDATION', message: 'Brand is required' };
   if (!competitorId) return { ok: false, code: 'VALIDATION', message: 'Competitor is required' };
 
-  const result = await generateBattlecard(brandId, competitorId);
+  const result = await generateBattlecard(ctx.workspaceId, brandId, competitorId);
   if (!result) {
     return {
       ok: false,

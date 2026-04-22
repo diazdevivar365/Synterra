@@ -1,10 +1,11 @@
 import { and, eq } from 'drizzle-orm';
-import { ArrowLeft, BarChart2, ExternalLink } from 'lucide-react';
+import { ArrowLeft, BarChart2, ExternalLink, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
 import { workspaceMembers, workspaces } from '@synterra/db';
 
+import { syncInstagram } from '@/actions/instagram';
 import { StatCard } from '@/components/stat-card';
 import { getBrandById, getBrandInstagram } from '@/lib/brands';
 import { db } from '@/lib/db';
@@ -71,24 +72,37 @@ export default async function InstagramPage({ params }: Props) {
           <ArrowLeft className="h-3 w-3" />
           {brand.name}
         </Link>
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-baseline justify-between gap-3">
           <h1 className="text-fg text-2xl font-bold">Instagram</h1>
-          {profile?.scannedAt && (
-            <span className="text-muted-fg font-mono text-xs">
-              Scanned{' '}
-              {new Date(profile.scannedAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-              })}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {profile?.scannedAt && (
+              <span className="text-muted-fg font-mono text-xs">
+                Scanned{' '}
+                {new Date(profile.scannedAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
+            )}
+            <form action={syncInstagram}>
+              <input type="hidden" name="workspace" value={slug} />
+              <input type="hidden" name="brand_id" value={id} />
+              <button
+                type="submit"
+                className="border-border bg-surface hover:border-accent/60 text-fg inline-flex items-center gap-1.5 rounded border px-2.5 py-1 font-mono text-[11px] transition-colors"
+              >
+                <RefreshCw className="h-3 w-3" />
+                {profile ? 'Re-scan' : 'Run scan'}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
 
       {!profile ? (
         <div className="border-border flex min-h-[240px] items-center justify-center rounded-[8px] border">
           <p className="text-muted-fg font-mono text-sm">
-            No Instagram data yet — trigger a scan from research settings.
+            No Instagram data yet — click "Run scan" above to fetch.
           </p>
         </div>
       ) : (

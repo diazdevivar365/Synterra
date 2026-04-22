@@ -1,55 +1,51 @@
 import 'server-only';
 
-const BASE = process.env['AQUILA_BASE_URL'] ?? '';
-const KEY = process.env['AQUILA_API_KEY'] ?? '';
-
-function aquilaHeaders(): Record<string, string> {
-  return { Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' };
-}
+import { aquilaFetch } from '@/lib/aquila-server';
 
 export interface BrandVoiceResult {
   result: string;
-  brandId: string;
+  brand_id: string;
 }
 
 export async function rewriteBrandVoice(
+  workspaceId: string,
   text: string,
   brandId: string,
 ): Promise<BrandVoiceResult | null> {
-  if (!BASE || !KEY) return null;
-  try {
-    const res = await fetch(`${BASE}/generate/brand-voice`, {
-      method: 'POST',
-      headers: aquilaHeaders(),
-      body: JSON.stringify({ text, brand_id: brandId }),
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as BrandVoiceResult;
-  } catch {
-    return null;
-  }
+  return aquilaFetch<BrandVoiceResult>(workspaceId, '/generate/brand-voice', {
+    method: 'POST',
+    body: JSON.stringify({ text, brand_id: brandId }),
+  });
+}
+
+export interface BattlecardData {
+  summary?: string;
+  strengths?: string[];
+  weaknesses?: string[];
+  pricing_delta?: Record<string, unknown>;
+  messaging_diff?: Record<string, unknown>;
+  win_loss?: string;
+  recommendations?: string[];
 }
 
 export interface BattlecardResult {
   id: string;
-  summary: string;
-  generated_at: string;
-  pdf_url: string | null;
+  brand_id: string;
+  competitor_id: string;
+  regen_count: number;
+  pdf_size: number;
+  pdf_url: string;
+  data: BattlecardData;
 }
 
 export async function generateBattlecard(
+  workspaceId: string,
   brandId: string,
   competitorId: string,
 ): Promise<BattlecardResult | null> {
-  if (!BASE || !KEY) return null;
-  try {
-    const res = await fetch(
-      `${BASE}/brands/${encodeURIComponent(brandId)}/battlecards?vs=${encodeURIComponent(competitorId)}`,
-      { method: 'POST', headers: aquilaHeaders(), body: '{}' },
-    );
-    if (!res.ok) return null;
-    return (await res.json()) as BattlecardResult;
-  } catch {
-    return null;
-  }
+  return aquilaFetch<BattlecardResult>(
+    workspaceId,
+    `/brands/${encodeURIComponent(brandId)}/battlecards?vs=${encodeURIComponent(competitorId)}`,
+    { method: 'POST', body: '{}' },
+  );
 }

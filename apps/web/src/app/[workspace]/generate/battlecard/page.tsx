@@ -85,23 +85,64 @@ export default function BattlecardPage() {
 
       {state?.ok === true && (
         <div className="mt-8 space-y-4">
-          <p className="text-muted-fg font-mono text-xs uppercase tracking-wider">Battlecard</p>
-          <div className="border-accent/30 bg-surface rounded-[8px] border p-5">
-            <p className="text-fg font-mono text-sm">{state.data.summary}</p>
-            <p className="text-muted-fg mt-3 font-mono text-[10px]">
-              Generated {new Date(state.data.generated_at).toLocaleString()}
-            </p>
-            {state.data.pdf_url && (
-              <a
-                href={state.data.pdf_url}
-                target="_blank"
-                rel="noreferrer"
-                className="text-accent mt-3 inline-block font-mono text-xs hover:underline"
-              >
-                Download PDF
-              </a>
-            )}
+          <div className="flex items-baseline justify-between">
+            <p className="text-muted-fg font-mono text-xs uppercase tracking-wider">Battlecard</p>
+            <span className="text-muted-fg font-mono text-[10px]">
+              regen #{state.data.regen_count} · {Math.round(state.data.pdf_size / 1024)} KB
+            </span>
           </div>
+          <div className="border-accent/30 bg-surface space-y-3 rounded-[8px] border p-5">
+            {state.data.data.summary && (
+              <p className="text-fg text-sm">{state.data.data.summary}</p>
+            )}
+            {state.data.data.win_loss && (
+              <p className="text-muted-fg text-xs italic">{state.data.data.win_loss}</p>
+            )}
+            <a
+              href={`/api/${slug}/battlecards/${encodeURIComponent(state.data.brand_id)}/${encodeURIComponent(state.data.id)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-accent inline-block font-mono text-xs hover:underline"
+            >
+              Download PDF
+            </a>
+          </div>
+          {state.data.data.strengths && state.data.data.strengths.length > 0 && (
+            <div className="border-border bg-surface rounded-[8px] border p-5">
+              <h3 className="text-muted-fg mb-2 font-mono text-[10px] uppercase tracking-wider">
+                Strengths
+              </h3>
+              <ul className="text-fg list-disc space-y-1 pl-5 text-sm">
+                {state.data.data.strengths.map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {state.data.data.weaknesses && state.data.data.weaknesses.length > 0 && (
+            <div className="border-border bg-surface rounded-[8px] border p-5">
+              <h3 className="text-muted-fg mb-2 font-mono text-[10px] uppercase tracking-wider">
+                Weaknesses
+              </h3>
+              <ul className="text-fg list-disc space-y-1 pl-5 text-sm">
+                {state.data.data.weaknesses.map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {state.data.data.recommendations && state.data.data.recommendations.length > 0 && (
+            <div className="border-accent/40 bg-surface rounded-[8px] border p-5">
+              <h3 className="text-muted-fg mb-2 font-mono text-[10px] uppercase tracking-wider">
+                Recommendations
+              </h3>
+              <ul className="text-fg list-disc space-y-1 pl-5 text-sm">
+                {state.data.data.recommendations.map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </div>
