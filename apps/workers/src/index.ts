@@ -6,6 +6,8 @@
  * timeout of `SHUTDOWN_TIMEOUT_MS` fires via `setTimeout(...).unref()` so a
  * stuck drain cannot keep the container alive forever.
  */
+import { Queue } from 'bullmq';
+
 import { initTelemetry, shutdownTelemetry } from '@synterra/telemetry';
 
 import { env } from './config.js';
@@ -13,7 +15,9 @@ import { createRedisConnection } from './connection.js';
 import { createDigestWorker, registerDigestRepeatable } from './digest-worker.js';
 import { createHealthServer } from './health-server.js';
 import logger from './logger.js';
+import { instrumentWorker, startQueueDepthSampler } from './metrics.js';
 import { createProvisionerWorker } from './provisioner.js';
+import { QUEUE_NAMES } from './queues.js';
 import { createStripeEventsWorker } from './stripe-worker.js';
 import {
   createUsageAggregatorWorker,
@@ -36,23 +40,47 @@ async function main(): Promise<void> {
 
   const worker = createDefaultWorker(connection);
   await worker.waitUntilReady();
+  instrumentWorker(QUEUE_NAMES.DEFAULT, worker);
 
   const provisioner = createProvisionerWorker(connection);
   await provisioner.waitUntilReady();
+  instrumentWorker(QUEUE_NAMES.PROVISION, provisioner);
 
   const stripeWorker = createStripeEventsWorker(connection);
   await stripeWorker.waitUntilReady();
+  instrumentWorker(QUEUE_NAMES.STRIPE_EVENTS, stripeWorker);
 
   const usageAggregator = createUsageAggregatorWorker(connection);
   await usageAggregator.waitUntilReady();
+  instrumentWorker(QUEUE_NAMES.USAGE_AGGREGATOR, usageAggregator);
   const usageAggregatorQueue = await registerUsageAggregatorRepeatable(connection);
 
   const digestWorker = createDigestWorker(connection);
   await digestWorker.waitUntilReady();
+  instrumentWorker(QUEUE_NAMES.WEEKLY_DIGEST, digestWorker);
   const digestQueue = await registerDigestRepeatable(connection);
 
   const webhookDispatcher = createWebhookDispatcherWorker(connection);
   await webhookDispatcher.waitUntilReady();
+  instrumentWorker(QUEUE_NAMES.WEBHOOK_DISPATCH, webhookDispatcher);
+
+  // Queue depth sampler — Queue refs share the same Redis connection so
+  // we close them in the shutdown path below.
+  const sampledQueues = [
+    { name: QUEUE_NAMES.DEFAULT, queue: new Queue(QUEUE_NAMES.DEFAULT, { connection }) },
+    { name: QUEUE_NAMES.PROVISION, queue: new Queue(QUEUE_NAMES.PROVISION, { connection }) },
+    {
+      name: QUEUE_NAMES.STRIPE_EVENTS,
+      queue: new Queue(QUEUE_NAMES.STRIPE_EVENTS, { connection }),
+    },
+    { name: QUEUE_NAMES.USAGE_AGGREGATOR, queue: usageAggregatorQueue },
+    { name: QUEUE_NAMES.WEEKLY_DIGEST, queue: digestQueue },
+    {
+      name: QUEUE_NAMES.WEBHOOK_DISPATCH,
+      queue: new Queue(QUEUE_NAMES.WEBHOOK_DISPATCH, { connection }),
+    },
+  ];
+  const stopDepthSampler = startQueueDepthSampler(sampledQueues);
 
   const healthServer = createHealthServer({
     port: env.HEALTH_PORT,
@@ -83,6 +111,7 @@ async function main(): Promise<void> {
     hardKill.unref();
 
     try {
+      stopDepthSampler();
       await worker.close();
       await provisioner.close();
       await stripeWorker.close();
@@ -91,6 +120,14 @@ async function main(): Promise<void> {
       await digestWorker.close();
       await digestQueue.close();
       await webhookDispatcher.close();
+      // Close the ad-hoc Queue refs used only for depth sampling. The ones
+      // already closed via register*Repeatable (usage-aggregator, digest)
+      // are skipped — the filter keeps us idempotent.
+      for (const { queue } of sampledQueues) {
+        if (queue !== usageAggregatorQueue && queue !== digestQueue) {
+          await queue.close();
+        }
+      }
       await new Promise<void>((resolve, reject) => {
         healthServer.close((err) => (err ? reject(err) : resolve()));
       });

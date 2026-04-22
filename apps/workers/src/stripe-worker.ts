@@ -13,6 +13,7 @@ import { createDb, serviceRoleQuery, subscriptions } from '@synterra/db';
 
 import { env } from './config.js';
 import logger from './logger.js';
+import { stripeWebhookEvents } from './metrics.js';
 import { QUEUE_NAMES, type StripeEventJobData } from './queues.js';
 import { seedWorkspaceQuota } from './quota.js';
 
@@ -31,6 +32,7 @@ export function createStripeEventsWorker(connection: Redis): Worker<StripeEventJ
         { event: 'stripe.event.processing', type: job.name, eventId: job.data.id },
         'processing Stripe event',
       );
+      stripeWebhookEvents.inc({ event_type: job.name });
 
       switch (job.name) {
         case 'customer.subscription.created':

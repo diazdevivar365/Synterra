@@ -15,6 +15,7 @@ import { createDb, serviceRoleQuery, subscriptions, workspaces } from '@synterra
 
 import { env } from './config.js';
 import logger from './logger.js';
+import { lagoReconcileRuns } from './metrics.js';
 import { QUEUE_NAMES, type UsageAggregatorJobData } from './queues.js';
 
 import type { Redis } from 'ioredis';
@@ -53,6 +54,7 @@ export function createUsageAggregatorWorker(connection: Redis): Worker<UsageAggr
         try {
           const usage = await lago.getCustomerUsage(ws.slug);
           reconciled += 1;
+          lagoReconcileRuns.inc({ result: 'success' });
           logger.debug(
             {
               event: 'usage_aggregator.reconcile.ok',
@@ -97,6 +99,7 @@ export function createUsageAggregatorWorker(connection: Redis): Worker<UsageAggr
             }
           }
           errored += 1;
+          lagoReconcileRuns.inc({ result: 'failure' });
           logger.warn(
             {
               event: 'usage_aggregator.reconcile.error',
