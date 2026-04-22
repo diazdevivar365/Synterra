@@ -18,6 +18,12 @@ export async function POST(req: Request): Promise<NextResponse> {
     session = await getSessionOrThrow();
   } catch (err) {
     if (err instanceof ForbiddenError) {
+      const cookieHeader = req.headers.get('cookie') ?? '';
+      const names = cookieHeader
+        .split(';')
+        .map((c) => c.trim().split('=')[0])
+        .filter(Boolean);
+      console.warn('[switch] 401 no session. cookieNames=', names);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     throw err;
