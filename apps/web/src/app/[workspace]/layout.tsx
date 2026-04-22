@@ -7,6 +7,7 @@ import {
   BookOpen,
   Brain,
   CalendarClock,
+  Gauge,
   ChevronDown,
   CreditCard,
   FlaskConical,
@@ -111,6 +112,11 @@ export default async function WorkspaceLayout({
       href: `${base}/cerebro`,
       label: 'Cerebro',
       icon: <Brain className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/monitors`,
+      label: 'Monitores',
+      icon: <Gauge className="h-4 w-4 shrink-0" />,
     },
     {
       href: `${base}/toques`,
