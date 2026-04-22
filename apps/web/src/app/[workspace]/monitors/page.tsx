@@ -93,9 +93,9 @@ export default async function MonitorsPage({ params }: Props) {
           />
           <Metric
             label="Costo estimado"
-            value={usage ? `$${usage.cost_usd.toFixed(2)}` : '—'}
-            sub={usage ? usage.period : ''}
-            tone={usage && usage.cost_usd > 50 ? 'amber' : undefined}
+            value={usage?.cost_usd != null ? `$${usage.cost_usd.toFixed(2)}` : '—'}
+            sub={usage?.period ?? ''}
+            tone={usage?.cost_usd != null && usage.cost_usd > 50 ? 'amber' : undefined}
           />
           <Metric
             label="Research runs"
