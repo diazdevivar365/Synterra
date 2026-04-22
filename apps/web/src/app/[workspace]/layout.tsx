@@ -9,6 +9,7 @@ import {
   CalendarClock,
   Gauge,
   Bot,
+  Library,
   ChevronDown,
   CreditCard,
   FlaskConical,
@@ -128,6 +129,11 @@ export default async function WorkspaceLayout({
       href: `${base}/agents`,
       label: 'Agentes',
       icon: <Bot className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/references`,
+      label: 'Referencias',
+      icon: <Library className="h-4 w-4 shrink-0" />,
     },
     {
       href: `${base}/pulse`,
