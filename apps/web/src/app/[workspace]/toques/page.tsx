@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { workspaceMembers, workspaces } from '@synterra/db';
 
 import { db } from '@/lib/db';
-import { listToques } from '@/lib/toques';
+import { listToques } from '@/lib/toques-server';
 import { getWorkspaceContext } from '@/lib/workspace-context';
 
 import { ToquesClient } from './_form';
