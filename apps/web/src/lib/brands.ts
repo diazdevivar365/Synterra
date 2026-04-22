@@ -325,7 +325,10 @@ export async function getBrandsForWorkspace(
     workspaceId,
     '/brands?limit=100&source=all',
   );
-  if (data?.items.length) {
+  // Real empty response → empty list, not seed. Only fall back to seed when
+  // Aquila is unreachable (data === null), so "not connected" vs "no brands
+  // yet" are visually distinct.
+  if (data !== null) {
     return { brands: data.items.map(mapListItemToBrand), fromSeed: false };
   }
   return { brands: SEED, fromSeed: true };
