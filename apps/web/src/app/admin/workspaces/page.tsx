@@ -2,6 +2,7 @@ import { count, ilike, or, sql } from 'drizzle-orm';
 
 import { serviceRoleQuery, workspaceMembers, workspaces } from '@synterra/db';
 
+import { impersonateWorkspaceAction } from '@/app/admin/_actions';
 import { db } from '@/lib/db';
 
 interface Props {
@@ -64,6 +65,7 @@ export default async function AdminWorkspacesPage({ searchParams }: Props) {
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-right">Members</th>
               <th className="px-4 py-3 text-left">Created</th>
+              <th className="px-4 py-3 text-right"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -94,11 +96,22 @@ export default async function AdminWorkspacesPage({ searchParams }: Props) {
                     year: 'numeric',
                   })}
                 </td>
+                <td className="px-4 py-3 text-right">
+                  <form action={impersonateWorkspaceAction}>
+                    <input type="hidden" name="workspaceId" value={ws.id} />
+                    <button
+                      type="submit"
+                      className="rounded bg-gray-900 px-2 py-1 text-xs text-white hover:bg-gray-700"
+                    >
+                      Entrar
+                    </button>
+                  </form>
+                </td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
                   No workspaces found.
                 </td>
               </tr>

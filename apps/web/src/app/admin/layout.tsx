@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 
 import { verifyCloudflareAccess } from '@/lib/cloudflare-access';
+import { getSuperadminFromSession } from '@/lib/superadmin';
 
 import type { ReactNode } from 'react';
 
@@ -14,7 +15,9 @@ const NAV_ITEMS = [
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const h = await headers();
-  const identity = await verifyCloudflareAccess(h);
+  const cfIdentity = await verifyCloudflareAccess(h);
+  const superadmin = cfIdentity ? null : await getSuperadminFromSession(h);
+  const identity = cfIdentity ?? superadmin;
 
   if (!identity) {
     return (

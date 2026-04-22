@@ -14,6 +14,7 @@ export const users = pgTable('users', {
   locale: text('locale').default('en'),
   lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
   isSuspended: boolean('is_suspended').notNull().default(false),
+  isSuperadmin: boolean('is_superadmin').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .default(sql`now()`),
