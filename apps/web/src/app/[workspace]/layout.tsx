@@ -5,6 +5,7 @@ import {
   BarChart2,
   BellRing,
   BookOpen,
+  Brain,
   CalendarClock,
   ChevronDown,
   CreditCard,
@@ -103,6 +104,11 @@ export default async function WorkspaceLayout({
       href: `${base}/insights`,
       label: 'Insights',
       icon: <LineChart className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/cerebro`,
+      label: 'Cerebro',
+      icon: <Brain className="h-4 w-4 shrink-0" />,
     },
     {
       href: `${base}/pulse`,
