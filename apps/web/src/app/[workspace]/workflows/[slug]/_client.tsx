@@ -84,7 +84,12 @@ export function WorkflowDetailClient({
                   return (
                     <tr key={r.id} className="border-border border-b last:border-0">
                       <td className="px-3 py-2 font-mono text-[10px]">
-                        <span className="text-fg">{r.id.slice(0, 8)}</span>
+                        <a
+                          href={`/${workspace}/workflows/${workflow.slug}/runs/${r.id}`}
+                          className="text-accent hover:underline"
+                        >
+                          {r.id.slice(0, 8)}
+                        </a>
                       </td>
                       <td className="px-3 py-2">
                         <span
