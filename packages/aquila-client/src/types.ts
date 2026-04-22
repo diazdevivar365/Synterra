@@ -40,3 +40,24 @@ export interface Paginated<T> {
   items: readonly T[];
   nextCursor: string | null;
 }
+
+export interface BrandDna {
+  brandId: string;
+  techStack: readonly string[];
+  fontSignature: string | null;
+  industry: string | null;
+  paletteSignature: readonly string[];
+  updatedAt: string;
+}
+
+export interface DnaTwin {
+  id: string;
+  brandId: string;
+  twinBrandId: string;
+  twinBrandName: string;
+  twinDomain: string;
+  cosineScore: number;
+  tone: string;
+  positioningPreview: string;
+  isExcluded: boolean;
+}

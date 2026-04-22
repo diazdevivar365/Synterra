@@ -86,25 +86,24 @@ describe('@synterra/aquila-client — HTTP calls', () => {
   beforeEach(() => {
     fetchMock = mockFetch({
       '/health': { status: 200, body: { status: 'ok' } },
-      '/auth/issue-provisioner-token': { status: 200, body: { token: 'prov-jwt-xyz' } },
+      '/auth/issue-provisioner-token': {
+        status: 200,
+        body: { access_token: 'prov-jwt-xyz' },
+      },
       '/orgs/acme/api-keys': {
         status: 201,
         body: {
           id: 'key-1',
-          organizationId: 'org-1',
-          lastFour: 'abcd',
-          rawKey: 'ak_fullkey',
-          createdAt: '2026-01-01T00:00:00Z',
-          revokedAt: null,
+          org_id: 'org-1',
+          plaintext: 'ak_fullabcd',
+          created_at: '2026-01-01T00:00:00Z',
         },
       },
       '/orgs': {
         status: 201,
         body: {
-          id: 'org-1',
           slug: 'acme',
-          externalId: 'ws-uuid',
-          createdAt: '2026-01-01T00:00:00Z',
+          created_at: '2026-01-01T00:00:00Z',
         },
       },
       '/research-runs': {
@@ -148,13 +147,13 @@ describe('@synterra/aquila-client — HTTP calls', () => {
     expect(urls.some((u) => u.endsWith('/orgs'))).toBe(true);
 
     const provInit = findCallInit(calls, (u) => u.includes('/auth/issue-provisioner-token'));
-    expect(provInit?.headers).toMatchObject({ 'X-Provisioner-Secret': 'prov-secret-abc' });
+    expect(provInit?.headers).toMatchObject({ 'X-Aquila-Provisioner-Secret': 'prov-secret-abc' });
   });
 
   it('issueApiKey() fetches provisioner token then POSTs /orgs/:slug/api-keys', async () => {
     const client = createAquilaClient(baseConfig);
     const key = await client.issueApiKey('acme');
-    expect(key.rawKey).toBe('ak_fullkey');
+    expect(key.rawKey).toBe('ak_fullabcd');
     expect(key.lastFour).toBe('abcd');
 
     const calls = fetchMock.mock.calls as unknown[][];

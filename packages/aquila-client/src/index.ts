@@ -4,7 +4,7 @@
 // short-lived JWT obtained from /auth/issue-provisioner-token. Org-level calls
 // (createResearchRun, listResearchRuns) use the per-org apiKey directly.
 
-import type { ApiKey, Organization, Paginated, ResearchRun } from './types.js';
+import type { ApiKey, BrandDna, DnaTwin, Organization, Paginated, ResearchRun } from './types.js';
 
 export type AquilaContractVersion = '2026-04';
 export const SUPPORTED_CONTRACT_VERSION: AquilaContractVersion = '2026-04';
@@ -50,6 +50,14 @@ export interface AquilaClient {
   ): Promise<Paginated<ResearchRun>>;
   /** Fetch a single research run by ID (includes result when completed). */
   getResearchRun(organizationId: string, runId: string): Promise<ResearchRun>;
+
+  // -- Brand DNA & Intelligence (W12) --
+  /** Get Brand DNA profile containing tech stack, fonts, colors, and industry. */
+  getBrandDna(brandId: string): Promise<BrandDna>;
+  /** Get AI-matched competitors / DNA twins for a brand. */
+  getDnaTwins(brandId: string): Promise<Paginated<DnaTwin>>;
+  /** Mark a DNA twin as excluded/irrelevant. */
+  excludeDnaTwin(brandId: string, twinId: string): Promise<{ ok: boolean }>;
 }
 
 async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
@@ -69,11 +77,14 @@ async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
 }
 
 async function getProvisionerToken(baseUrl: string, provisionerSecret: string): Promise<string> {
-  const data = await fetchJson<{ token: string }>(`${baseUrl}/auth/issue-provisioner-token`, {
-    method: 'POST',
-    headers: { 'X-Provisioner-Secret': provisionerSecret },
-  });
-  return data.token;
+  const data = await fetchJson<{ access_token: string }>(
+    `${baseUrl}/auth/issue-provisioner-token`,
+    {
+      method: 'POST',
+      headers: { 'X-Aquila-Provisioner-Secret': provisionerSecret },
+    },
+  );
+  return data.access_token;
 }
 
 /**
@@ -106,28 +117,47 @@ export function createAquilaClient(config: AquilaClientConfig): AquilaClient {
 
   return {
     async health() {
-      const data = await fetchJson<{ status: string }>(`${baseUrl}/health`, { method: 'GET' });
+      const data = await fetchJson<{ status: string }>(`${baseUrl}/healthz`, { method: 'GET' });
       return { ok: data.status === 'ok' };
     },
 
     async createOrg(input) {
       const secret = requireProvisionerSecret();
       const token = await getProvisionerToken(baseUrl, secret);
-      return fetchJson<Organization>(`${baseUrl}/orgs`, {
+      const data = await fetchJson<{ slug: string; created_at: string }>(`${baseUrl}/orgs`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify(input),
+        body: JSON.stringify({ slug: input.slug, name: input.displayName }),
       });
+      return {
+        id: data.slug,
+        slug: data.slug,
+        externalId: input.externalId,
+        createdAt: data.created_at,
+      };
     },
 
     async issueApiKey(slug) {
       const secret = requireProvisionerSecret();
       const token = await getProvisionerToken(baseUrl, secret);
-      return fetchJson<ApiKey & { rawKey: string }>(`${baseUrl}/orgs/${slug}/api-keys`, {
+      const data = await fetchJson<{
+        id: string;
+        org_id: string;
+        plaintext: string;
+        created_at: string;
+      }>(`${baseUrl}/orgs/${slug}/api-keys`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ name: 'synterra-provisioner', environment: 'live', scopes: ['*'] }),
       });
+      return {
+        id: data.id,
+        organizationId: data.org_id,
+        lastFour: data.plaintext.slice(-4),
+        createdAt: data.created_at,
+        revokedAt: null,
+        rawKey: data.plaintext,
+      };
     },
 
     async createResearchRun(organizationId, input) {
@@ -158,7 +188,37 @@ export function createAquilaClient(config: AquilaClientConfig): AquilaClient {
         headers: { Authorization: `Bearer ${apiKey}`, 'X-Org-Slug': orgSlug },
       });
     },
+
+    async getBrandDna(brandId) {
+      return fetchJson<BrandDna>(`${baseUrl}/brands/${brandId}/dna`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${apiKey}`, 'X-Org-Slug': orgSlug },
+      });
+    },
+
+    async getDnaTwins(brandId) {
+      return fetchJson<Paginated<DnaTwin>>(`${baseUrl}/brands/${brandId}/dna-twins`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${apiKey}`, 'X-Org-Slug': orgSlug },
+      });
+    },
+
+    async excludeDnaTwin(brandId, twinId) {
+      return fetchJson<{ ok: boolean }>(`${baseUrl}/brands/${brandId}/dna-twins/exclude`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'X-Org-Slug': orgSlug },
+        body: JSON.stringify({ twinId }),
+      });
+    },
   };
 }
 
-export type { ApiKey, Organization, Paginated, ResearchRun, ResearchRunStatus } from './types.js';
+export type {
+  ApiKey,
+  BrandDna,
+  DnaTwin,
+  Organization,
+  Paginated,
+  ResearchRun,
+  ResearchRunStatus,
+} from './types.js';
