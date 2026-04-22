@@ -17,6 +17,7 @@ import {
   Plus,
   Settings,
   Sparkles,
+  Sparkle,
   Sword,
   Swords,
   Zap,
@@ -110,6 +111,11 @@ export default async function WorkspaceLayout({
       href: `${base}/cerebro`,
       label: 'Cerebro',
       icon: <Brain className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/toques`,
+      label: 'Toque personal',
+      icon: <Sparkle className="h-4 w-4 shrink-0" />,
     },
     {
       href: `${base}/pulse`,
