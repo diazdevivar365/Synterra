@@ -5,7 +5,12 @@ import { workspaceMembers, workspaces } from '@synterra/db';
 
 import { brandNameFromId } from '@/lib/brands';
 import { db } from '@/lib/db';
-import { getIndustryGaps, getInsightsClusters, getInsightsSummary } from '@/lib/insights';
+import {
+  getIndustryGaps,
+  getInsightsClusters,
+  getInsightsSummary,
+  getRecentChanges,
+} from '@/lib/insights';
 import { getWorkspaceContext } from '@/lib/workspace-context';
 
 interface Props {
@@ -33,10 +38,11 @@ export default async function InsightsPage({ params }: Props) {
     .then((r) => r[0] ?? null);
   if (!ws) redirect('/workspaces');
 
-  const [summary, clusters, gaps] = await Promise.all([
+  const [summary, clusters, gaps, changes] = await Promise.all([
     getInsightsSummary(ws.id),
     getInsightsClusters(ws.id),
     getIndustryGaps(ws.id),
+    getRecentChanges(ws.id),
   ]);
 
   return (
@@ -49,6 +55,19 @@ export default async function InsightsPage({ params }: Props) {
             : 'Portfolio analysis'}
         </p>
       </div>
+
+      {summary && (
+        <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatTile label="Brands tracked" value={summary.brandsTracked} />
+          <StatTile
+            label="Research runs"
+            value={summary.researchRunsDone}
+            sub={`of ${summary.researchRunsTotal}`}
+          />
+          <StatTile label="Changes · 7d" value={summary.changeEvents7d} />
+          <StatTile label="Strategic alerts" value={summary.strategicAlerts} />
+        </div>
+      )}
 
       <div className="space-y-8">
         {/* DNA Clusters */}
@@ -193,7 +212,80 @@ export default async function InsightsPage({ params }: Props) {
             </div>
           )}
         </section>
+
+        {/* Recent Changes 14d */}
+        <section>
+          <div className="mb-4 flex items-baseline justify-between">
+            <h2 className="text-fg text-base font-semibold">Recent changes</h2>
+            {changes && (
+              <span className="text-muted-fg font-mono text-xs">
+                {changes.totalEvents} events · {changes.windowDays}d
+              </span>
+            )}
+          </div>
+
+          {!changes || changes.byBrand.length === 0 ? (
+            <div className="border-border flex min-h-[120px] items-center justify-center rounded-[8px] border">
+              <p className="text-muted-fg font-mono text-xs">
+                No changes detected in the last 14 days.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {changes.byBrand.slice(0, 10).map((entry) => (
+                <div
+                  key={entry.brandId}
+                  className="border-border bg-surface rounded-[8px] border p-4"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <a
+                      href={`/${slug}/brands/${entry.brandId}/changes`}
+                      className="text-fg hover:text-accent text-sm font-semibold"
+                    >
+                      {brandNameFromId(entry.brandId)}
+                    </a>
+                    <span className="text-muted-fg font-mono text-[10px]">
+                      {entry.events.length} event{entry.events.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <ul className="space-y-2">
+                    {entry.events.slice(0, 5).map((ev, i) => (
+                      <li
+                        key={`${entry.brandId}-${i}`}
+                        className="border-border/50 flex items-start gap-3 border-l-2 pl-3"
+                      >
+                        <span className="text-muted-fg w-24 shrink-0 font-mono text-[10px] uppercase tracking-wider">
+                          {ev.kind.replace(/_/g, ' ')}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-fg truncate text-xs">{ev.after || ev.before || '—'}</p>
+                          <p className="text-muted-fg font-mono text-[10px]">
+                            {new Date(ev.date).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
+    </div>
+  );
+}
+
+function StatTile({ label, value, sub }: { label: string; value: number; sub?: string }) {
+  return (
+    <div className="border-border bg-surface rounded-[8px] border p-4">
+      <p className="text-muted-fg font-mono text-[10px] uppercase tracking-wider">{label}</p>
+      <p className="text-fg mt-2 text-2xl font-bold tabular-nums">{value}</p>
+      {sub && <p className="text-muted-fg mt-1 font-mono text-[10px]">{sub}</p>}
     </div>
   );
 }
