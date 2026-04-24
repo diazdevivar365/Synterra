@@ -115,3 +115,57 @@ export interface OrgUsage {
   llm: UsageLlm;
   generatedAt: string;
 }
+
+// ─── W13-1 · command center ───────────────────────────────────────────────
+
+export type KpiTrendDirection = 'up' | 'down' | 'flat';
+
+export interface KpiTrend {
+  value: number;
+  deltaPct: number | null;
+  direction: KpiTrendDirection;
+}
+
+export interface CommandCenterKpis {
+  brandsTracked: KpiTrend;
+  changes24h: KpiTrend;
+  runs7d: KpiTrend;
+  riskBrands: KpiTrend;
+}
+
+export interface CommandCenterPinnedBrand {
+  brandId: string;
+  tagline: string | null;
+  url: string | null;
+  palette: readonly string[];
+  lastRunAt: string | null;
+  igFollowers: number | null;
+  consistency: number | null;
+}
+
+export type CommandCenterActivityType = 'change' | 'run_done';
+
+export interface CommandCenterActivityItem {
+  type: CommandCenterActivityType;
+  brandId: string;
+  kind?: string;
+  status?: string;
+  ts: string | null;
+}
+
+export interface CommandCenterRiskBrand {
+  brandId: string;
+  tagline: string | null;
+  consistency: number | null;
+  daysStale: number;
+  reason: string;
+}
+
+export interface CommandCenter {
+  generatedAt: string;
+  kpis: CommandCenterKpis;
+  dailyBrief: string;
+  pinnedBrands: readonly CommandCenterPinnedBrand[];
+  activityFeed: readonly CommandCenterActivityItem[];
+  riskRadar: readonly CommandCenterRiskBrand[];
+}

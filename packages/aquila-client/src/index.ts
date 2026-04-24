@@ -7,7 +7,14 @@
 import type {
   ApiKey,
   BrandDna,
+  CommandCenter,
+  CommandCenterActivityItem,
+  CommandCenterActivityType,
+  CommandCenterPinnedBrand,
+  CommandCenterRiskBrand,
   DnaTwin,
+  KpiTrend,
+  KpiTrendDirection,
   OrgUsage,
   Organization,
   Paginated,
@@ -72,6 +79,10 @@ export interface AquilaClient {
   // -- AQ-3 · usage metering --
   /** Aggregated usage counters for a given org + period. */
   getOrgUsage(orgSlug: string, period?: UsagePeriodLabel): Promise<OrgUsage>;
+
+  // -- W13-1 · command center (portal home) --
+  /** Unified dashboard payload: KPIs + daily brief + pinned + activity + risk. */
+  getCommandCenter(): Promise<CommandCenter>;
 }
 
 interface AquilaUsageWire {
@@ -101,6 +112,101 @@ interface AquilaUsageWire {
     source: UsageLlm['source'];
   };
   generated_at: string;
+}
+
+export interface KpiTrendWire {
+  value: number;
+  delta_pct: number | null;
+  direction: KpiTrendDirection;
+}
+
+export interface CommandCenterPinnedBrandWire {
+  brand_id: string;
+  tagline: string | null;
+  url: string | null;
+  palette: readonly string[] | null;
+  last_run_at: string | null;
+  ig_followers: number | null;
+  consistency: number | null;
+}
+
+export interface CommandCenterActivityItemWire {
+  type: CommandCenterActivityType;
+  brand_id: string;
+  kind?: string;
+  status?: string;
+  ts: string | null;
+}
+
+export interface CommandCenterRiskBrandWire {
+  brand_id: string;
+  tagline: string | null;
+  consistency: number | null;
+  days_stale: number;
+  reason: string;
+}
+
+export interface CommandCenterWire {
+  generated_at: string;
+  kpis: {
+    brands_tracked: KpiTrendWire;
+    changes_24h: KpiTrendWire;
+    runs_7d: KpiTrendWire;
+    risk_brands: KpiTrendWire;
+  };
+  daily_brief: string;
+  pinned_brands: readonly CommandCenterPinnedBrandWire[];
+  activity_feed: readonly CommandCenterActivityItemWire[];
+  risk_radar: readonly CommandCenterRiskBrandWire[];
+}
+
+function toKpiTrend(wire: KpiTrendWire): KpiTrend {
+  return { value: wire.value, deltaPct: wire.delta_pct, direction: wire.direction };
+}
+
+function toPinnedBrand(wire: CommandCenterPinnedBrandWire): CommandCenterPinnedBrand {
+  return {
+    brandId: wire.brand_id,
+    tagline: wire.tagline,
+    url: wire.url,
+    palette: wire.palette ?? [],
+    lastRunAt: wire.last_run_at,
+    igFollowers: wire.ig_followers,
+    consistency: wire.consistency,
+  };
+}
+
+function toActivityItem(wire: CommandCenterActivityItemWire): CommandCenterActivityItem {
+  const out: CommandCenterActivityItem = { type: wire.type, brandId: wire.brand_id, ts: wire.ts };
+  if (wire.kind !== undefined) out.kind = wire.kind;
+  if (wire.status !== undefined) out.status = wire.status;
+  return out;
+}
+
+function toRiskBrand(wire: CommandCenterRiskBrandWire): CommandCenterRiskBrand {
+  return {
+    brandId: wire.brand_id,
+    tagline: wire.tagline,
+    consistency: wire.consistency,
+    daysStale: wire.days_stale,
+    reason: wire.reason,
+  };
+}
+
+export function toCommandCenter(wire: CommandCenterWire): CommandCenter {
+  return {
+    generatedAt: wire.generated_at,
+    kpis: {
+      brandsTracked: toKpiTrend(wire.kpis.brands_tracked),
+      changes24h: toKpiTrend(wire.kpis.changes_24h),
+      runs7d: toKpiTrend(wire.kpis.runs_7d),
+      riskBrands: toKpiTrend(wire.kpis.risk_brands),
+    },
+    dailyBrief: wire.daily_brief,
+    pinnedBrands: wire.pinned_brands.map(toPinnedBrand),
+    activityFeed: wire.activity_feed.map(toActivityItem),
+    riskRadar: wire.risk_radar.map(toRiskBrand),
+  };
 }
 
 function toOrgUsage(wire: AquilaUsageWire): OrgUsage {
@@ -301,13 +407,29 @@ export function createAquilaClient(config: AquilaClientConfig): AquilaClient {
       );
       return toOrgUsage(wire);
     },
+
+    async getCommandCenter() {
+      const wire = await fetchJson<CommandCenterWire>(`${baseUrl}/portal/command-center`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${apiKey}`, 'X-Org-Slug': orgSlug },
+      });
+      return toCommandCenter(wire);
+    },
   };
 }
 
 export type {
   ApiKey,
   BrandDna,
+  CommandCenter,
+  CommandCenterActivityItem,
+  CommandCenterActivityType,
+  CommandCenterKpis,
+  CommandCenterPinnedBrand,
+  CommandCenterRiskBrand,
   DnaTwin,
+  KpiTrend,
+  KpiTrendDirection,
   OrgUsage,
   Organization,
   Paginated,

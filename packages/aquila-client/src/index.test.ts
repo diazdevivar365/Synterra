@@ -188,3 +188,145 @@ describe('@synterra/aquila-client — HTTP calls', () => {
     expect(runUrl).toContain('limit=20');
   });
 });
+
+describe('@synterra/aquila-client — getCommandCenter', () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchMock = mockFetch({
+      '/portal/command-center': {
+        status: 200,
+        body: {
+          generated_at: '2026-04-24T00:00:00Z',
+          kpis: {
+            brands_tracked: { value: 12, delta_pct: null, direction: 'flat' },
+            changes_24h: { value: 3, delta_pct: 50.0, direction: 'up' },
+            runs_7d: { value: 24, delta_pct: -10.0, direction: 'down' },
+            risk_brands: { value: 2, delta_pct: null, direction: 'flat' },
+          },
+          daily_brief: 'Jornada activa. 3 changes en toteme + cult-gaia.',
+          pinned_brands: [
+            {
+              brand_id: 'demo__toteme',
+              tagline: 'TOTEME',
+              url: 'https://toteme-studio.com/',
+              palette: ['#000000', '#ffffff'],
+              last_run_at: '2026-04-23T22:00:00Z',
+              ig_followers: 1200000,
+              consistency: 8,
+            },
+          ],
+          activity_feed: [
+            {
+              type: 'change',
+              brand_id: 'demo__toteme',
+              kind: 'homepage_copy',
+              ts: '2026-04-24T00:31:45Z',
+            },
+            {
+              type: 'run_done',
+              brand_id: 'demo__ganni',
+              status: 'done',
+              ts: '2026-04-23T23:50:00Z',
+            },
+          ],
+          risk_radar: [
+            {
+              brand_id: 'demo__by-far',
+              tagline: null,
+              consistency: 3,
+              days_stale: 45,
+              reason: 'stale >30d',
+            },
+          ],
+        },
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('maps snake_case wire → camelCase domain and uses apiKey bearer', async () => {
+    const client = createAquilaClient(baseConfig);
+    const cc = await client.getCommandCenter();
+
+    expect(cc.generatedAt).toBe('2026-04-24T00:00:00Z');
+    expect(cc.kpis.brandsTracked).toEqual({ value: 12, deltaPct: null, direction: 'flat' });
+    expect(cc.kpis.changes24h).toEqual({ value: 3, deltaPct: 50.0, direction: 'up' });
+    expect(cc.kpis.runs7d.direction).toBe('down');
+    expect(cc.kpis.riskBrands.value).toBe(2);
+    expect(cc.dailyBrief).toMatch(/Jornada activa/);
+
+    expect(cc.pinnedBrands).toHaveLength(1);
+    expect(cc.pinnedBrands[0]).toEqual({
+      brandId: 'demo__toteme',
+      tagline: 'TOTEME',
+      url: 'https://toteme-studio.com/',
+      palette: ['#000000', '#ffffff'],
+      lastRunAt: '2026-04-23T22:00:00Z',
+      igFollowers: 1200000,
+      consistency: 8,
+    });
+
+    expect(cc.activityFeed[0]).toMatchObject({
+      type: 'change',
+      brandId: 'demo__toteme',
+      kind: 'homepage_copy',
+    });
+    expect(cc.activityFeed[1]).toMatchObject({ type: 'run_done', status: 'done' });
+
+    expect(cc.riskRadar[0]).toEqual({
+      brandId: 'demo__by-far',
+      tagline: null,
+      consistency: 3,
+      daysStale: 45,
+      reason: 'stale >30d',
+    });
+
+    const calls = fetchMock.mock.calls as unknown[][];
+    const init = findCallInit(calls, (u) => u.includes('/portal/command-center'));
+    expect(init?.headers).toMatchObject({
+      Authorization: 'Bearer test-org-key',
+      'X-Org-Slug': 'acme',
+    });
+  });
+
+  it('defaults palette to empty array when wire payload is null', async () => {
+    fetchMock = mockFetch({
+      '/portal/command-center': {
+        status: 200,
+        body: {
+          generated_at: '2026-04-24T00:00:00Z',
+          kpis: {
+            brands_tracked: { value: 0, delta_pct: null, direction: 'flat' },
+            changes_24h: { value: 0, delta_pct: null, direction: 'flat' },
+            runs_7d: { value: 0, delta_pct: null, direction: 'flat' },
+            risk_brands: { value: 0, delta_pct: null, direction: 'flat' },
+          },
+          daily_brief: '',
+          pinned_brands: [
+            {
+              brand_id: 'demo__x',
+              tagline: null,
+              url: null,
+              palette: null,
+              last_run_at: null,
+              ig_followers: null,
+              consistency: null,
+            },
+          ],
+          activity_feed: [],
+          risk_radar: [],
+        },
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = createAquilaClient(baseConfig);
+    const cc = await client.getCommandCenter();
+    expect(cc.pinnedBrands[0]!.palette).toEqual([]);
+  });
+});
