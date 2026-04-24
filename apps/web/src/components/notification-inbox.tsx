@@ -43,7 +43,12 @@ function severityDot(severity?: string): string {
   return 'bg-blue-400';
 }
 
-export function NotificationInbox() {
+interface Props {
+  /** Current workspace slug — used by the "See all" footer link. */
+  workspaceSlug: string;
+}
+
+export function NotificationInbox({ workspaceSlug }: Props) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
@@ -147,7 +152,7 @@ export function NotificationInbox() {
             )}
           </div>
 
-          <ul className="max-h-96 overflow-y-auto">
+          <ul className="max-h-80 overflow-y-auto">
             {items.length === 0 && (
               <li className="text-muted-fg px-4 py-8 text-center text-sm">No notifications yet</li>
             )}
@@ -198,6 +203,14 @@ export function NotificationInbox() {
               </li>
             ))}
           </ul>
+
+          <a
+            href={`/${workspaceSlug}/activity`}
+            onClick={() => setOpen(false)}
+            className="border-border text-muted-fg hover:text-fg block border-t px-4 py-2.5 text-center font-mono text-[10px] uppercase tracking-wider transition-colors"
+          >
+            See full activity feed →
+          </a>
         </div>
       )}
     </div>

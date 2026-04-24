@@ -239,7 +239,7 @@ export default async function WorkspaceLayout({
               <WorkspaceSwitcher current={current} options={rows} />
             </div>
             <ChevronDown className="text-muted-fg h-3.5 w-3.5 shrink-0" />
-            <NotificationInbox />
+            <NotificationInbox workspaceSlug={slug} />
           </div>
 
           {/* Navigation */}
