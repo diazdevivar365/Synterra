@@ -1,5 +1,5 @@
 import { and, eq } from 'drizzle-orm';
-import { ArrowLeft, Download, Pin } from 'lucide-react';
+import { ArrowLeft, Download, Pin, Sword } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
@@ -205,6 +205,14 @@ export default async function BrandDetailPage({ params }: Props) {
               <Download className="h-3 w-3" />
               Moodboard
             </a>
+            <Link
+              href={`/${slug}/brands/${id}/battlecards`}
+              className="bg-surface-elevated border-border hover:border-accent/60 inline-flex items-center gap-1.5 rounded border px-2.5 py-1 font-mono text-xs transition-colors duration-150"
+              title="Manage battlecards"
+            >
+              <Sword className="h-3 w-3" />
+              Battlecards
+            </Link>
           </nav>
         </div>
       </div>
@@ -322,18 +330,40 @@ export default async function BrandDetailPage({ params }: Props) {
                       : q.status === 'issue'
                         ? 'bg-danger'
                         : 'bg-surface-elevated border-border border';
+                  const auditedLabel = q.auditedAt
+                    ? new Date(q.auditedAt).toLocaleDateString()
+                    : null;
                   return (
                     <div key={field} className="flex items-start gap-2.5">
                       <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${dot}`} />
-                      <div className="min-w-0">
-                        <p className="text-fg text-xs font-medium capitalize">{field}</p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <p className="text-fg text-xs font-medium capitalize">
+                            {field.replace(/_/g, ' ')}
+                          </p>
+                          <span className="text-muted-fg shrink-0 font-mono text-[10px] uppercase">
+                            {q.status}
+                          </span>
+                        </div>
                         {q.reason && (
                           <p className="text-muted-fg line-clamp-2 text-[10px]">{q.reason}</p>
                         )}
+                        {q.actionTaken && (
+                          <p className="text-muted-fg mt-0.5 text-[10px]">
+                            <span className="font-mono uppercase">action:</span> {q.actionTaken}
+                            {q.removedCount > 0 && (
+                              <span className="text-muted-fg/70"> ({q.removedCount} removed)</span>
+                            )}
+                          </p>
+                        )}
+                        {(q.auditSource ?? auditedLabel) && (
+                          <p className="text-muted-fg/70 mt-0.5 font-mono text-[9px]">
+                            {q.auditSource ?? ''}
+                            {q.auditSource && auditedLabel ? ' · ' : ''}
+                            {auditedLabel ?? ''}
+                          </p>
+                        )}
                       </div>
-                      <span className="text-muted-fg ml-auto shrink-0 font-mono text-[10px] uppercase">
-                        {q.status}
-                      </span>
                     </div>
                   );
                 })}

@@ -6,6 +6,7 @@ import { brandPins, workspaceMembers, workspaces } from '@synterra/db';
 import { Button } from '@synterra/ui';
 
 import { BrandCard } from '@/components/brand-card';
+import { BrandSearch } from '@/components/brand-search';
 import { getBrandsForWorkspace } from '@/lib/brands';
 import { db } from '@/lib/db';
 import { getWorkspaceContext } from '@/lib/workspace-context';
@@ -65,6 +66,10 @@ export default async function BrandsPage({ params }: Props) {
           <Plus className="h-3.5 w-3.5" />
           Add Brand
         </Button>
+      </div>
+
+      <div className="mb-6">
+        <BrandSearch workspaceSlug={slug} />
       </div>
 
       {brands.length === 0 ? (

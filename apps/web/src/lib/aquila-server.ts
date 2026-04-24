@@ -67,13 +67,21 @@ async function getCredentials(workspaceId: string): Promise<{ apiKey: string } |
   }
 }
 
-export async function aquilaFetchRaw(workspaceId: string, path: string): Promise<Response | null> {
+export async function aquilaFetchRaw(
+  workspaceId: string,
+  path: string,
+  init?: RequestInit,
+): Promise<Response | null> {
   const creds = await getCredentials(workspaceId);
   if (!creds) return null;
   try {
     const token = await getServiceToken(workspaceId, creds.apiKey);
     const res = await fetch(`${BASE}${path}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      ...init,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(init?.headers as Record<string, string> | undefined),
+      },
       cache: 'no-store',
     });
     if (!res.ok) return null;

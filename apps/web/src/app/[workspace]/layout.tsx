@@ -16,6 +16,7 @@ import {
   LineChart,
   Map,
   MessageCircle,
+  Share2,
   Pin,
   Plus,
   Settings,
@@ -145,6 +146,11 @@ export default async function WorkspaceLayout({
       href: `${base}/heatmap`,
       label: 'Heatmap',
       icon: <Map className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/graph`,
+      label: 'Graph',
+      icon: <Share2 className="h-4 w-4 shrink-0" />,
     },
     {
       href: `${base}/export`,

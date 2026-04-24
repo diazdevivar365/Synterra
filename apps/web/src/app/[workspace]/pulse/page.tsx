@@ -1,11 +1,13 @@
 import { and, eq } from 'drizzle-orm';
+import { Activity, ExternalLink, RefreshCw } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
 import { workspaceMembers, workspaces } from '@synterra/db';
 
+import { refreshPulseAction } from '@/actions/pulse';
 import { brandNameFromId } from '@/lib/brands';
 import { db } from '@/lib/db';
-import { getInsightsSummary, getRecentChanges } from '@/lib/insights';
+import { getMarketPulse, type PulseItem } from '@/lib/pulse';
 import { getWorkspaceContext } from '@/lib/workspace-context';
 
 interface Props {
@@ -17,23 +19,52 @@ function kindLabel(kind: string): string {
 }
 
 function kindColor(kind: string): string {
-  if (kind.includes('messaging') || kind.includes('tone')) return 'text-accent bg-accent/10';
-  if (kind.includes('visual') || kind.includes('palette') || kind.includes('logo'))
-    return 'text-purple-400 bg-purple-500/10';
-  if (kind.includes('product') || kind.includes('pricing'))
-    return 'text-orange-400 bg-orange-500/10';
-  if (kind.includes('social') || kind.includes('instagram') || kind.includes('twitter'))
-    return 'text-pink-400 bg-pink-500/10';
-  if (kind.includes('tech') || kind.includes('domain')) return 'text-teal-400 bg-teal-500/10';
-  return 'text-muted-fg bg-surface-elevated';
+  const k = kind.toLowerCase();
+  if (k.includes('messaging') || k.includes('tone') || k.includes('tagline'))
+    return 'text-accent bg-accent/10 border-accent/20';
+  if (k.includes('visual') || k.includes('palette') || k.includes('logo'))
+    return 'text-purple-400 bg-purple-500/10 border-purple-500/20';
+  if (k.includes('product') || k.includes('pricing'))
+    return 'text-orange-400 bg-orange-500/10 border-orange-500/20';
+  if (k.includes('social') || k.includes('instagram') || k.includes('twitter'))
+    return 'text-pink-400 bg-pink-500/10 border-pink-500/20';
+  if (k.includes('tech') || k.includes('domain') || k.includes('stack'))
+    return 'text-teal-400 bg-teal-500/10 border-teal-500/20';
+  return 'text-muted-fg bg-surface-elevated border-border';
 }
 
-interface FlatEvent {
-  brandId: string;
-  kind: string;
-  before: string;
-  after: string;
-  date: string;
+function importanceTone(score: number): string {
+  if (score >= 4) return 'text-red-400';
+  if (score >= 3) return 'text-orange-400';
+  if (score >= 2) return 'text-yellow-400';
+  return 'text-muted-fg';
+}
+
+function formatDate(iso: string | null): string {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    const now = Date.now();
+    const diffH = (now - d.getTime()) / 3_600_000;
+    if (diffH < 1) return `${Math.max(1, Math.round(diffH * 60))}m ago`;
+    if (diffH < 24) return `${Math.round(diffH)}h ago`;
+    if (diffH < 24 * 7) return `${Math.round(diffH / 24)}d ago`;
+    return d.toLocaleDateString();
+  } catch {
+    return iso.slice(0, 10);
+  }
+}
+
+function groupByDay(items: PulseItem[]): Map<string, PulseItem[]> {
+  const map = new Map<string, PulseItem[]>();
+  for (const it of items) {
+    const iso = it.detectedAt ?? it.scoredAt;
+    const day = iso ? iso.slice(0, 10) : 'unknown';
+    const list = map.get(day) ?? [];
+    list.push(it);
+    map.set(day, list);
+  }
+  return map;
 }
 
 export default async function PulsePage({ params }: Props) {
@@ -49,140 +80,136 @@ export default async function PulsePage({ params }: Props) {
     .then((r) => r[0] ?? null);
   if (!ws) redirect('/workspaces');
 
-  const [summary, changes] = await Promise.all([
-    getInsightsSummary(ws.id),
-    getRecentChanges(ws.id),
-  ]);
-
-  const events: FlatEvent[] = changes
-    ? changes.byBrand.flatMap((b) => b.events.map((ev) => ({ brandId: b.brandId, ...ev })))
-    : [];
-
-  events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-  const kindCounts: Record<string, number> = {};
-  for (const ev of events) {
-    kindCounts[ev.kind] = (kindCounts[ev.kind] ?? 0) + 1;
-  }
-  const topKinds = Object.entries(kindCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+  const items = (await getMarketPulse(ws.id, { limit: 60, minImportance: 1 })) ?? [];
+  const grouped = groupByDay(items);
+  const days = [...grouped.keys()].sort().reverse();
 
   return (
-    <div className="mx-auto max-w-[1200px] px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-fg text-2xl font-bold">Market Pulse</h1>
-        <p className="text-muted-fg font-mono text-xs">
-          {changes
-            ? `${changes.totalEvents} changes · last ${changes.windowDays}d`
-            : 'Brand change feed'}
-        </p>
+    <div className="mx-auto max-w-[1100px] px-6 py-8">
+      <div className="mb-6 flex items-center gap-3">
+        <Activity className="text-accent h-6 w-6" />
+        <div className="flex-1">
+          <h1 className="text-fg text-xl font-semibold">Market Pulse</h1>
+          <p className="text-muted-fg text-sm">
+            AI-scored strategic movements across {ws.name} portfolio ·{' '}
+            <span className="text-fg">{items.length}</span> events
+          </p>
+        </div>
+        <form action={refreshPulseAction}>
+          <input type="hidden" name="workspace" value={slug} />
+          <button
+            type="submit"
+            className="bg-surface-elevated border-border hover:border-accent/60 inline-flex items-center gap-1.5 rounded border px-3 py-1.5 font-mono text-xs transition-colors"
+            title="Force re-score of recent events"
+          >
+            <RefreshCw className="h-3 w-3" />
+            Refresh
+          </button>
+        </form>
       </div>
 
-      {/* Stats strip */}
-      {summary && (
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="border-border bg-surface rounded-[8px] border p-3">
-            <p className="text-muted-fg font-mono text-[10px] uppercase tracking-wider">Brands</p>
-            <p className="text-fg mt-1 text-xl font-bold tabular-nums">{summary.brandsTracked}</p>
-          </div>
-          <div className="border-border bg-surface rounded-[8px] border p-3">
-            <p className="text-muted-fg font-mono text-[10px] uppercase tracking-wider">
-              Changes (7d)
-            </p>
-            <p className="text-fg mt-1 text-xl font-bold tabular-nums">{summary.changeEvents7d}</p>
-          </div>
-          <div className="border-border bg-surface rounded-[8px] border p-3">
-            <p className="text-muted-fg font-mono text-[10px] uppercase tracking-wider">Runs</p>
-            <p className="text-fg mt-1 text-xl font-bold tabular-nums">
-              {summary.researchRunsDone}
+      {items.length === 0 ? (
+        <div className="border-border flex min-h-[260px] items-center justify-center rounded-[8px] border">
+          <div className="max-w-md text-center">
+            <p className="text-muted-fg font-mono text-sm">
+              No pulse events yet. Run brand research to detect changes, then hit Refresh to score.
             </p>
           </div>
-          <div className="border-border bg-surface rounded-[8px] border p-3">
-            <p className="text-muted-fg font-mono text-[10px] uppercase tracking-wider">Alerts</p>
-            <p
-              className={`mt-1 text-xl font-bold tabular-nums ${summary.strategicAlerts > 0 ? 'text-danger' : 'text-fg'}`}
-            >
-              {summary.strategicAlerts}
-            </p>
-          </div>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {days.map((day) => {
+            const bucket = grouped.get(day) ?? [];
+            return (
+              <section key={day}>
+                <header className="border-border mb-3 flex items-baseline gap-2 border-b pb-2">
+                  <h2 className="text-fg text-sm font-semibold">
+                    {day === 'unknown' ? 'Undated' : new Date(day).toLocaleDateString()}
+                  </h2>
+                  <span className="text-muted-fg font-mono text-[10px]">
+                    {bucket.length} event{bucket.length !== 1 ? 's' : ''}
+                  </span>
+                </header>
+                <ul className="space-y-3">
+                  {bucket.map((it) => (
+                    <li
+                      key={it.id}
+                      className="border-border bg-surface hover:border-accent/40 rounded-[8px] border p-4 transition-colors"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`font-mono text-xs ${importanceTone(it.importanceScore)}`}>
+                          ★{it.importanceScore}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-1 flex flex-wrap items-baseline gap-2">
+                            <span className="text-fg text-sm font-medium">
+                              {brandNameFromId(it.brandId)}
+                            </span>
+                            <span
+                              className={`rounded-sm border px-1.5 py-0.5 font-mono text-[10px] ${kindColor(it.kind)}`}
+                            >
+                              {kindLabel(it.kind)}
+                            </span>
+                            <span className="text-muted-fg ml-auto font-mono text-[10px]">
+                              {formatDate(it.detectedAt ?? it.scoredAt)}
+                            </span>
+                          </div>
+                          <p className="text-fg text-sm">{it.title}</p>
+                          {it.commentary && (
+                            <p className="text-muted-fg mt-1 text-xs">{it.commentary}</p>
+                          )}
+                          {(it.beforeValue ?? it.afterValue) && (
+                            <div className="text-muted-fg mt-2 flex gap-2 font-mono text-[10px]">
+                              {it.beforeValue && (
+                                <span className="line-through opacity-70">{it.beforeValue}</span>
+                              )}
+                              {it.afterValue && <span className="text-fg">→ {it.afterValue}</span>}
+                            </div>
+                          )}
+                          {it.tags.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {it.tags.slice(0, 6).map((t) => (
+                                <span
+                                  key={t}
+                                  className="border-border text-muted-fg rounded border px-1.5 py-0.5 font-mono text-[9px]"
+                                >
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {it.palette.length > 0 && (
+                            <div className="mt-2 flex gap-1">
+                              {it.palette.slice(0, 6).map((hex) => (
+                                <div
+                                  key={hex}
+                                  className="border-border/50 h-3 w-3 rounded-sm border"
+                                  style={{ backgroundColor: hex }}
+                                  title={hex}
+                                />
+                              ))}
+                            </div>
+                          )}
+                          {it.url && (
+                            <a
+                              href={it.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-accent mt-2 inline-flex items-center gap-1 font-mono text-[10px] hover:underline"
+                            >
+                              source <ExternalLink className="h-2.5 w-2.5" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
         </div>
       )}
-
-      <div className="grid gap-6 lg:grid-cols-[1fr_240px]">
-        {/* Feed */}
-        <div>
-          {events.length === 0 ? (
-            <div className="border-border flex min-h-[200px] items-center justify-center rounded-[8px] border">
-              <p className="text-muted-fg font-mono text-xs">No changes in the last 14 days.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {events.map((ev, i) => (
-                <a
-                  key={i}
-                  href={`/${slug}/brands/${ev.brandId}/changes`}
-                  className="border-border bg-surface hover:border-accent/40 block rounded-[8px] border p-4 transition-colors duration-150"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`rounded px-1.5 py-0.5 font-mono text-[9px] ${kindColor(ev.kind)}`}
-                    >
-                      {kindLabel(ev.kind)}
-                    </span>
-                    <span className="text-fg font-mono text-xs font-semibold">
-                      {brandNameFromId(ev.brandId)}
-                    </span>
-                    <span className="text-muted-fg ml-auto font-mono text-[10px]">
-                      {new Date(ev.date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                  {ev.after && <p className="text-fg mt-2 line-clamp-2 text-[11px]">{ev.after}</p>}
-                  {ev.before && ev.after && (
-                    <p className="text-muted-fg mt-1 line-clamp-1 text-[10px] line-through">
-                      {ev.before}
-                    </p>
-                  )}
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Sidebar: change type breakdown */}
-        {topKinds.length > 0 && (
-          <div>
-            <div className="border-border bg-surface rounded-[8px] border p-4">
-              <h3 className="text-muted-fg mb-4 font-mono text-[10px] uppercase tracking-wider">
-                Top Change Types
-              </h3>
-              <div className="space-y-3">
-                {topKinds.map(([kind, count]) => {
-                  const pct = Math.round((count / events.length) * 100);
-                  return (
-                    <div key={kind}>
-                      <div className="mb-1 flex items-center justify-between">
-                        <span className="text-fg font-mono text-[10px]">{kindLabel(kind)}</span>
-                        <span className="text-muted-fg font-mono text-[10px]">{count}</span>
-                      </div>
-                      <div className="bg-surface-elevated h-1 overflow-hidden rounded-full">
-                        <div
-                          className="bg-accent h-full rounded-full"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { notFound, redirect } from 'next/navigation';
 
 import { workspaceMembers, workspaces } from '@synterra/db';
 
+import { TimelineNarrate } from '@/components/timeline-narrate';
 import { getBrandById, getBrandTimeline } from '@/lib/brands';
 import { db } from '@/lib/db';
 import { getWorkspaceContext } from '@/lib/workspace-context';
@@ -75,6 +76,14 @@ export default async function TimelinePage({ params }: Props) {
           )}
         </div>
       </div>
+
+      {!fromSeed && (
+        <TimelineNarrate
+          workspaceSlug={slug}
+          brandId={id}
+          snapshotDates={brandSnapshots.map((s) => s.date)}
+        />
+      )}
 
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Research snapshots */}
