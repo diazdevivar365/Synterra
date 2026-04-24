@@ -36,8 +36,13 @@ sync_app() {
   echo "→ app (192.168.10.52)"
   # App uses a full git clone on the server — compose + traefik/promtail
   # configs are already in the repo there. Only the deploy script is pushed.
+  # Keep ~/bin/ and /opt/ in sync — the `deploysynterra` shell alias invokes
+  # /opt/deploy-synterra.sh, so shipping only to ~/bin/ leaves /opt/ stale
+  # (happened silently from 2026-04-20 → 2026-04-24, see PLAN_SYNTERRA OPS-1).
   push "$INFRA/lxc-app/deploy-synterra.sh" 192.168.10.52 /home/forgentic/bin/deploy-synterra.sh
   mark_runnable 192.168.10.52 /home/forgentic/bin/deploy-synterra.sh
+  ssh "forgentic@192.168.10.52" "cp /home/forgentic/bin/deploy-synterra.sh /opt/deploy-synterra.sh && chmod +x /opt/deploy-synterra.sh"
+  echo "  ✓ deploy-synterra.sh → 192.168.10.52:/opt/deploy-synterra.sh"
 }
 
 sync_db() {
