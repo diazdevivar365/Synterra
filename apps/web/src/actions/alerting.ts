@@ -20,10 +20,28 @@ async function resolveWorkspace(slug: string) {
     .then((r) => r[0] ?? null);
 }
 
-export async function createAlertRule(formData: FormData) {
+export async function createAlertRule(formData: FormData): Promise<void> {
   const slug = formData.get('workspace') as string;
   const ws = await resolveWorkspace(slug);
   if (!ws) return;
+
+  const actionType = formData.get('action_type') as string;
+  const actionConfig = JSON.parse((formData.get('action_config') as string) || '{}') as Record<
+    string,
+    unknown
+  >;
+
+  // Slack templates ship with a placeholder webhook_url. Substitute the user
+  // input before create — otherwise fires 4xx against hooks.slack.com/…/HERE.
+  // HTML5 `required + pattern=https://hooks.slack.com/.*` catches empty/bad
+  // input client-side; server-side guard is defense-in-depth.
+  const webhookInput = (formData.get('webhook_url') as string | null)?.trim();
+  if (actionType === 'slack') {
+    if (!webhookInput?.startsWith('https://hooks.slack.com/')) {
+      return;
+    }
+    actionConfig['webhook_url'] = webhookInput;
+  }
 
   const body = {
     name: formData.get('name') as string,
@@ -33,11 +51,8 @@ export async function createAlertRule(formData: FormData) {
       string,
       unknown
     >,
-    action_type: formData.get('action_type') as string,
-    action_config: JSON.parse((formData.get('action_config') as string) || '{}') as Record<
-      string,
-      unknown
-    >,
+    action_type: actionType,
+    action_config: actionConfig,
     enabled: true,
   };
 

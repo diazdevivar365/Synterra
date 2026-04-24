@@ -171,8 +171,10 @@ export default async function AlertsPage({ params }: Props) {
                     value={JSON.stringify(tpl.actionConfig)}
                   />
                   <input
-                    type="text"
-                    name="webhook_url_display"
+                    type="url"
+                    name="webhook_url"
+                    required={tpl.actionType === 'slack'}
+                    pattern="https://hooks\.slack\.com/.*"
                     placeholder="https://hooks.slack.com/services/..."
                     className="border-border bg-surface-elevated text-fg placeholder:text-muted-fg/50 focus:border-accent/60 min-w-0 flex-1 rounded-[4px] border px-2 py-1.5 font-mono text-[10px] focus:outline-none"
                   />
