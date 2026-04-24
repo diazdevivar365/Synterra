@@ -83,7 +83,7 @@ must complete green on a fresh clone. CI enforces this on every PR.
 
 - Conventional commits enforced (`feat(web): …`, `fix(api): …`, etc) — see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 - All PRs require green CI + `@diazdevivar365` review (see [`CODEOWNERS`](./CODEOWNERS)).
-- Active work tracker: [`tasks/todo.md`](./tasks/todo.md).
+- Active work tracker: [`../PLAN.md`](../PLAN.md) + [`../PLAN_SYNTERRA.md`](../PLAN_SYNTERRA.md).
 - Post-mortem lessons: [`tasks/lessons.md`](./tasks/lessons.md).
 
 ## License

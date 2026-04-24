@@ -28,7 +28,7 @@ Link the workstream ticket (W0-1 §G, AQ-1, etc.) so the plan stays traceable.
 - [ ] If this touches RLS-protected data: test added that proves cross-workspace denial.
 - [ ] If this touches the Aquila client: the Aquila contract version pinned in the client still matches.
 - [ ] Docs touched if public surface changed (`docs/ARCHITECTURE.md`, `docs/API.md`, `docs/SECURITY.md`, or a new `docs/ADR/`).
-- [ ] `tasks/todo.md` updated if this closes a workstream item.
+- [ ] `../PLAN.md` tracker + `../PLAN_SYNTERRA.md` updated if this closes a workstream item.
 
 ## Test plan
 
@@ -44,4 +44,4 @@ Link the workstream ticket (W0-1 §G, AQ-1, etc.) so the plan stays traceable.
 
 ## Follow-ups
 
-<!-- Anything deferred out of scope, linked to a new issue or tasks/todo.md entry. -->
+<!-- Anything deferred out of scope, linked to a new issue or entry in ../PLAN_SYNTERRA.md. -->

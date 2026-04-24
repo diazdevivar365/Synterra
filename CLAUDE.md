@@ -10,15 +10,13 @@ Este archivo carga convenciones específicas del **control-plane SaaS**. Hereda 
 
 1. `../CLAUDE.md` — ULTRA Lean rules del portfolio.
 2. `../AGENTS.md` — team de 13 agentes + routing.
-3. `docs/plan-parts/PLAN_0{1..5}_*.md` — arquitectura + workstreams (§A..§P, W0-1..W10-3). Sección es la dirección autoritativa de feature / decisión. Citar en PR bodies, ADRs, commits.
-4. `tasks/todo.md` — workstream tracker vivo. Cerrar `[ ]` en el mismo PR.
-5. `tasks/lessons.md` — patrones aprendidos. Leer al inicio; append al corregir.
-6. `PlanTracking.md` — status board. **Protocolo mandatorio**:
-   - Antes de empezar: set status `en curso 🔄`.
-   - Al completar (acceptance criteria verificado): set `hecha ✅`.
+3. `../PLAN.md` — index unified + workstream tracker W0-W17 (fuente de verdad status). Protocolo: al iniciar workstream → `en curso 🔄`. Al completar → `hecha ✅`.
+4. `../PLAN_SYNTERRA.md` — workstreams control-plane detalle W11-W17 + frontend handoff. Cerrar `[ ]` en el mismo PR que shippea.
+5. `../PLAN_ROADMAP.md` — sprints cross-project (B/D/E/F) + invariantes + cross-refs.
+6. `tasks/lessons.md` — patrones aprendidos. Leer al inicio; append al corregir.
 7. `CONTRIBUTING.md` — commit convention + hooks + troubleshooting.
 
-PRs que contradigan plan-parts sin ADR en `docs/ADR/` → rechazados.
+PRs que contradigan `PLAN_*.md` sin ADR en `docs/ADR/` → rechazados.
 
 ---
 
@@ -30,7 +28,7 @@ PRs que contradigan plan-parts sin ADR en `docs/ADR/` → rechazados.
 - **Aquila** = data plane: research workers, Neo4j graph, scraping, LLM enrichment.
 - Comunicación vía `@synterra/aquila-client` sobre HTTP versionado. **Nunca importar código de Aquila** — ni tipos.
 - Contract version pinned (`AQ-1`, `AQ-2`, `AQ-3`, `AQ-4`). Mismatch → throw at factory time.
-- Nueva dependencia de Aquila → AQ-N en `../Aquila/tasks/todo.md` + block PR hasta que Aquila side merge.
+- Nueva dependencia de Aquila → AQ-N en `../PLAN_AQUILA.md` + block PR hasta que Aquila side merge.
 
 ### 2. Cada fila tiene `workspace_id`
 
@@ -43,7 +41,7 @@ Multi-tenancy row-level, Postgres RLS + disciplina query-layer:
 ### 3. "Forgentic" es la marca pública; "Synterra" es el codename
 
 - Surface usuario (`apps/web/**`, marketing, emails, UI copy) dice "Forgentic".
-- "Synterra" sólo en npm scope (`@synterra/*`), `plan-parts/`, nombres de agente, commit messages internos.
+- "Synterra" sólo en npm scope (`@synterra/*`), `PLAN_*.md`, nombres de agente, commit messages internos.
 - Test `apps/web/src/app/page.test.tsx` asserta zero `synterra` en HTML rendereado.
 - `scripts/check-brand.sh` repo-wide grep gate en CI.
 
@@ -87,7 +85,7 @@ Copy UI por defecto ES-AR. EN como secundario (fallback chain). `lessons.md` en 
 
 - Conventional commits mandatory (enforced por `commitlint.config.cjs` en commit-msg + CI).
 - 1 PR = 1 workstream item (`W0-1 §G`, `AQ-1`). Referenciar workstream en título o body.
-- `tasks/todo.md` actualizado en el mismo PR que cierra workstream.
+- `../PLAN.md` + `../PLAN_SYNTERRA.md` actualizados en el mismo PR que cierra workstream.
 - Screenshots para UI changes; entry en `tasks/lessons.md` para cualquier cosa sorpresa.
 
 ## Testing
@@ -99,7 +97,7 @@ Copy UI por defecto ES-AR. EN como secundario (fallback chain). `lessons.md` en 
 
 ## Cuando te trabes
 
-1. Re-leer sección `plan-parts/` referenciada por la task.
+1. Re-leer sección de `../PLAN_SYNTERRA.md` referenciada por la task.
 2. Re-leer invariantes de este archivo.
 3. Mirar equivalente en Aquila (el data-plane resolvió mayoría de estos problemas).
 4. Si seguís trabado: `docs/ADR/` con decision points + esperar architect sign-off.

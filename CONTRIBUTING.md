@@ -176,7 +176,7 @@ git push --force-with-lease
 2. `pnpm typecheck` — green
 3. `pnpm test` — green
 4. If UI change: `pnpm test:e2e` locally against a running `pnpm dev`
-5. `tasks/todo.md` updated if closing a workstream item
+5. `../PLAN.md` tracker + `../PLAN_SYNTERRA.md` updated if closing a workstream item
 6. PR description follows `.github/PULL_REQUEST_TEMPLATE.md`
 7. Branch is rebased on latest `main` (not merged)
 
