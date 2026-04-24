@@ -7,7 +7,7 @@ import { workspaceMembers, workspaces } from '@synterra/db';
 import { createSchedule, deleteSchedule, toggleSchedule } from '@/actions/schedules';
 import { brandNameFromId, getBrandsForWorkspace } from '@/lib/brands';
 import { db } from '@/lib/db';
-import { getSchedules } from '@/lib/schedules';
+import { getScheduleChanges, getSchedules, type BrandChangeEvent } from '@/lib/schedules';
 import { getWorkspaceContext } from '@/lib/workspace-context';
 
 interface Props {
@@ -21,6 +21,35 @@ const CADENCE_OPTIONS = [
   { label: 'Weekly', value: 168 },
   { label: 'Monthly', value: 720 },
 ];
+
+function ChangeTimeline({ events }: { events: BrandChangeEvent[] }) {
+  if (events.length === 0) return null;
+  return (
+    <div className="border-border/40 mt-3 border-t pt-3">
+      <p className="text-muted-fg mb-2 font-mono text-[10px] uppercase tracking-wider">
+        Recent changes
+      </p>
+      <ul className="space-y-1">
+        {events.map((ev) => (
+          <li key={ev.id} className="flex items-center gap-3 font-mono text-[10px]">
+            <span className="bg-surface-elevated text-muted-fg w-28 shrink-0 rounded px-1.5 py-0.5 uppercase tracking-wider">
+              {ev.kind.replace(/_/g, ' ')}
+            </span>
+            <span className="text-fg min-w-0 flex-1 truncate">
+              {ev.afterValue ?? ev.beforeValue ?? '—'}
+            </span>
+            <span className="text-muted-fg shrink-0">
+              {new Date(ev.detectedAt).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              })}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export default async function SchedulesPage({ params }: Props) {
   const { workspace: slug } = await params;
@@ -43,6 +72,15 @@ export default async function SchedulesPage({ params }: Props) {
   const { brands } = brandsResult;
   const scheduledBrandIds = new Set(schedules.map((s) => s.brandId));
   const unscheduledBrands = brands.filter((b) => !scheduledBrandIds.has(b.id));
+
+  // Fetch last 5 changes for each scheduled brand (bounded parallelism).
+  const changesByBrand = new Map<string, BrandChangeEvent[]>();
+  await Promise.all(
+    schedules.slice(0, 20).map(async (s) => {
+      const evs = await getScheduleChanges(ws.id, s.brandId, 5);
+      changesByBrand.set(s.brandId, evs);
+    }),
+  );
 
   return (
     <div className="mx-auto max-w-[1200px] px-6 py-8">
@@ -136,6 +174,8 @@ export default async function SchedulesPage({ params }: Props) {
                       </form>
                     </div>
                   </div>
+
+                  <ChangeTimeline events={changesByBrand.get(sched.brandId) ?? []} />
                 </div>
               ))}
             </div>
