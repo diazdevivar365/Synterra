@@ -23,6 +23,7 @@ import {
   Sparkle,
   Sword,
   Swords,
+  Workflow as WorkflowIcon,
   Zap,
 } from 'lucide-react';
 import { cookies } from 'next/headers';
@@ -154,6 +155,11 @@ export default async function WorkspaceLayout({
       href: `${base}/alerts`,
       label: 'Alerts',
       icon: <BellRing className="h-4 w-4 shrink-0" />,
+    },
+    {
+      href: `${base}/automations`,
+      label: 'Automations',
+      icon: <WorkflowIcon className="h-4 w-4 shrink-0" />,
     },
     {
       href: `${base}/schedules`,
