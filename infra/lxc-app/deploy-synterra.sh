@@ -56,9 +56,25 @@ source "$SECRET_FILE"
 
 # ── Pull latest code ─────────────────────────────────────────────────────────
 # Skips if no remote configured (e.g. first deploy via rsync bootstrap).
+#
+# Assert origin URL matches expected Synterra repo before pulling. On
+# 2026-04-24 origin was silently pointing at the monorepo root
+# (diazdevivar365/Forgentic.git) after a manual misconfiguration, which
+# caused `git pull --ff-only` to abort with a cryptic "Not possible to
+# fast-forward" message. Fail fast + legibly instead. See PLAN_SYNTERRA.md
+# OPS-1. Override with SKIP_ORIGIN_ASSERT=1 for bootstrap / recovery.
+EXPECTED_ORIGIN_PATTERN="${EXPECTED_ORIGIN_PATTERN:-diazdevivar365/Synterra(\.git)?$}"
 echo "→ Pulling latest code..."
 cd "$REPO_DIR"
 if git remote get-url origin &>/dev/null; then
+  ORIGIN_URL=$(git remote get-url origin)
+  if [[ "${SKIP_ORIGIN_ASSERT:-0}" != "1" ]] && ! [[ "$ORIGIN_URL" =~ $EXPECTED_ORIGIN_PATTERN ]]; then
+    echo "  ✗ origin URL mismatch: $ORIGIN_URL" >&2
+    echo "    expected match: $EXPECTED_ORIGIN_PATTERN" >&2
+    echo "    recovery: git remote set-url origin git@github.com:diazdevivar365/Synterra.git && git fetch origin && git reset --hard origin/main" >&2
+    echo "    bypass (bootstrap only): SKIP_ORIGIN_ASSERT=1 $0" >&2
+    exit 1
+  fi
   git pull --ff-only
 else
   echo "  (no git remote — skipping pull, using current working tree)"
